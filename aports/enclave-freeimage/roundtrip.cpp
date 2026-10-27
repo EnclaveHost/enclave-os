@@ -1,5 +1,6 @@
 #include <FreeImage.h>
 #include <cassert>
+#include <cstdio>
 #include <cstdint>
 int main() {
     FreeImage_Initialise();

@@ -1,0 +1,72 @@
+name: OpenHV RV64 musl runtime port
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: dotnet/runtime
+          ref: 152ad965267240a3e23b6b3a24761e37aecc8c79
+          path: runtime
+      - name: Prepare native compiler and the target musl sysroot
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-19 llvm-19 lld-19 cmake ninja-build build-essential \
+            python-is-python3 libicu-dev liblttng-ust-dev libssl-dev libkrb5-dev pigz cpio
+          mkdir -p out sysroot
+          docker run --name enclave-dotnet-sysroot --platform linux/riscv64 --cpus=2 --memory=4g --memory-swap=4g \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh -ec 'apk add --no-cache build-base linux-headers icu-dev openssl-dev krb5-dev libunwind-dev lttng-ust-dev zlib-dev'
+          docker export enclave-dotnet-sysroot | tar --no-same-owner -xf - -C sysroot
+          docker rm enclave-dotnet-sysroot
+          python3 - <<'PYCODE'
+          import os,pathlib
+          root=pathlib.Path('sysroot').resolve()
+          for p in root.rglob('*'):
+              if p.is_symlink():
+                  target=os.readlink(p)
+                  if target.startswith('/'):
+                      relative=os.path.relpath(root/target.lstrip('/'),p.parent)
+                      p.unlink();p.symlink_to(relative)
+          PYCODE
+      - name: Cross-build the pinned runtime candidate
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+          DOTNET_PROCESSOR_COUNT: '2'
+          CMAKE_BUILD_PARALLEL_LEVEL: '2'
+        run: |
+          export ROOTFS_DIR="$PWD/sysroot"
+          cd runtime
+          ./build.sh --subset clr+libs+host+packs --configuration Release --cross --arch riscv64 \
+            --os linux-musl --clang19 --bootstrap --numproc 2 /p:BuildInParallel=false \
+            >../out/build.log 2>&1
+          python3 - <<'PYCODE'
+          import json,pathlib,subprocess
+          pathlib.Path('../out/provenance.json').write_text(json.dumps({
+              'repository':'dotnet/runtime',
+              'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'target':'linux-musl-riscv64', 'releaseQualified':False,
+              'purpose':'OpenHV RV64 managed runtime port candidate'
+          },indent=2)+'\n')
+          PYCODE
+          mkdir -p ../out/packages
+          cp artifacts/packages/Release/Shipping/dotnet-runtime-*.tar.gz ../out/packages/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: dotnet-riscv64-candidate
+          path: |
+            out/
+            runtime/artifacts/log/Release/
+          retention-days: 7
