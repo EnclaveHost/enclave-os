@@ -4,9 +4,10 @@ import argparse, hashlib, json, pathlib, shutil, subprocess, urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def run(*args): subprocess.run(args,check=True)
 def main():
+    profile=json.loads((ROOT/'profiles/common.json').read_text())
     p=argparse.ArgumentParser()
     p.add_argument('--arch',choices=['x86_64','riscv64'],required=True)
-    p.add_argument('--preset',choices=['minimal','desktop','full'],required=True)
+    p.add_argument('--preset',choices=list(profile['presets']),default=profile['default_preset'],help='default: full shared image; minimal/desktop are explicit development subsets')
     p.add_argument('--repository',type=pathlib.Path,required=True,help='signed local repository parent (contains architecture dirs)')
     p.add_argument('--key',type=pathlib.Path,required=True,help='public APK signing key ONLY')
     p.add_argument('--output',type=pathlib.Path,required=True)
@@ -14,7 +15,6 @@ def main():
     if out.exists(): p.error('output must not exist; refusing to modify an existing root')
     if not a.key.name.endswith('.pub'): p.error('only a public signing key may enter an image')
     lock=json.loads((ROOT/'profiles/upstream-lock.json').read_text())
-    profile=json.loads((ROOT/'profiles/common.json').read_text())
     platform=json.loads((ROOT/f'profiles/{a.arch}.json').read_text())
     missing=[feature for feature in profile['presets'][a.preset] if feature not in profile['features']]
     if missing:p.error('Full feature parity is not qualified: '+', '.join(missing))

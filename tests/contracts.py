@@ -8,6 +8,8 @@ for item in manifest['files']:
 assert not (root/'reference/risc-box/guest/overlay/root/.ssh/authorized_keys').exists()
 profile=json.loads((root/'profiles/common.json').read_text())
 assert profile['resolution']==[960,600]
+assert profile['default_preset']=='full'
+assert {'freedoom','openarena','librequake','visual-pinball-x','openhv'}<=set(profile['presets'][profile['default_preset']])
 assert {'browser','freedoom','agent','web-desktop'}<=set(profile['presets']['desktop'])
 assert set(profile['presets']['minimal'])=={'core'}
 assert set(profile['pending_features'])<=set(profile['presets']['full'])
@@ -38,4 +40,9 @@ with tempfile.TemporaryDirectory() as td:
     subprocess.run(['python3',str(root/'tools/stage-aports.py'),td],check=True)
     blocked=subprocess.run(['python3',str(root/'tools/assemble.py'),'--arch','x86_64','--preset','full','--repository',td,'--key',td+'/test.pub','--output',td+'/root'],capture_output=True,text=True)
     assert blocked.returncode and 'Full feature parity is not qualified' in blocked.stderr
+    for arch in ('x86_64','riscv64'):
+        default=subprocess.run(['python3',str(root/'tools/assemble.py'),'--arch',arch,'--repository',td,'--key',td+'/test.pub','--output',td+'/root'],capture_output=True,text=True)
+        assert default.returncode and 'Full feature parity is not qualified' in default.stderr
+        assert all(game in default.stderr for game in ('openarena','librequake','visual-pinball-x','openhv'))
+        assert not (pathlib.Path(td)/'root').exists()
 print(f'PASS: {len(manifest["files"])} provenance hashes, shared feature graph, baseline policy, source archive checksums')

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "base": "alpine-3.24",
+  "default_preset": "full",
   "resolution": [
     960,
     600

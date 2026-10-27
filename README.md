@@ -23,11 +23,12 @@ The migration keeps the useful RISC optimizations: a tiny GTK theme, Fluxbox, 96
 
 ## Lightweight without removing features
 
-- `minimal` contains the base OS. `desktop` adds the same desktop/browser/FreeDoom/agent/web-desktop baseline on both CPUs. `full` records the complete desired feature set and refuses assembly while any required port is missing; it cannot silently ship a reduced replacement.
+- The default image target is `full`, including all four custom games and FreeDoom on both CPUs. It refuses assembly while any required port is missing; it cannot silently ship a reduced replacement. `minimal` and `desktop` are explicitly selected development subsets, not the shared release image.
 - Browser and games start on demand. There is no permanently warmed Firefox, second browser or desktop compositor.
 - Packages use native musl binaries and shared libraries. Build tools and source trees stay in the builder; `abuild` strips installed binaries. No Debian compatibility root or duplicated glibc runtime is installed.
 - The complete desktop keeps the existing 960×600 resolution and browser 30 FPS setting. This migration does not lower stream quality, remove accessibility, disable web animations or break certificate verification to save CPU.
 - Larger games, Moonlight and Shield are separate components with explicit port status. Their separation permits small images; it is **not** a decision to remove them from the final full desktop.
+- The existing x86 desktop includes custom **OpenArena, LibreQuake, Visual Pinball X and OpenHV** installations. All four are required in the replacement full image, alongside FreeDoom. Preserve their game content, launchers, input/cursor settings, audio fixes and Shield routing; substituting stock packages alone does not establish parity. “Pending” means their Alpine ports are unfinished, not that the games are absent from the existing desktop.
 - Image artifacts include an installed-package database and measured byte count. Size claims are based on these reports, not the size of the bootstrap download.
 
 ## Build and validation

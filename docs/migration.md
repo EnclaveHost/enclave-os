@@ -2,6 +2,10 @@
 
 The source import is pinned in `provenance/import.json`, including hashes and an explicit marker for uncommitted cursor candidates. Other dirty files in the source checkout were imported from the recorded Git commit, so unrelated work was not incorporated. The current deployed system was identified as Debian 13.7; its public game launchers are in `provenance/runtime-inventory.json`.
 
+The user confirmed on 2026-10-27 that the x86 image includes custom OpenArena, LibreQuake, Visual Pinball X and OpenHV installations. These are existing features to retain, not optional additions. All four already appear in the required `full` preset. Their pending status describes the Alpine migration only; the smaller measured `desktop` baseline excludes them and must not be presented as the complete replacement image.
+
+For each game, recover and pin the installed engine/content versions, custom source changes, launcher and configuration before packaging. The captured launcher inventory is not a complete backup of binaries, game assets or user settings. OpenArena's recovered source patch is in `integrations/openarena`; do not infer equivalent source recovery or working Alpine ports for the other games from the launcher inventory. Validate menu clicks, gameplay input and per-game sensitivity, non-inverted aiming where applicable, cursor restoration after exit, audio and Shield graphics routing. Visual Pinball X replaces Neverball in the retained game selection.
+
 | Component | Common implementation | Remaining qualification |
 | --- | --- | --- |
 | OS/libc/package manager | Alpine 3.24 / musl / APK for both CPUs | Boot on each real platform; syscall/kernel compatibility |
