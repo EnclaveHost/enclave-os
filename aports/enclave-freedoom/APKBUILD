@@ -5,7 +5,7 @@ pkgdesc="Enclave fbDOOM with FreeDoom Phase 1 and OPL audio"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
 license="LicenseRef-Enclave-Source-Available"
-source="$pkgname-$pkgver.tar.gz"
+source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
 license="GPL-2.0-only AND BSD-3-Clause AND LGPL-2.1-or-later"
@@ -20,4 +20,4 @@ package() {
     install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
     install -m644 COPYING.opl3 assets/COPYING.freedoom "$pkgdir/usr/share/licenses/$pkgname/"
 }
-sha512sums="8a1e4d0a8a36f7d252e7da4bd8595657f9777b7b514cf92e38bac3fd67eb0fddac461f4b3f751170f5df1c3028634f99ba0565b27c480d3f385afab0581b7abd  enclave-freedoom-0.1.0.tar.gz"
+sha512sums="3d3424c153798e9e6ab129629305f05a459a05c649af55fa80d38bfd9decbc4bffa19c80ecbd1172492e4d18a94912aa9b4143ed12eaff5576e77f5ab6e8f441  enclave-freedoom-0.1.0.tar"

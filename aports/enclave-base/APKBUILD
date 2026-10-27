@@ -5,7 +5,7 @@ pkgdesc="Shared Enclave OS configuration"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
 license="LicenseRef-Enclave-Source-Available"
-source="$pkgname-$pkgver.tar.gz"
+source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
 package() {
@@ -13,4 +13,4 @@ package() {
     cp -a etc/. "$pkgdir/etc/"
     install -m644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
-sha512sums="7d3eab259d4c471a6fd2e5b9124f27b1bd6f8f135020fd33f117999fcd7ab9f258b7cb9248b5abdfb42706902ca4480341f3ec36c5765999a000126919bcdcab  enclave-base-0.1.0.tar.gz"
+sha512sums="17b84f207cbdec0aa51b90346a09a4685651d0a4e01863f2d996f1483b3f02116c278e8639c08acd3c95a49418d1e47a2e38ec739ab477e05e47e6ba5b635ea2  enclave-base-0.1.0.tar"

@@ -33,6 +33,9 @@ for preset in minimal desktop; do
         chroot /out/root-desktop /usr/bin/python3 --version
         chroot /out/root-desktop /usr/bin/firefox-esr --version
     fi
+    if [ "$preset" = minimal ]; then
+        /src/tools/boot-payload.sh "/out/root-$preset" "$ENCLAVE_ARCH"
+    fi
     tar -czf "/out/enclave-os-$ENCLAVE_ARCH-$preset-rootfs.tar.gz" -C "/out/root-$preset" .
     rm -rf "/out/root-$preset"
 done

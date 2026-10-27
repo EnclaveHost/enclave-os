@@ -5,7 +5,7 @@ pkgdesc="Persistent authenticated desktop cursor owner"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
 license="LicenseRef-Enclave-Source-Available"
-source="$pkgname-$pkgver.tar.gz"
+source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
 depends="python3"
@@ -18,4 +18,4 @@ package() {
     install -m755 start.py supervise.py "$pkgdir/usr/libexec/enclave-os/cursor/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
-sha512sums="748fa70513d482e49bbd478d58cfc1b61d9a6c0dd334cb455ae1434fabdc7e0ddbb266704a34fee4c82f8eab8f4ecadc3c654e35abc186df87daa069afc979ff  enclave-cursor-0.1.0.tar.gz"
+sha512sums="af9fcd3abc4f2e5c3672f7c800b4d320beca223f792e8de8b4845c47f42d5934aadfc61b4d00eef7c71f883e32621fc8bf5d8edfbeccc5ed688aa819310340df  enclave-cursor-0.1.0.tar"

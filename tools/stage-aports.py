@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Reproducible component archives; verify committed checksums before building."""
-import argparse, gzip, hashlib, io, pathlib, shutil, tarfile
+import argparse, hashlib, io, pathlib, shutil, tarfile
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 def archive(component):
@@ -15,13 +15,13 @@ def archive(component):
             if p.is_file():
                 with p.open('rb') as src: tar.addfile(info, src)
             else: tar.addfile(info)
-    return gzip.compress(data.getvalue(), compresslevel=9, mtime=0)
+    return data.getvalue()
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('destination', type=pathlib.Path)
     parser.add_argument('--update-checksums', action='store_true');args=parser.parse_args()
     for component in ('base','cursor','desktop','freedoom'):
-        name=f'enclave-{component}'; filename=f'{name}-0.1.0.tar.gz'
+        name=f'enclave-{component}'; filename=f'{name}-0.1.0.tar'
         data=archive(component); checksum=hashlib.sha512(data).hexdigest()
         recipe=ROOT/'aports'/name/'APKBUILD'; text=recipe.read_text()
         expected=f'sha512sums="{checksum}  {filename}"\n'

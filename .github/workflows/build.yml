@@ -32,6 +32,11 @@ jobs:
             -e ENCLAVE_ARCH=${{ matrix.arch }} -v "$PWD:/src:ro" -v "$PWD/out:/out" \
             alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
             /bin/sh /src/tools/ci-build.sh
+      - name: Boot shared minimal OS with real kernels on both CPU architectures
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-system-misc
+          python3 tests/boot-smoke.py ${{ matrix.arch }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -43,4 +48,5 @@ jobs:
             out/*.apk-installed
             out/*.tar.gz
             out/SHA256SUMS
+            out/boot.log
           retention-days: 7
