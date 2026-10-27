@@ -22,7 +22,7 @@ prepare() {
 }
 build() {
     export PATH="$PATH:/usr/lib/llvm22/bin"
-    meson setup build --prefix=/usr --libdir=lib/enclave-shield --buildtype=release \
+    meson setup build --prefix=/usr --libdir=lib/enclave-shield --datadir=share/enclave-shield --buildtype=release \
         -Dgallium-drivers=llvmpipe,zink -Dvulkan-drivers=swrast -Dplatforms=x11 \
         -Dglx=dri -Degl=enabled -Dglvnd=disabled -Dgbm=enabled \
         -Dgallium-va=disabled -Dgallium-vdpau=disabled -Dgallium-xa=disabled \
@@ -34,7 +34,7 @@ package() {
     mkdir -p "$pkgdir/usr/share/enclave-shield/vulkan"
     python3 - "$pkgdir" <<'PY'
 import json,pathlib,sys
-root=pathlib.Path(sys.argv[1]); directory=root/'usr/share/vulkan/icd.d'
+root=pathlib.Path(sys.argv[1]); directory=root/'usr/share/enclave-shield/vulkan/icd.d'
 files=list(directory.glob('lvp_icd*.json'));assert len(files)==1,files
 icd=json.loads(files[0].read_text())
 icd['ICD']['library_path']='/usr/lib/enclave-shield/libvulkan_lvp.so'
