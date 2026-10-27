@@ -12,12 +12,17 @@
                 return std::make_unique<ObjectLinkingLayer>(
                    ES, ExitOnErr(llvm::jitlink::InProcessMemoryManager::Create()));
              })
-@@ -554,7 +558,7 @@
+@@ -554,7 +558,12 @@
     gallivm->cache = cache;
  
     gallivm->_ts_context = context->ref;
 -   gallivm->context = LLVMOrcThreadSafeContextGetContext(context->ref);
-+   gallivm->context = llvm::wrap(::unwrap(context->ref)->getContext());
++#if LLVM_VERSION_MAJOR >= 22
++   gallivm->context = ::unwrap(context->ref)->withContextDo(
++      [](llvm::LLVMContext *ctx) { return llvm::wrap(ctx); });
++#else
++   gallivm->context = LLVMOrcThreadSafeContextGetContext(context->ref);
++#endif
  
     gallivm->module_name = LPJit::get_unique_name(name);
     gallivm->module = LLVMModuleCreateWithNameInContext(gallivm->module_name,

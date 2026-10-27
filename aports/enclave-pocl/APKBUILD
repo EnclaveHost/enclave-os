@@ -6,7 +6,7 @@ pkgdesc="Shield CPU OpenCL fallback with event, half and vectorizer fixes"
 url="https://portablecl.org"
 arch="x86_64 riscv64"
 license="MIT"
-makedepends="cmake samurai clang18 clang18-libclang llvm18-dev llvm18-static llvm18-test-utils hwloc-dev zstd-dev
+makedepends="cmake samurai clang18 clang18-libclang llvm18-dev llvm18-static llvm18-test-utils llvm18-gtest hwloc-dev zstd-dev
  libxml2-dev opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3"
 depends="clang18 enclave-llvm-spirv18"
 ldpath="/usr/lib/enclave-pocl/lib:/usr/lib/enclave-pocl/lib/pocl"
