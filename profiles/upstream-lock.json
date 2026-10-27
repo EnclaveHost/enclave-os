@@ -9,5 +9,6 @@
     "riscv64": {
       "sha256": "9714553757e7bf645eff5dcc52bdd206f358a7bed77874842567852e8326a51d"
     }
-  }
+  },
+  "native_boot_harness_container": "alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d"
 }
