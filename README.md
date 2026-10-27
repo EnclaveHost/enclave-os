@@ -4,6 +4,17 @@ One lightweight Alpine Linux userland for **RISC Box (riscv64)** and **KVM Box N
 
 This is the home for the VM customizations previously embedded in `EnclaveHost/enclave-apps`. It is a development distribution, **not yet a replacement for the deployed, attested KVM image**. CI builds real APKs and assembles both architectures; boot integration, Shield qualification and application ports remain release gates.
 
+## Verified footprint
+
+[The dual-architecture build and boot checks pass](https://github.com/EnclaveHost/enclave-os/actions/runs/40541819527). These are development userlands; full platform/feature parity remains work in progress.
+
+| Architecture | Minimal base, gzip | Desktop baseline, gzip |
+| --- | ---: | ---: |
+| x86-64 | 3.54 MiB | 317.13 MiB |
+| RISC-V 64 | 3.30 MiB | 290.20 MiB |
+
+The desktop figures include Firefox, custom FreeDoom, audio, noVNC, Python and Node.js. They exclude the pending Shield/streaming/game ports and production boot wrapper. See [exact sizes, checks and limitations](docs/validation-20261027.md).
+
 ## Why Alpine, and why was the native image Debian?
 
 Alpine was selected for the RISC desktop's small footprint. The native port used Debian 13 to reuse its Firefox ESR and a prebuilt Sunshine `.deb`. KVM does not require Debian. Maintaining separate application and desktop stacks would accumulate drift, so Alpine/musl is the common base here.
