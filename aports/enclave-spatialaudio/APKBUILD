@@ -1,0 +1,23 @@
+pkgname=enclave-spatialaudio
+pkgver=0.4.1
+pkgrel=0
+_commit=d149ed9744fd399b835c6f2920511f8cbcfce5ea
+pkgdesc="Shared spatial audio engine for Visual Pinball"
+url="https://github.com/videolan/libspatialaudio"
+arch="x86_64 riscv64"
+license="LGPL-2.1-or-later"
+makedepends="cmake samurai libmysofa-dev"
+subpackages="$pkgname-dev"
+options="!check" # game audio qualification is separate
+source="$pkgname-$_commit.tar.gz::https://codeload.github.com/videolan/libspatialaudio/tar.gz/$_commit"
+builddir="$srcdir/libspatialaudio-$_commit"
+build() {
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF
+    cmake --build build -j2
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+sha512sums="09e43b381be262878958ec6baea8a1a030bc75730509bdd31ac0ec8085856bf9b203e860ad2767b628bf4b57c8bdf0105e45313044595e8a89e4a9f7a6a2d7cf  enclave-spatialaudio-d149ed9744fd399b835c6f2920511f8cbcfce5ea.tar.gz"

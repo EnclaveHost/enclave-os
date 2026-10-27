@@ -15,7 +15,10 @@ on:
       - profiles/**
       - provenance/**
       - tests/contracts.py
-      - tests/*smoke.py
+      - tests/desktop-smoke.py
+      - tests/openarena-smoke.py
+      - tests/librequake-smoke.py
+      - tests/boot-smoke.py
       - tests/cursor-image.c
       - tools/assemble.py
       - tools/stage-aports.py
