@@ -1,6 +1,11 @@
 name: Shield Mesa Alpine package
 on:
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: JSON architecture list to build
+        default: '["amd64","riscv64"]'
+        required: true
 permissions:
   contents: read
 jobs:
@@ -10,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [amd64, riscv64]
+        platform: ${{ fromJSON(inputs.platforms) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130

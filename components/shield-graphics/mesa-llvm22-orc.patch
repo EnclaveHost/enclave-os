@@ -1,0 +1,23 @@
+--- a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
++++ b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+@@ -342,7 +342,11 @@
+          .setJITTargetMachineBuilder(std::move(JTMB))
+ #ifdef USE_JITLINK
+          .setObjectLinkingLayerCreator(
++#if LLVM_VERSION_MAJOR >= 21
++            [&](ExecutionSession &ES) {
++#else
+             [&](ExecutionSession &ES, const llvm::Triple &TT) {
++#endif
+                return std::make_unique<ObjectLinkingLayer>(
+                   ES, ExitOnErr(llvm::jitlink::InProcessMemoryManager::Create()));
+             })
+@@ -554,7 +558,7 @@
+    gallivm->cache = cache;
+ 
+    gallivm->_ts_context = context->ref;
+-   gallivm->context = LLVMOrcThreadSafeContextGetContext(context->ref);
++   gallivm->context = llvm::wrap(::unwrap(context->ref)->getContext());
+ 
+    gallivm->module_name = LPJit::get_unique_name(name);
+    gallivm->module = LLVMModuleCreateWithNameInContext(gallivm->module_name,

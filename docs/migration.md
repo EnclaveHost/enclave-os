@@ -17,10 +17,10 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Finish RV64 build and real masked service/worker qualification; never replace Shield routing with direct GPU access |
-| OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build, menu/relative-mode/sensitivity tests remain |
+| OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
 | Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
-| OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup, RV64 runtime port, W^X and rendering tests |
+| OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup passed; RV64 runtime port, W^X and full rendering tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
 
@@ -83,3 +83,9 @@ Enclave Browser's [nine-check native qualification](https://github.com/EnclaveHo
 passes Fission navigation, focused keyboard input, interception, downloads, cookies,
 TLS/CSP denial and 960×600 VP9 playback. The native binary provenance is retained
 by that workflow; this JS qualification does not replace the musl/RV64 build gates.
+
+The corrected [OpenArena baseline](https://github.com/EnclaveHost/enclave-os/actions/runs/40584763752)
+passes on both CPUs. [OpenHV on musl .NET 10](https://github.com/EnclaveHost/enclave-os/actions/runs/40588447643)
+builds, installs and retains a visible game window through the private graphics
+stack. Its NuGet dependency closure is locked. Neither startup fixture establishes
+streamed input/audio parity; OpenHV's RV64 runtime remains pending.
