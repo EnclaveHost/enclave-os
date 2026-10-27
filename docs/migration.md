@@ -64,5 +64,6 @@ Browser package and cannot substitute Alpine Firefox.
 The canonical graphics client and NIR proof sources now live in
 `components/shield-graphics`; `reference/` retains the imported originals. The
 separate Shield workflow checks the exact integer transport and rejection behavior
-on both musl architectures with UBSan. Its synthetic replies are not evidence of
+on both musl architectures with undefined-behavior checks (diagnostics on x86-64,
+traps on RV64 where Alpine does not ship libubsan). Its synthetic replies are not evidence of
 GPU execution, and the actual Mesa/service/worker chain remains a release gate.

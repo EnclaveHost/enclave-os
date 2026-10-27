@@ -64,7 +64,9 @@ package() {
     mkdir -p "$srcdir/content"
     for archive in "$srcdir"/openarena-*.deb; do
         member=$(ar t "$archive" | grep '^data\.tar\.')
-        ar p "$archive" "$member" | tar -x -C "$srcdir/content"
+        ar p "$archive" "$member" > "$srcdir/$member"
+        tar -xf "$srcdir/$member" -C "$srcdir/content"
+        rm "$srcdir/$member"
     done
     cp -a "$srcdir/content/usr/share/games/openarena/." "$content/"
     for directory in baseoa missionpack; do
