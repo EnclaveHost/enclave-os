@@ -10,8 +10,9 @@ builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
 license="GPL-2.0-only AND BSD-3-Clause AND LGPL-2.1-or-later"
 depends="pulseaudio-utils"
+makedepends="linux-headers"
 build() {
-    make -j2 CROSS_COMPILE= NOSDL=1 CFLAGS="$CFLAGS -DNORMALUNIX -DLINUX -include music_compat.h" LDFLAGS="$LDFLAGS"
+    make -j2 CROSS_COMPILE= NOSDL=1 CFLAGS="$CFLAGS -std=gnu11 -DNORMALUNIX -DLINUX -include music_compat.h" LDFLAGS="$LDFLAGS"
 }
 package() {
     install -Dm755 fbdoom "$pkgdir/usr/bin/enclave-xdoom"

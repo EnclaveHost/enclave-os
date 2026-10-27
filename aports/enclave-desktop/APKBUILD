@@ -15,4 +15,4 @@ package() {
     install -m755 bin/* "$pkgdir/usr/bin/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
-sha512sums="4ab7c1e0ceeabc32bf194ef2fc04c81eb9dae0a85f8257b014192f86964513457cc56156fb694ac8c437bc0e926f931161ab5bd67d6b4091c74b99acf8e46ae2  enclave-desktop-0.1.0.tar"
+sha512sums="2bde3bbf1c41aca7ea89f2bc17c5df5b8d8a3345cbcfd4eaf7b800aa42dc7dc4d06b9b4118656ecb044df800f791fa9efaebffbdff0b513bed7bd33e4d2c86cf  enclave-desktop-0.1.0.tar"
