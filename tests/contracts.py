@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Catch lossy migration, policy regressions and architecture divergence."""
-import hashlib,json,pathlib,re,subprocess,tempfile
+import hashlib,importlib.util,json,pathlib,re,subprocess,tempfile
 root=pathlib.Path(__file__).resolve().parents[1]
 manifest=json.loads((root/'provenance/import.json').read_text())
 for item in manifest['files']:
@@ -23,6 +23,17 @@ assert 'kernel.randomize_va_space = 2' in (root/'components/base/etc/sysctl.d/50
 for path in (root/'components').rglob('*'):
     if path.is_file() and path.suffix in ('.py','.sh'):
         assert '--allow-untrusted' not in path.read_text()
+spec=importlib.util.spec_from_file_location('seed',root/'components/desktop/seed-home.py')
+seed=importlib.util.module_from_spec(spec);spec.loader.exec_module(seed)
+with tempfile.TemporaryDirectory() as td:
+    home=pathlib.Path(td)/'home';home.mkdir(mode=0o700);(home/'.config').mkdir(mode=0o700)
+    seed.seed(root/'components/desktop/skel',home)
+    prefs=home/'.mozilla/firefox/enclave/user.js'
+    assert prefs.is_file() and (home/'.config/gtk-3.0/settings.ini').is_file()
+    prefs.write_text('user changes must survive login')
+    seed.seed(root/'components/desktop/skel',home)
+    assert prefs.read_text()=='user changes must survive login'
+    assert (home.stat().st_mode & 0o777)==0o700
 with tempfile.TemporaryDirectory() as td:
     subprocess.run(['python3',str(root/'tools/stage-aports.py'),td],check=True)
     blocked=subprocess.run(['python3',str(root/'tools/assemble.py'),'--arch','x86_64','--preset','full','--repository',td,'--key',td+'/test.pub','--output',td+'/root'],capture_output=True,text=True)

@@ -8,6 +8,6 @@ set -eu
 umask 077
 mkdir -p "$HOME"
 # Preserve user customizations on subsequent logins.
-cp -Rn /usr/share/enclave-os/skel/. "$HOME/"
+/usr/libexec/enclave-os/seed-home.py
 /usr/libexec/enclave-os/cursor/start.py
 exec dbus-run-session -- fluxbox
