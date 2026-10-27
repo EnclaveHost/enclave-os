@@ -6,7 +6,7 @@ def run(name, command):
     with (out/(name+'.log')).open('w') as log:
         subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=120)
 run('vulkan-cpu', [str(out/'prepass'),str(out),str(out/'triangle.rgba')])
-run('gl-compute', ['xvfb-run','-a','-s','-screen 0 960x600x24 -nolisten tcp',str(out/'prepass-gl'),'/src/reference/kvm-box/shield-graphics/qualification/prepass-gl.comp'])
+run('gl-compute', ['xvfb-run','-a','-s','-screen 0 960x600x24 -nolisten tcp',str(out/'prepass-gl'),'/src/components/shield-graphics/qualification/prepass-gl.comp'])
 run('gl-robustness', ['xvfb-run','-a',str(out/'glx-robustness')])
 root=pathlib.Path('/run/shield');root.mkdir(mode=0o755)
 server=socket.socket(socket.AF_UNIX);server.bind(str(root/'compute.sock'));server.listen(1);server.settimeout(20)
