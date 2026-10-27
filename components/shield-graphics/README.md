@@ -1,5 +1,9 @@
 # Protected OpenGL/Vulkan prepass driver
 
+Enclave OS migration status: the following contract and historical native results
+were recovered from the existing driver. The Alpine/musl rebuild and both real
+platform validations are pending; these prior results do not qualify the new APK.
+
 The separate Mesa 25.0.7 image exposes ordinary Vulkan through Lavapipe and
 OpenGL through Zink. A conditional NIR proof recognizes an integer compute
 prepass and routes it through the existing guest-local Shield service. Apps
