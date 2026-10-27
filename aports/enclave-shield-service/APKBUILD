@@ -16,10 +16,10 @@ build() {
     python3 build-core.py --enclave upstream --output core --native-worker-route
 }
 check() {
-    for test in field prepare half prefix-kv postmortem; do
+    for test in prefix-kv postmortem; do
         ./core/$test-selftest
     done
-    python3 -m unittest -v test_compiler test_service test_q8_service test_q8_finite
+    python3 -m unittest -v test_core test_compiler test_service test_q8_service test_q8_finite
 }
 package() {
     local dest="$pkgdir/usr/lib/enclave-shield-service"

@@ -25,6 +25,7 @@ jobs:
           path: upstream
           sparse-checkout: |
             wasm/ggml-shielded
+            shielded/field.py
             LICENSE
       - name: Export pinned core and migrated service
         run: |
@@ -34,7 +35,7 @@ jobs:
           assert commit=='04a27e8da4e7d8a5f4b1270e6d02231a2b96d29a'
           target=pathlib.Path('shield-service')
           shutil.copytree('components/shield-service',target)
-          subprocess.run(['git','-C','upstream','archive','--output=../core.tar',commit,'wasm/ggml-shielded','LICENSE'],check=True)
+          subprocess.run(['git','-C','upstream','archive','--output=../core.tar',commit,'wasm/ggml-shielded','shielded/field.py','LICENSE'],check=True)
           archive=pathlib.Path('core.tar')
           with tarfile.open(archive) as tar: tar.extractall(target/'upstream',filter='data')
           (target/'enclave-source.json').write_text(json.dumps({'repository':'EnclaveHost/enclave','commit':commit,'archiveSha256':hashlib.sha256(archive.read_bytes()).hexdigest()})+'\n')
