@@ -21,7 +21,10 @@ static void protections(void) {
     assert(p != MAP_FAILED);
     *(volatile char *)p = 7;
     errno = 0;
-    denied((long)mmap(NULL, 4096, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+    denied(syscall(SYS_mmap, NULL, 4096, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+    /* musl translates anonymous mmap EPERM to ENOMEM. */
+    assert(mmap(NULL, 4096, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) == MAP_FAILED);
+    assert(errno == ENOMEM || errno == EPERM);
     denied(mprotect(p, 4096, PROT_READ | PROT_WRITE | PROT_EXEC));
     assert(*(volatile char *)p == 7);
     *(volatile char *)p = 9;
