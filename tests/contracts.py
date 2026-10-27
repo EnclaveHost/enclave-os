@@ -10,6 +10,8 @@ profile=json.loads((root/'profiles/common.json').read_text())
 assert profile['resolution']==[960,600]
 assert {'browser','freedoom','agent','web-desktop'}<=set(profile['presets']['desktop'])
 assert set(profile['presets']['minimal'])=={'core'}
+assert set(profile['pending_features'])<=set(profile['presets']['full'])
+assert 'browser' not in profile['presets']['full'] # full image replaces upstream Firefox, not duplicates it
 for arch in ('x86_64','riscv64'):
     p=json.loads((root/f'profiles/{arch}.json').read_text())
     assert p['architecture']==arch and not p['production_qualified']
@@ -23,4 +25,6 @@ for path in (root/'components').rglob('*'):
         assert '--allow-untrusted' not in path.read_text()
 with tempfile.TemporaryDirectory() as td:
     subprocess.run(['python3',str(root/'tools/stage-aports.py'),td],check=True)
+    blocked=subprocess.run(['python3',str(root/'tools/assemble.py'),'--arch','x86_64','--preset','full','--repository',td,'--key',td+'/test.pub','--output',td+'/root'],capture_output=True,text=True)
+    assert blocked.returncode and 'Full feature parity is not qualified' in blocked.stderr
 print(f'PASS: {len(manifest["files"])} provenance hashes, shared feature graph, baseline policy, source archive checksums')

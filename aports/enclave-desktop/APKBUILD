@@ -4,15 +4,22 @@ pkgrel=0
 pkgdesc="Shared lightweight Enclave desktop settings"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
-license="LicenseRef-Enclave-Source-Available"
+license="LicenseRef-Enclave-Source-Available AND CC-BY-SA-3.0"
 source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
 depends="enclave-cursor fluxbox dbus xterm"
+makedepends="libx11-dev"
+build() {
+    cc $CFLAGS -Wall -Wextra window-helper.c $LDFLAGS -lX11 -o window-helper
+}
 package() {
     mkdir -p "$pkgdir/usr/share/enclave-os/skel" "$pkgdir/usr/bin"
     cp -a skel/. "$pkgdir/usr/share/enclave-os/skel/"
+    install -Dm755 window-helper "$pkgdir/usr/libexec/enclave-os/window-helper"
+    mkdir -p "$pkgdir/usr/share/fluxbox/styles/Enclave"
+    cp -a styles/Enclave/. "$pkgdir/usr/share/fluxbox/styles/Enclave/"
     install -m755 bin/* "$pkgdir/usr/bin/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
-sha512sums="2bde3bbf1c41aca7ea89f2bc17c5df5b8d8a3345cbcfd4eaf7b800aa42dc7dc4d06b9b4118656ecb044df800f791fa9efaebffbdff0b513bed7bd33e4d2c86cf  enclave-desktop-0.1.0.tar"
+sha512sums="64fa91ef0ce425f43c3ae4086950c1dfcf103389af18ad3c1a13a378abbb7a1ee22d9f1e7c2ddc723556c851c7db327d9ce3a06f08a3322d6094c103aa290230  enclave-desktop-0.1.0.tar"

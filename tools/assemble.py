@@ -6,7 +6,7 @@ def run(*args): subprocess.run(args,check=True)
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--arch',choices=['x86_64','riscv64'],required=True)
-    p.add_argument('--preset',choices=['minimal','desktop'],required=True)
+    p.add_argument('--preset',choices=['minimal','desktop','full'],required=True)
     p.add_argument('--repository',type=pathlib.Path,required=True,help='signed local repository parent (contains architecture dirs)')
     p.add_argument('--key',type=pathlib.Path,required=True,help='public APK signing key ONLY')
     p.add_argument('--output',type=pathlib.Path,required=True)
@@ -16,8 +16,10 @@ def main():
     lock=json.loads((ROOT/'profiles/upstream-lock.json').read_text())
     profile=json.loads((ROOT/'profiles/common.json').read_text())
     platform=json.loads((ROOT/f'profiles/{a.arch}.json').read_text())
+    missing=[feature for feature in profile['presets'][a.preset] if feature not in profile['features']]
+    if missing:p.error('Full feature parity is not qualified: '+', '.join(missing))
     packages=sorted(set(pkg for feature in profile['presets'][a.preset] for pkg in profile['features'][feature]))
-    if a.preset=='desktop': packages+=platform['packages']
+    if 'desktop' in profile['presets'][a.preset]: packages+=platform['packages']
     url=f'https://dl-cdn.alpinelinux.org/alpine/{lock["alpine_branch"]}/releases/{a.arch}/alpine-minirootfs-{lock["alpine_version"]}-{a.arch}.tar.gz'
     data=urllib.request.urlopen(url,timeout=60).read()
     if hashlib.sha256(data).hexdigest()!=lock['minirootfs'][a.arch]['sha256']: raise SystemExit('minirootfs checksum mismatch')
@@ -33,7 +35,7 @@ def main():
     repos.unlink();(out/'etc/apk/repositories').write_text('\n'.join(upstream)+'\n')
     # CI keys authorize this test artifact only, never a production feed.
     (out/'etc/apk/keys'/a.key.name).unlink()
-    if a.preset=='desktop':
+    if 'desktop' in profile['presets'][a.preset]:
         target=out/'etc/X11/xorg.conf';target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'platforms'/platform['platform']/'xorg.conf',target)
     installed=(out/'lib/apk/db/installed').read_text()

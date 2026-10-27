@@ -12,7 +12,7 @@ The migration keeps the useful RISC optimizations: a tiny GTK theme, Fluxbox, 96
 
 ## Lightweight without removing features
 
-- `minimal` contains the base OS. `desktop` adds the same desktop/browser/FreeDoom/agent/web-desktop feature graph on both CPUs.
+- `minimal` contains the base OS. `desktop` adds the same desktop/browser/FreeDoom/agent/web-desktop baseline on both CPUs. `full` records the complete desired feature set and refuses assembly while any required port is missing; it cannot silently ship a reduced replacement.
 - Browser and games start on demand. There is no permanently warmed Firefox, second browser or desktop compositor.
 - Packages use native musl binaries and shared libraries. Build tools and source trees stay in the builder; `abuild` strips installed binaries. No Debian compatibility root or duplicated glibc runtime is installed.
 - The complete desktop keeps the existing 960×600 resolution and browser 30 FPS setting. This migration does not lower stream quality, remove accessibility, disable web animations or break certificate verification to save CPU.
@@ -31,9 +31,9 @@ python3 tests/contracts.py
 python3 tools/stage-aports.py staging
 ```
 
-The disposable CI builder compiles four packages, signs a temporary APK repository, installs it with signature verification, checks X authentication and cursor recovery, and starts the custom FreeDoom engine. It then assembles minimal and desktop root filesystems, executes their native programs and exports rootfs archives, package inventory, size reports and checksums. See `tools/ci-build.sh` for the exact commands.
+The disposable CI builder compiles four packages, signs a temporary APK repository, installs it with signature verification, checks X authentication and cursor recovery, and starts the custom FreeDoom engine. It then assembles minimal and desktop root filesystems, executes their native programs, boots the minimal OS with real Linux kernels under system emulation, and exports rootfs archives, package inventory, size reports and checksums. Compression runs on the native CI host to avoid wasting time emulating gzip. See `tools/ci-build.sh` for the exact commands.
 
-**Do not run `ci-build.sh` on a workstation or running guest**: it provisions a disposable Alpine build container. The workflow shows the container invocation. CI public keys are test-only; no private key is published and test keys are removed from final rootfs trust stores. Development artifacts are not production releases and do not automatically update running apps.
+**Do not run `ci-build.sh` on a workstation or running guest**: it provisions a disposable Alpine build container. The workflow shows the container invocation. Its temporary mount capability is used to mount procfs for chrooted Firefox, as Firefox expects in a booted OS. CI public keys are test-only; no private key is published and test keys are removed from final rootfs trust stores. Development artifacts are not production releases and do not automatically update running apps.
 
 ## Repository map
 
@@ -44,6 +44,7 @@ The disposable CI builder compiles four packages, signs a temporary APK reposito
 | `profiles/` | Shared feature graph, per-architecture device selection and bootstrap pins |
 | `platforms/` | Display adapters; platform boot/security integration contract |
 | `tools/` | Reproducible source staging and clean-root assembly |
+| `integrations/` | Recovered OpenArena and Moonlight patches with pinned upstream provenance |
 | `provenance/` | Imported source hashes, upstream availability snapshot and runtime customization inventory |
 | `reference/` | Frozen original RISC/native build inputs, Shield sources and historical documentation |
 | `docs/` | Migration matrix, release gates and packaging policy |

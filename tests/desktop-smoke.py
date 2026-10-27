@@ -18,6 +18,8 @@ with tempfile.TemporaryDirectory() as td:
     subprocess.run(['xauth','-f',str(auth),'add',':91','.',secrets.token_hex(16)],check=True)
     x=subprocess.Popen(['Xvfb',':91','-screen','0','960x600x24','-nolisten','tcp','-auth',str(auth)],env=env)
     supervisor=None
+    session=None
+    sessionlog=None
     try:
         eventually(lambda: pathlib.Path('/tmp/.X11-unix/X91').exists())
         bad=dict(env,XAUTHORITY=str(home/'missing'))
@@ -28,6 +30,15 @@ with tempfile.TemporaryDirectory() as td:
         def read():return json.loads(status.read_text())
         initial=eventually(lambda: read() if read()['frames']>=3 else None)
         subprocess.run(['/tmp/cursor-image'],env=env,check=True)
+        sessionlog=(home/'session.log').open('w')
+        session=subprocess.Popen(['/usr/bin/enclave-desktop-session'],env=env,stdout=sessionlog,stderr=sessionlog,start_new_session=True)
+        time.sleep(2)
+        assert session.poll() is None,(home/'session.log').read_text()
+        assert (home/'.fluxbox/menu').is_file()
+        helper=subprocess.run(['/usr/libexec/enclave-os/window-helper','list','not-a-real-window'],env=env)
+        assert helper.returncode==1
+        assert pathlib.Path('/usr/share/fluxbox/styles/Enclave/theme.cfg').is_file()
+        assert (home/'.mozilla/firefox/enclave/user.js').is_file()
         duplicate=subprocess.run(['/usr/libexec/enclave-os/cursor/cursor-owner',str(status)],env=env,timeout=5)
         assert duplicate.returncode==4
         os.kill(initial['pid'],signal.SIGKILL)
@@ -48,8 +59,11 @@ with tempfile.TemporaryDirectory() as td:
             finally:
                 if game.poll() is None:game.terminate();game.wait(timeout=10)
         subprocess.run(['/tmp/cursor-image'],env=env,check=True)
-        print('PASS: X authorization, XFixes cursor, singleton, crash/hang recovery, FreeDoom startup')
+        print('PASS: shared Fluxbox session, X authorization, XFixes cursor, singleton, crash/hang recovery, FreeDoom startup')
     finally:
+        if session is not None and session.poll() is None:
+            os.killpg(session.pid,signal.SIGTERM);session.wait(timeout=10)
+        if sessionlog is not None:sessionlog.close()
         if supervisor is not None:
             supervisor.terminate();supervisor.wait(timeout=10)
         x.terminate();x.wait(timeout=10)

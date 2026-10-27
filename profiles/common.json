@@ -37,7 +37,14 @@
       "python3",
       "curl",
       "git",
-      "jq"
+      "jq",
+      "nodejs",
+      "xdotool",
+      "xprop",
+      "xwininfo",
+      "xdpyinfo",
+      "xrandr",
+      "xset"
     ],
     "web-desktop": [
       "novnc",
@@ -56,6 +63,21 @@
       "freedoom",
       "agent",
       "web-desktop"
+    ],
+    "full": [
+      "core",
+      "desktop",
+      "freedoom",
+      "agent",
+      "web-desktop",
+      "enclave-browser",
+      "shield-graphics",
+      "shield-compute",
+      "moonlight-server",
+      "openarena",
+      "librequake",
+      "visual-pinball-x",
+      "openhv"
     ]
   },
   "pending_features": [
