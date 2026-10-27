@@ -8,7 +8,7 @@ license="LicenseRef-Enclave-Source-Available AND CC-BY-SA-3.0"
 source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
-depends="enclave-cursor fluxbox dbus xterm"
+depends="enclave-cursor fluxbox dbus xterm font-dejavu font-misc-misc"
 makedepends="libx11-dev"
 build() {
     cc $CFLAGS -Wall -Wextra window-helper.c $LDFLAGS -lX11 -o window-helper

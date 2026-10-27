@@ -43,16 +43,13 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" out
           gzip -9 out/*-rootfs.tar
           python3 tools/finalize-artifacts.py
-      - name: Provision system emulator
+      - name: Boot shared minimal OS with real kernels on both CPU architectures
         timeout-minutes: 5
         run: |
-          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update -qq
-          package=qemu-system-x86
-          if [ "${{ matrix.arch }}" = riscv64 ]; then package=qemu-system-misc; fi
-          sudo env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends "$package"
-      - name: Boot shared minimal OS with real kernels on both CPU architectures
-        timeout-minutes: 3
-        run: python3 tests/boot-smoke.py ${{ matrix.arch }}
+          docker run --rm --platform linux/amd64 -w /src \
+            -e ENCLAVE_ARCH=${{ matrix.arch }} -v "$PWD:/src:ro" -v "$PWD/out:/src/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-boot.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
