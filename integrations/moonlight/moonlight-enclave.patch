@@ -1,0 +1,174 @@
+diff --git a/app/streaming/audio/renderers/audioqueuebudget.h b/app/streaming/audio/renderers/audioqueuebudget.h
+new file mode 100644
+index 0000000..612e81b
+--- /dev/null
++++ b/app/streaming/audio/renderers/audioqueuebudget.h
+@@ -0,0 +1,13 @@
++#pragma once
++#include <cstdint>
++
++inline bool audioFitsBudget(std::uint32_t queuedBytes, int incomingBytes,
++                            std::uint32_t frameBytes, std::uint32_t frameMs,
++                            std::uint32_t pendingMs)
++{
++    if (incomingBytes < 0 || !frameBytes || !frameMs || frameMs > 80 || pendingMs > 80)
++        return false;
++    const std::uint64_t bytes = std::uint64_t(queuedBytes) + incomingBytes;
++    const std::uint64_t duration = (bytes * frameMs + frameBytes - 1) / frameBytes;
++    return duration + pendingMs <= 80;
++}
+diff --git a/app/streaming/audio/renderers/sdl.h b/app/streaming/audio/renderers/sdl.h
+index 05b2d00..53152d9 100644
+--- a/app/streaming/audio/renderers/sdl.h
++++ b/app/streaming/audio/renderers/sdl.h
+@@ -23,4 +23,6 @@ private:
+     void* m_AudioBuffer;
+     Uint32 m_FrameSize;
+     Uint32 m_FrameDurationMs;
++    Uint32 m_DroppedAudioFrames = 0;
++    Uint32 m_LastAudioDropLogTime = 0;
+ };
+diff --git a/app/streaming/audio/renderers/sdlaud.cpp b/app/streaming/audio/renderers/sdlaud.cpp
+index 9ce494a..2fa5c5d 100644
+--- a/app/streaming/audio/renderers/sdlaud.cpp
++++ b/app/streaming/audio/renderers/sdlaud.cpp
+@@ -1,4 +1,5 @@
+ #include "sdl.h"
++#include "audioqueuebudget.h"
+ 
+ #include <Limelight.h>
+ 
+@@ -100,28 +101,27 @@ bool SdlAudioRenderer::submitAudio(int bytesWritten)
+         return true;
+     }
+ 
+-    // Don't queue if there's already more than 30 ms of audio data waiting
+-    // in Moonlight's audio queue.
+-    if (LiGetPendingAudioDuration() > 30) {
+-        return true;
++    if (SDL_GetAudioDeviceStatus(m_AudioDevice) == SDL_AUDIO_STOPPED) {
++        return false;
+     }
+ 
+-    // Provide backpressure on the queue to ensure too many frames don't build up
+-    // in SDL's audio queue, but don't wait forever to avoid a deadlock if the
+-    // audio device fails.
+-    for (int i = 0; i < 100; i++) {
+-        // Our device may enter a permanent error status upon removal, so we need
+-        // to recreate the audio device to pick up the new default audio device.
+-        if (SDL_GetAudioDeviceStatus(m_AudioDevice) == SDL_AUDIO_STOPPED) {
+-            return false;
+-        }
+-
+-        // Only queue more samples where there is 50 ms or less in SDL's queue
+-        if (SDL_GetQueuedAudioSize(m_AudioDevice) / m_FrameSize * m_FrameDurationMs <= 50) {
+-            break;
++    // Bound the combined backlog by the existing 50 + 30 ms budget. Sleeping
++    // on one queue lets burst arrivals accumulate in the other queue, where
++    // they can be discarded despite fitting inside the combined budget.
++    // Include the new frame and round partial frames up, never down.
++    const auto queuedBytes = SDL_GetQueuedAudioSize(m_AudioDevice);
++    const auto pendingMs = LiGetPendingAudioDuration();
++    if (!audioFitsBudget(queuedBytes, bytesWritten, m_FrameSize,
++                         m_FrameDurationMs, pendingMs)) {
++        ++m_DroppedAudioFrames;
++        const auto now = SDL_GetTicks();
++        if (m_DroppedAudioFrames == 1 || now - m_LastAudioDropLogTime >= 1000) {
++            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
++                        "Audio backlog limit: dropped %u frames total, SDL %u bytes, network %d ms",
++                        m_DroppedAudioFrames, queuedBytes, pendingMs);
++            m_LastAudioDropLogTime = now;
+         }
+-
+-        SDL_Delay(1);
++        return true;
+     }
+ 
+     if (SDL_QueueAudio(m_AudioDevice, m_AudioBuffer, bytesWritten) < 0) {
+diff --git a/app/streaming/input/input.cpp b/app/streaming/input/input.cpp
+index 2597f99..d44062d 100644
+--- a/app/streaming/input/input.cpp
++++ b/app/streaming/input/input.cpp
+@@ -7,6 +7,9 @@
+ 
+ #include <QtGlobal>
+ #include <QDir>
++#include <QFile>
++#include <QFileInfo>
++#include <QDateTime>
+ #include <QGuiApplication>
+ 
+ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, int streamHeight)
+@@ -428,3 +431,38 @@ void SdlInputHandler::handleTouchFingerEvent(SDL_TouchFingerEvent* event)
+         handleRelativeFingerEvent(event);
+     }
+ }
++
++// Opt-in local companion carries only a mode over the existing pinned TLS channel.
++// Apply transitions on SDL's input thread. Never activate or raise the window.
++void SdlInputHandler::pollShieldCaptureState()
++{
++    static const QByteArray path = qgetenv("SHIELD_CAPTURE_STATE");
++    static Uint32 lastPoll = 0;
++    static int previous = -1;
++    if (path.isEmpty() || !m_Window) return;
++    Uint32 now = SDL_GetTicks();
++    if (now - lastPoll < 100) return;
++    lastPoll = now;
++    QFileInfo info(QString::fromUtf8(path));
++    QFile file(QString::fromUtf8(path));
++    const qint64 age = info.lastModified().msecsTo(QDateTime::currentDateTime());
++    QByteArray value;
++    if (info.isFile() && !info.isSymLink() && age >= 0 && age < 3000 && file.open(QIODevice::ReadOnly))
++        value = file.read(32);
++    const bool relative = value == "relative\n";
++    // Ignore missing, stale or malformed input hints; cursor ownership is fixed.
++    if (value != "relative\n" && value != "absolute\n" && value != "menu\n" && value != "fallback\n") return;
++    int desired = relative ? 1 : value == "menu\n" ? 3 : 0;
++    // A manual toggle or release stays in effect until the guest changes state.
++    if (desired == previous) return;
++    previous = desired;
++    setCaptureActive(false);
++    m_AbsoluteMouseMode = !relative;
++    m_MouseCursorCapturedVisibilityState = SDL_DISABLE;
++    const Uint32 flags = SDL_GetWindowFlags(m_Window);
++    if ((flags & SDL_WINDOW_INPUT_FOCUS) && !(flags & SDL_WINDOW_MINIMIZED)) {
++        setCaptureActive(true);
++    }
++    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Shield guest mouse mode: %s (focused=%d)",
++                relative ? "relative" : value == "menu\n" ? "menu" : "absolute", !!(flags & SDL_WINDOW_INPUT_FOCUS));
++}
+diff --git a/app/streaming/input/input.h b/app/streaming/input/input.h
+index 151c69c..44c750e 100644
+--- a/app/streaming/input/input.h
++++ b/app/streaming/input/input.h
+@@ -139,6 +139,7 @@ public:
+     void notifyFocusLost();
+ 
+     void notifyFocusGained();
++    void pollShieldCaptureState();
+ 
+     bool isCaptureActive();
+ 
+diff --git a/app/streaming/session.cpp b/app/streaming/session.cpp
+index 40c1e59..2ae812f 100644
+--- a/app/streaming/session.cpp
++++ b/app/streaming/session.cpp
+@@ -1846,6 +1846,9 @@ void Session::exec()
+     std::string windowName = QString(m_Computer->name + " - Moonlight").toStdString();
+ #endif
+ 
++    if (qEnvironmentVariableIsSet("SHIELD_START_MINIMIZED"))
++        defaultWindowFlags |= SDL_WINDOW_MINIMIZED;
++
+     m_Window = SDL_CreateWindow(windowName.c_str(),
+                                 x,
+                                 y,
+@@ -1964,6 +1967,7 @@ void Session::exec()
+     // because we want to suspend all Qt processing until the stream is over.
+     SDL_Event event;
+     for (;;) {
++        m_InputHandler->pollShieldCaptureState();
+ #if SDL_VERSION_ATLEAST(2, 0, 18) && !defined(STEAM_LINK)
+         // SDL 2.0.18 has a proper wait event implementation that uses platform
+         // support to block on events rather than polling on Windows, macOS, X11,

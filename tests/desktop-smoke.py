@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Authenticated X, visible cursor, singleton and crash/hang recovery; real APKs."""
-import json, os, pathlib, secrets, signal, subprocess, tempfile, time
+import json, os, pathlib, re, secrets, signal, subprocess, tempfile, time
 
 def eventually(check,timeout=15):
     deadline=time.monotonic()+timeout
@@ -41,7 +41,10 @@ with tempfile.TemporaryDirectory() as td:
             game=subprocess.Popen(['/usr/bin/enclave-xdoom','-iwad','/usr/share/games/doom/freedoom1.wad','-nosound','-nomusic','-timedemo','demo1'],cwd=td,env=env,stdout=log,stderr=log)
             try:
                 time.sleep(3)
-                assert game.poll() in (None,0), (home/'doom.log').read_text()
+                code=game.poll(); output=(home/'doom.log').read_text()
+                # Doom reports a completed timedemo through I_Error (exit 1).
+                completed=bool(re.search(r'timed [0-9]+ gametics in [0-9]+ realtics', output))
+                assert code is None or (code==1 and completed), output[-4000:]
             finally:
                 if game.poll() is None:game.terminate();game.wait(timeout=10)
         subprocess.run(['/tmp/cursor-image'],env=env,check=True)

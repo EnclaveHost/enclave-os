@@ -2,6 +2,9 @@ name: Alpine packages and unified userland
 on:
   push:
   workflow_dispatch:
+concurrency:
+  group: enclave-os-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

@@ -1,0 +1,569 @@
+--- a/Makefile
++++ b/Makefile
+@@ -2626,7 +2626,7 @@
+ 
+ $(B)/$(BASEGAME)/cgame$(SHLIBNAME): $(Q3CGOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ) $(LIBS)
+ 
+ $(B)/$(BASEGAME)/vm/cgame.qvm: $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+@@ -2671,7 +2671,7 @@
+ 
+ $(B)/$(MISSIONPACK)/cgame$(SHLIBNAME): $(MPCGOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ) $(LIBS)
+ 
+ $(B)/$(MISSIONPACK)/vm/cgame.qvm: $(MPCGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+@@ -2724,7 +2724,7 @@
+ 
+ $(B)/$(BASEGAME)/qagame$(SHLIBNAME): $(Q3GOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ) $(LIBS)
+ 
+ $(B)/$(BASEGAME)/vm/qagame.qvm: $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+@@ -2775,7 +2775,7 @@
+ 
+ $(B)/$(MISSIONPACK)/qagame$(SHLIBNAME): $(MPGOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ) $(LIBS)
+ 
+ $(B)/$(MISSIONPACK)/vm/qagame.qvm: $(MPGVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+@@ -2838,7 +2838,7 @@
+ 
+ $(B)/$(BASEGAME)/ui$(SHLIBNAME): $(Q3UIOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ) $(LIBS)
+ 
+ $(B)/$(BASEGAME)/vm/ui.qvm: $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+@@ -2866,7 +2866,7 @@
+ 
+ $(B)/$(MISSIONPACK)/ui$(SHLIBNAME): $(MPUIOBJ)
+ 	$(echo_cmd) "LD $@"
+-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ)
++	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ) $(LIBS)
+ 
+ $(B)/$(MISSIONPACK)/vm/ui.qvm: $(MPUIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
+ 	$(echo_cmd) "Q3ASM $@"
+--- a/code/client/cl_curl.c
++++ b/code/client/cl_curl.c
+@@ -301,7 +301,9 @@
+ 	qcurl_easy_setopt_warn(clc.downloadCURL, CURLOPT_MAXREDIRS, 5);
+ 	qcurl_easy_setopt_warn(clc.downloadCURL, CURLOPT_PROTOCOLS,
+ 		CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS);
++#ifdef CURL_MAX_READ_SIZE
+ 	qcurl_easy_setopt_warn(clc.downloadCURL, CURLOPT_BUFFERSIZE, CURL_MAX_READ_SIZE);
++#endif
+ 	clc.downloadCURLM = qcurl_multi_init();	
+ 	if(!clc.downloadCURLM) {
+ 		qcurl_easy_cleanup(clc.downloadCURL);
+--- a/code/client/cl_input.c
++++ b/code/client/cl_input.c
+@@ -359,6 +359,21 @@
+ CL_MouseEvent
+ =================
+ */
++#include "menu_pointer.h"
++
++/* A UI module exposes relative motion only. Reset its clamped pointer and
++ * apply the absolute target in the same event, before any queued click. No
++ * intermediate frame or click is emitted, and no UI/game ABI changes are needed.
++ * Events queued before a menu closes are discarded instead of changing aim. */
++void CL_MouseAbsoluteEvent( int x, int y, int time ) {
++    int offset, uiX, uiY;
++    if ( !(Key_GetCatcher() & KEYCATCH_UI) || !uivm ) return;
++    if (!MenuPointerCoordinates(x, y, cls.glconfig.vidWidth,
++            cls.glconfig.vidHeight, &offset, &uiX, &uiY)) return;
++    VM_Call(uivm, UI_MOUSE_EVENT, -100000, -100000);
++    VM_Call(uivm, UI_MOUSE_EVENT, uiX + offset, uiY);
++}
++
+ void CL_MouseEvent( int dx, int dy, int time ) {
+ 	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
+ 		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+--- a/code/client/cl_parse.c
++++ b/code/client/cl_parse.c
+@@ -415,9 +415,9 @@
+ 			// If this cvar may not be modified by a server discard the value.
+ 			if(!(cvar_flags & (CVAR_SYSTEMINFO | CVAR_SERVER_CREATED | CVAR_USER_CREATED)))
+ 			{
+-#ifndef STANDALONE
++#if !defined(STANDALONE) || defined(WITH_OPENARENA)
+ 				if(Q_stricmp(key, "g_synchronousClients") && Q_stricmp(key, "pmove_fixed") &&
+-				   Q_stricmp(key, "pmove_msec"))
++				   Q_stricmp(key, "pmove_msec") && Q_stricmp(key, "sv_fps"))
+ #endif
+ 				{
+ 					Com_Printf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value);
+--- a/code/q3_ui/ui_gameinfo.c
++++ b/code/q3_ui/ui_gameinfo.c
+@@ -806,10 +806,16 @@
+ ===============
+ */
+ void UI_InitGameinfo( void ) {
++	char basegame[MAX_INFO_STRING];
+ 
+ 	UI_InitMemory();
+ 	UI_LoadArenas();
+ 	UI_LoadBots();
+ 
+ 	uis.demoversion = qfalse;
+-}
++
++	trap_Cvar_VariableStringBuffer("com_basegame", basegame, sizeof(basegame));
++	if (!strcmp (basegame, "demoq3")) {
++		uis.demoversion = qtrue;
++	}
++}
+--- a/code/q3_ui/ui_preferences.c
++++ b/code/q3_ui/ui_preferences.c
+@@ -103,6 +103,39 @@
+ 	s_preferences.allowdownload.curvalue	= trap_Cvar_VariableValue( "cl_allowDownload" ) != 0;
+ }
+ 
++static void AutoDownloadAction( qboolean result )
++{
++	if (result) {
++		trap_Cvar_SetValue( "cl_allowDownload", 1 );
++	} else {
++		trap_Cvar_SetValue( "cl_allowDownload", 0 );
++	}
++	s_preferences.allowdownload.curvalue = result;
++}
++
++static void UI_ConfirmAutoDownload_Draw ( void )
++{
++	UI_DrawProportionalString( SCREEN_WIDTH/2, 356 + PROP_HEIGHT * 0,
++		"WARNING: This is a security risk.",
++		UI_CENTER|UI_SMALLFONT, color_yellow );
++	UI_DrawProportionalString( SCREEN_WIDTH/2, 356 + PROP_HEIGHT * 1,
++		"More information: <http://deb.li/Q3DL>",
++		UI_CENTER|UI_SMALLFONT, color_yellow );
++}
++
++static void UI_ConfirmAutoDownload( void (*action) (qboolean) )
++{
++	if (trap_Cvar_VariableValue( "cl_allowDownload" ) != 0) {
++		/* already set */
++		return;
++	}
++
++	UI_ConfirmMenu_Style(
++		"Auto-download?",
++		UI_CENTER|UI_SMALLFONT,
++		UI_ConfirmAutoDownload_Draw,
++		action);
++}
+ 
+ static void Preferences_Event( void* ptr, int notification ) {
+ 	if( notification != QM_ACTIVATED ) {
+@@ -154,8 +187,11 @@
+ 		break;
+ 
+ 	case ID_ALLOWDOWNLOAD:
+-		trap_Cvar_SetValue( "cl_allowDownload", s_preferences.allowdownload.curvalue );
+ 		trap_Cvar_SetValue( "sv_allowDownload", s_preferences.allowdownload.curvalue );
++		if ( s_preferences.allowdownload.curvalue )
++			UI_ConfirmAutoDownload( AutoDownloadAction );
++		else
++			trap_Cvar_SetValue( "cl_allowDownload", 0 );
+ 		break;
+ 
+ 	case ID_BACK:
+--- a/code/qcommon/common.c
++++ b/code/qcommon/common.c
+@@ -2223,6 +2223,9 @@
+ 			case SE_MOUSE:
+ 				CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime );
+ 			break;
++			case SE_MOUSE_ABSOLUTE:
++				CL_MouseAbsoluteEvent( ev.evValue, ev.evValue2, ev.evTime );
++			break;
+ 			case SE_JOYSTICK_AXIS:
+ 				CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
+ 			break;
+--- a/code/qcommon/files.c
++++ b/code/qcommon/files.c
+@@ -1444,7 +1444,7 @@
+ =================
+ */
+ 
+-int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll)
++int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll, int forceDll)
+ {
+ 	searchpath_t *search, *lastSearch;
+ 	directory_t *dir;
+@@ -1468,7 +1468,7 @@
+ 
+ 	while(search)
+ 	{
+-		if(search->dir && !fs_numServerPaks)
++		if(search->dir && (forceDll || !fs_numServerPaks))
+ 		{
+ 			dir = search->dir;
+ 
+@@ -1491,7 +1491,7 @@
+ 				return VMI_COMPILED;
+ 			}
+ 		}
+-		else if(search->pack)
++		else if(search->pack && !forceDll)
+ 		{
+ 			pack = search->pack;
+ 
+--- a/code/qcommon/qcommon.h
++++ b/code/qcommon/qcommon.h
+@@ -629,7 +629,7 @@
+ 
+ qboolean FS_CreatePath (char *OSPath);
+ 
+-int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll);
++int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll, int forceDll);
+ 
+ char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
+ qboolean FS_CompareZipChecksum(const char *zipfile);
+@@ -804,7 +804,8 @@
+ 	SE_CHAR,		// evValue is an ascii char
+ 	SE_MOUSE,		// evValue and evValue2 are relative signed x / y moves
+ 	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
+-	SE_CONSOLE		// evPtr is a char*
++	SE_CONSOLE,		// evPtr is a char*
++	SE_MOUSE_ABSOLUTE	// window-normalized UI pointer; never gameplay deltas
+ } sysEventType_t;
+ 
+ typedef struct {
+@@ -994,6 +995,7 @@
+ // char events are for field typing, not game control
+ 
+ void CL_MouseEvent( int dx, int dy, int time );
++void CL_MouseAbsoluteEvent( int x, int y, int time );
+ 
+ void CL_JoystickEvent( int axis, int value, int time );
+ 
+--- a/code/qcommon/qfiles.h
++++ b/code/qcommon/qfiles.h
+@@ -52,6 +52,10 @@
+ 
+ #define	VM_MAGIC			0x12721444
+ #define	VM_MAGIC_VER2	0x12721445
++
++/* 'NTVE', but backwards because the QVM format is little-endian */
++#define	VM_MAGIC_USE_NATIVE	0x4556544E
++
+ typedef struct {
+ 	int		vmMagic;
+ 
+--- a/code/qcommon/vm.c
++++ b/code/qcommon/vm.c
+@@ -371,6 +371,7 @@
+ 	union {
+ 		vmHeader_t	*h;
+ 		void				*v;
++		unsigned char	*bytes;
+ 	} header;
+ 
+ 	// load the image
+@@ -390,6 +391,54 @@
+ 
+ 	// show where the qvm was loaded from
+ 	FS_Which(filename, vm->searchPath);
++
++	if (LittleLong( header.h->vmMagic ) == VM_MAGIC_USE_NATIVE) {
++		char module[MAX_OSPATH];
++		char filename[MAX_OSPATH];
++		int retval = -1;
++		void *startSearch = NULL;
++
++		Com_Printf("...which has vmMagic VM_MAGIC_USE_NATIVE.\n");
++
++		if (header.bytes[sizeof(int)] != '\0') {
++			// FS_ReadFileDir guarantees a trailing \0, even if
++			// there wasn't actually one in the file
++			Com_sprintf(module, sizeof(module), "%s/%s",
++				header.bytes + sizeof(int), vm->name);
++			Com_Printf("... trying %s\n", module);
++			startSearch = NULL;
++
++			if (FS_CheckDirTraversal(module)) {
++				Com_Printf("Directory traversal detected! %s\n", module);
++				VM_Free(vm);
++				return NULL;
++			}
++
++			retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, qtrue, qtrue);
++		}
++
++		if (retval != VMI_NATIVE) {
++			Com_sprintf(module, sizeof(module), "%s", vm->name);
++			Com_Printf("... trying %s\n", module);
++			startSearch = NULL;
++
++			retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, qtrue, qtrue);
++		}
++
++		if (retval != VMI_NATIVE) {
++			VM_Free(vm);
++			return NULL;
++		}
++
++		Com_Printf("Loading DLL file %s instead.\n", filename);
++		vm->dllHandle = Sys_LoadGameDll(filename, &vm->entryPoint, VM_DllSyscall);
++		if (!vm->dllHandle) {
++			Com_Printf("Failed to load DLL %s.\n", filename);
++			VM_Free(vm);
++			return NULL;
++		}
++		return header.h;
++	}
+ 
+ 	if( LittleLong( header.h->vmMagic ) == VM_MAGIC_VER2 ) {
+ 		Com_Printf( "...which has vmMagic VM_MAGIC_VER2\n" );
+@@ -612,7 +661,7 @@
+ 
+ 	do
+ 	{
+-		retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, (interpret == VMI_NATIVE));
++		retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, (interpret == VMI_NATIVE), qfalse);
+ 		
+ 		if(retval == VMI_NATIVE)
+ 		{
+@@ -643,6 +692,12 @@
+ 		return NULL;
+ 
+ 	vm->systemCall = systemCalls;
++
++	if ( vm->dllHandle ) {
++		// it was replaced by a DLL anyway
++		FS_FreeFile( header );
++		return vm;
++	}
+ 
+ 	// allocate space for the jump targets, which will be filled in by the compile/prep functions
+ 	vm->instructionCount = header->instructionCount;
+--- a/code/renderergl1/tr_init.c
++++ b/code/renderergl1/tr_init.c
+@@ -1041,7 +1041,7 @@
+ 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
+ 	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );
++	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "0", CVAR_ARCHIVE );
+ 	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH);
+ 	r_customwidth = ri.Cvar_Get( "r_customwidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_customheight = ri.Cvar_Get( "r_customheight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
+--- a/code/renderergl2/tr_init.c
++++ b/code/renderergl2/tr_init.c
+@@ -1262,8 +1262,8 @@
+ 	ri.Cvar_CheckRange( r_ext_multisample, 0, 4, qtrue );
+ 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
+-	r_mode = ri.Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );
++	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
++	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "0", CVAR_ARCHIVE );
+ 	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH);
+ 	r_customwidth = ri.Cvar_Get( "r_customwidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_customheight = ri.Cvar_Get( "r_customheight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
+--- a/code/sdl/sdl_input.c
++++ b/code/sdl/sdl_input.c
+@@ -29,6 +29,8 @@
+ #include <stdarg.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
+ 
+ #include "../client/client.h"
+ #include "../sys/sys_local.h"
+@@ -47,6 +49,8 @@
+ 
+ static cvar_t *in_mouse             = NULL;
+ static cvar_t *in_nograb;
++static cvar_t *in_absoluteMenu;
++static qboolean menuMouseActive = qfalse;
+ 
+ static cvar_t *in_joystick          = NULL;
+ static cvar_t *in_joystickThreshold = NULL;
+@@ -345,11 +349,40 @@
+ IN_ActivateMouse
+ ===============
+ */
++/* Queue physical window coordinates in renderer pixels. Called before clicks
++ * too, so clicking a stationary desktop pointer cannot use stale UI coordinates. */
++static void IN_QueueAbsoluteMenuPointer(int x, int y)
++{
++    int width, height;
++    SDL_GetWindowSize(SDL_window, &width, &height);
++    if (width > 0 && height > 0)
++        Com_QueueEvent(in_eventTime, SE_MOUSE_ABSOLUTE,
++            (int)((double)x * cls.glconfig.vidWidth / width),
++            (int)((double)y * cls.glconfig.vidHeight / height), 0, NULL);
++}
++
+ static void IN_ActivateMouse( qboolean isFullscreen )
+ {
+ 	if (!mouseAvailable || !SDL_WasInit( SDL_INIT_VIDEO ) )
+ 		return;
+ 
++	/* Menus accept desktop-style positions; gameplay retains relative capture.
++	 * Keep the OS cursor hidden because the UI draws its own pointer. */
++	if (in_absoluteMenu->integer && (Key_GetCatcher() & KEYCATCH_UI)) {
++		if (!mouseActive || !menuMouseActive) {
++			SDL_SetRelativeMouseMode(SDL_FALSE);
++			SDL_SetWindowGrab(SDL_window, SDL_FALSE);
++			SDL_ShowCursor(SDL_DISABLE);
++			IN_GobbleMotionEvents();
++		}
++		menuMouseActive = qtrue;
++		mouseActive = qtrue;
++		return;
++	}
++	if (menuMouseActive) {
++		menuMouseActive = qfalse;
++		mouseActive = qfalse;
++	}
+ 	if( !mouseActive )
+ 	{
+ 		SDL_SetRelativeMouseMode( SDL_TRUE );
+@@ -408,6 +441,7 @@
+ 			SDL_WarpMouseInWindow( SDL_window, cls.glconfig.vidWidth / 2, cls.glconfig.vidHeight / 2 );
+ 
+ 		mouseActive = qfalse;
++		menuMouseActive = qfalse;
+ 	}
+ }
+ 
+@@ -1078,6 +1112,10 @@
+ 				break;
+ 
+ 			case SDL_MOUSEMOTION:
++				if (mouseActive && menuMouseActive) {
++					IN_QueueAbsoluteMenuPointer(e.motion.x, e.motion.y);
++					break;
++				}
+ 				if( mouseActive )
+ 				{
+ 					if( !e.motion.xrel && !e.motion.yrel )
+@@ -1090,6 +1128,8 @@
+ 			case SDL_MOUSEBUTTONUP:
+ 				{
+ 					int b;
++					if (mouseActive && menuMouseActive)
++						IN_QueueAbsoluteMenuPointer(e.button.x, e.button.y);
+ 					switch( e.button.button )
+ 					{
+ 						case SDL_BUTTON_LEFT:   b = K_MOUSE1;     break;
+@@ -1201,6 +1241,34 @@
+ IN_Frame
+ ===============
+ */
++/* Opt-in authenticated companion reads this state; no input is accepted here. */
++static void IN_PublishStreamCapture(void)
++{
++    static int lastTime = -1000;
++    static int lastMode = -1;
++    const char *path = getenv("SHIELD_INPUT_STATE");
++    char temporary[1024], data[64];
++    int now = Sys_Milliseconds(), fd, length;
++    int relative = mouseActive && !menuMouseActive &&
++        clc.state == CA_ACTIVE && Key_GetCatcher() == 0 &&
++        (SDL_GetWindowFlags(SDL_window) & SDL_WINDOW_INPUT_FOCUS);
++    if (!path || !*path || strlen(path) > 900) return;
++    if (relative == lastMode && now - lastTime < 250) return;
++    lastMode = relative;
++    lastTime = now;
++    snprintf(temporary, sizeof(temporary), "%s.%ld.tmp", path, (long)getpid());
++    length = snprintf(data, sizeof(data), "%ld %s\n", (long)getpid(),
++                      relative ? "relative" : ((Key_GetCatcher() & KEYCATCH_UI) &&
++                      (SDL_GetWindowFlags(SDL_window) & SDL_WINDOW_INPUT_FOCUS) ? "menu" : "absolute"));
++    fd = open(temporary, O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, 0600);
++    if (fd < 0) return;
++    if (write(fd, data, length) == length) {
++        close(fd);
++        if (rename(temporary, path) == 0) return;
++    } else close(fd);
++    unlink(temporary);
++}
++
+ void IN_Frame( void )
+ {
+ 	qboolean loading;
+@@ -1232,6 +1300,7 @@
+ 		IN_ActivateMouse( cls.glconfig.isFullscreen );
+ 
+ 	IN_ProcessEvents( );
++	IN_PublishStreamCapture();
+ 
+ 	// Set event time for next frame to earliest possible time an event could happen
+ 	in_eventTime = Sys_Milliseconds( );
+@@ -1268,6 +1337,7 @@
+ 	// mouse variables
+ 	in_mouse = Cvar_Get( "in_mouse", "1", CVAR_ARCHIVE );
+ 	in_nograb = Cvar_Get( "in_nograb", "0", CVAR_ARCHIVE );
++	in_absoluteMenu = Cvar_Get("in_absoluteMenu", "1", CVAR_ARCHIVE);
+ 
+ 	in_joystick = Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE|CVAR_LATCH );
+ 	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
+--- a/code/server/server.h
++++ b/code/server/server.h
+@@ -288,6 +288,7 @@
+ extern	cvar_t	*sv_minPing;
+ extern	cvar_t	*sv_maxPing;
+ extern	cvar_t	*sv_gametype;
++extern	cvar_t	*sv_dorestart;
+ extern	cvar_t	*sv_pure;
+ extern	cvar_t	*sv_floodProtect;
+ extern	cvar_t	*sv_lanForceRate;
+--- a/code/server/sv_ccmds.c
++++ b/code/server/sv_ccmds.c
+@@ -172,6 +172,9 @@
+ 
+ 	// force latched values to get set
+ 	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
++
++	//Notice that we have done a restart
++	sv_dorestart->integer = 0;
+ 
+ 	cmd = Cmd_Argv(0);
+ 	if( Q_stricmpn( cmd, "sp", 2 ) == 0 ) {
+@@ -262,9 +265,10 @@
+ 
+ 	// check for changes in variables that can't just be restarted
+ 	// check for maxclients change
+-	if ( sv_maxclients->modified || sv_gametype->modified ) {
++	if ( sv_maxclients->modified || sv_gametype->modified || sv_dorestart->integer ) {
+ 		char	mapname[MAX_QPATH];
+ 
++		sv_dorestart->integer = 0;
+ 		Com_Printf( "variable change -- restarting.\n" );
+ 		// restart the map the slow way
+ 		Q_strncpyz( mapname, Cvar_VariableString( "mapname" ), sizeof( mapname ) );
+--- a/code/server/sv_init.c
++++ b/code/server/sv_init.c
+@@ -634,6 +634,7 @@
+ 	Cvar_Get ("fraglimit", "20", CVAR_SERVERINFO);
+ 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
+ 	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
++	sv_dorestart = Cvar_Get ("sv_dorestart", "0", 0);
+ 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
+ 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
+ 	sv_privateClients = Cvar_Get ("sv_privateClients", "0", CVAR_SERVERINFO);
+--- a/code/server/sv_main.c
++++ b/code/server/sv_main.c
+@@ -55,6 +55,7 @@
+ cvar_t	*sv_minPing;
+ cvar_t	*sv_maxPing;
+ cvar_t	*sv_gametype;
++cvar_t	*sv_dorestart;
+ cvar_t	*sv_pure;
+ cvar_t	*sv_floodProtect;
+ cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)

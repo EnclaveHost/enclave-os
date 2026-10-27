@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/moonlight-stream/moonlight-qt",
+  "commit": "de2467e433821664cdd2224aad8c89a625be1ad9",
+  "scope": "Complete current client audio and automatic input-mode changes relative to the pinned commit. Client-side integration reference, not a guest OS package.",
+  "patches": {
+    "moonlight-enclave.patch": "2e469d3b8cea08bf6a9862a48a9bf09cdfb416249a2bbae5c2e69f3680d3dbdf"
+  }
+}

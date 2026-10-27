@@ -1,0 +1,97 @@
+{
+  "url": "https://deb.debian.org/debian/pool/main/i/ioquake3/ioquake3_1.36+u20250316.526edd3+dfsg.orig.tar.xz",
+  "sha256": "1f42270e8e950f7d048724059143ce8c00372b3aa1f63c8ec3e7067823275986",
+  "description": "Final local ioquake3 sources, including Debian compatibility changes and Enclave menu/capture support, diffed against the pristine DFSG source archive. Not yet ported/qualified on Alpine.",
+  "files": [
+    {
+      "path": "Makefile",
+      "base_sha256": "42fcbf6311a4060e97e5b5f0e192b11ee8b02aa74619ecbebc6875dbf57cdc00",
+      "patched_sha256": "3662318088806d4a062459962e3fb721a3779832d9363e4c3a2e4ead81b149ef"
+    },
+    {
+      "path": "code/client/cl_curl.c",
+      "base_sha256": "0932bc756b19f917147fe503e637e39e2db3771debdfec251adaa477dfe93062",
+      "patched_sha256": "8b3f3b76d48b51e7c4a0c79405b978806170ccb1a5928bd6cf6aa74abab92202"
+    },
+    {
+      "path": "code/client/cl_input.c",
+      "base_sha256": "d68954f326e1a2d000e8dfea6c5f095345f844b8ee9855e243615036ff9b78e8",
+      "patched_sha256": "5dd8e39e0595344b855cbe2886a0c7c3db1d79bc5e06921ba75b4d796e681b21"
+    },
+    {
+      "path": "code/client/cl_parse.c",
+      "base_sha256": "30ed8b5cb978206c73f020370b90625fbd3aa7edf8caef8c2ba6c3bc71416943",
+      "patched_sha256": "1cc535c4dbe803c6d1ba8894d1a9b9be698d563b5f2fbb766696008b922e109e"
+    },
+    {
+      "path": "code/q3_ui/ui_gameinfo.c",
+      "base_sha256": "2842d59bc636c96a2454e65c4e7401a36f74429b1de635acc3175226fc1b6e17",
+      "patched_sha256": "8f6853d54967b3c3405f47749459f2987aa0d3738b2bd1bc2eaadba6d8436905"
+    },
+    {
+      "path": "code/q3_ui/ui_preferences.c",
+      "base_sha256": "dc0c7e181a856c2f90a92dfb76819f5053efa8ae57a8743cacf98aa6696e3efa",
+      "patched_sha256": "97e569c345770421d39356a3fb6750d01c0b8208cae8c884b2941f62ab866bf6"
+    },
+    {
+      "path": "code/qcommon/common.c",
+      "base_sha256": "2aba99c05bcb207775bf9b8ec237540a9692226019865510e78e86751849e64c",
+      "patched_sha256": "8009643f12bd6904303a5f91156c03a26ef10e7623f8df449537e0b5d5e6a84f"
+    },
+    {
+      "path": "code/qcommon/files.c",
+      "base_sha256": "0c9c481c6265bb7db69c493d2a472cc5accd1ed93d234ae369949485fb3b57f9",
+      "patched_sha256": "7774bac913998d7c70fc230a796b9f28cb8498679ea26082b3807786a2615771"
+    },
+    {
+      "path": "code/qcommon/qcommon.h",
+      "base_sha256": "af6758deb5a671787d303912062c68784698eed63dcdcfe1cb294fdb99ffb9c0",
+      "patched_sha256": "8ce8ccb243e243bf6dfe10bc2e8e2df88b0ed3e8536f897268dc3fe4c8ccf634"
+    },
+    {
+      "path": "code/qcommon/qfiles.h",
+      "base_sha256": "25c5d1da0ba726fb8830ca884aab72ddee88eaaf6d2a1426d92b75d78a32c1b4",
+      "patched_sha256": "732fcf070809ebd560524d0929be1ed807a80058e1a24710b3b30c6fc3243e75"
+    },
+    {
+      "path": "code/qcommon/vm.c",
+      "base_sha256": "c58d057e43f0631815549b553b6d7a54f35da40ed947ad0bee6c289ed6f1c7c9",
+      "patched_sha256": "2ff880f4756b6eeb4cd731fb766e1834ef3c3ef46225047925108a1b294082ef"
+    },
+    {
+      "path": "code/renderergl1/tr_init.c",
+      "base_sha256": "dc1ec43e50e25fac9f063f6f2fc4003bb5cf22a42d831074d4678a3b93f867e8",
+      "patched_sha256": "88a98ef59a141cd9f66cf3c12beab32270bfdc21cb67a8e423ecb44baae02204"
+    },
+    {
+      "path": "code/renderergl2/tr_init.c",
+      "base_sha256": "8d81b24ccb167667e346a89de4b046e9b406021c8fdc9b7a129518e4fc5b53ff",
+      "patched_sha256": "f4b571f32f7a4669e59f591b8fc146c1f2a330d1764cbb6b097ae610a99a0bca"
+    },
+    {
+      "path": "code/sdl/sdl_input.c",
+      "base_sha256": "9e1a17038e4388772b57dca62b57dad814a0d7a1f6ff2dcd91ea3b9a69ae8f67",
+      "patched_sha256": "4f73c6c3b48859d5a0caf2189434aa4dd927031f159f817268868fd27a93595c"
+    },
+    {
+      "path": "code/server/server.h",
+      "base_sha256": "b972731110e3b0494460150aedcc4cb8890ceb08cb26134563d4e2d267ade326",
+      "patched_sha256": "ad46bee8998662277456f9d9ba6e6ed9fd9beebbdbe6f636be31b84b5a10a2f0"
+    },
+    {
+      "path": "code/server/sv_ccmds.c",
+      "base_sha256": "bf2f7a4280b760b818852c1d253bd41bd01f55dabb502daf8045aae48a8a25d3",
+      "patched_sha256": "ef44ec40bf07040ca0d06866a1a0f9cfb2975be3262a75a60ac31c509cab51cc"
+    },
+    {
+      "path": "code/server/sv_init.c",
+      "base_sha256": "b20ff244a7ccb5e05bf42ed28c507524e67de9dbacc0a835c7f23e013c65ad46",
+      "patched_sha256": "6c1f8f049378a67844c22411bceab3f963aaec61d80f1854d98264317683f3a1"
+    },
+    {
+      "path": "code/server/sv_main.c",
+      "base_sha256": "659ee45a743fe4455151d9593f74b47739e4889d029ff661033333edc866878c",
+      "patched_sha256": "81bd5fe9546daa4db2b4e58e6f4e20e6fb20fccdd006eba614f321e233707103"
+    }
+  ]
+}
