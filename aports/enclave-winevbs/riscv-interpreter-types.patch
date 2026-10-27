@@ -1,0 +1,28 @@
+--- a/wine/include/basetsd.h
++++ b/wine/include/basetsd.h
+@@ -36,7 +36,7 @@
+  * 64-bit.
+  */
+ 
+-#if (defined(__x86_64__) || defined(__powerpc64__) || defined(__aarch64__)) && !defined(_WIN64)
++#if (defined(__x86_64__) || defined(__powerpc64__) || defined(__aarch64__) || (defined(__riscv) && __riscv_xlen == 64)) && !defined(_WIN64)
+ #define _WIN64
+ #endif
+ 
+--- a/wine/include/winnt.h
++++ b/wine/include/winnt.h
+@@ -2111,7 +2111,13 @@
+ 
+ #endif /* __aarch64__ */
+ 
+-#if !defined(CONTEXT_FULL) && !defined(RC_INVOKED)
++#if defined(__LIBWINEVBS__) && defined(__riscv) && __riscv_xlen == 64
++/* The interpreter exposes pointer-only exception declarations. No Windows
++ * register context, SEH unwinder or machine-code execution is provided. */
++typedef struct _CONTEXT CONTEXT, *PCONTEXT;
++typedef struct _RUNTIME_FUNCTION RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
++typedef struct _KNONVOLATILE_CONTEXT_POINTERS KNONVOLATILE_CONTEXT_POINTERS;
++#elif !defined(CONTEXT_FULL) && !defined(RC_INVOKED)
+ #error You need to define a CONTEXT for your CPU
+ #endif
+ 

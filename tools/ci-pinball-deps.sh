@@ -19,4 +19,3 @@ cp -a /home/builder/packages/enclave /out/repository
 cp /home/builder/.abuild/*.pub /out/
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
 apk add --no-cache enclave-winevbs enclave-spatialaudio
-cp /home/builder/aports/enclave/enclave-winevbs/src/libwinevbs-*/build/test.log /out/winevbs-test.log

@@ -8,7 +8,8 @@ arch="x86_64 riscv64"
 license="LGPL-2.1-only AND GPL-2.0-only"
 makedepends="cmake samurai bison python3 linux-headers"
 subpackages="$pkgname-dev"
-source="$pkgname-$_commit.tar.gz::https://codeload.github.com/vpinball/libwinevbs/tar.gz/$_commit"
+source="$pkgname-$_commit.tar.gz::https://codeload.github.com/vpinball/libwinevbs/tar.gz/$_commit
+ riscv-interpreter-types.patch"
 builddir="$srcdir/libwinevbs-$_commit"
 prepare() {
     default_prepare
@@ -21,6 +22,7 @@ build() {
 }
 check() {
     ./build/winevbs_test >build/test.log 2>&1
+    cat build/test.log
     python3 - <<'CHECK'
 from pathlib import Path
 s=Path('build/test.log').read_text()
@@ -34,4 +36,6 @@ package() {
     DESTDIR="$pkgdir" cmake --install build
     install -Dm644 README.md "$pkgdir/usr/share/licenses/$pkgname/README.md"
 }
-sha512sums="36d5241bdbefe712f7090b5e0870e3e84910c9f0a1f9c1249b1ca4a06c9d62303eb9ac886890c6886dfdbdbb7c64d17837e5438ff2a01f9358ca9ddb68fa4b81  enclave-winevbs-e8f15a759c345f8ff535bacf2fe6045cc59f5f8c.tar.gz"
+sha512sums="36d5241bdbefe712f7090b5e0870e3e84910c9f0a1f9c1249b1ca4a06c9d62303eb9ac886890c6886dfdbdbb7c64d17837e5438ff2a01f9358ca9ddb68fa4b81  enclave-winevbs-e8f15a759c345f8ff535bacf2fe6045cc59f5f8c.tar.gz
+9e807dfd0c23c4d19f121432c1113e2494debd5640b317332c2a37d85bad5f49fb8ed743d2d3cc3d5ce9b14ed6c39ea6703c781c99dd10edea04f5ab6fa3c8f4  riscv-interpreter-types.patch
+"
