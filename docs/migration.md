@@ -13,14 +13,14 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
-| Sunshine/Moonlight | Alpine x86-64 upstream APK exists; client audio/input patch preserved in `integrations/moonlight` | Build/verify patched Sunshine on musl, RV64 capture/encoder feasibility; audio/input parity |
+| Sunshine/Moonlight | Pinned source-based X11/software-encoder APK in progress for both CPUs; client audio/input patch preserved in `integrations/moonlight` | Finish musl builds, RV64 capture/encoder feasibility; authenticated service integration and audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Imported worker/protocol/SDK source | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
-| OpenGL/Vulkan | Imported patched Mesa/driver source | Musl toolchain, platform ISA, full qualification suite; never replace Shield routing with direct GPU access |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
+| OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Finish RV64 build and real masked service/worker qualification; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build, menu/relative-mode/sensitivity tests remain |
-| LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup and real Shield/input/audio qualification |
+| LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
 | Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
-| OpenHV | OpenRA/.NET 6 game + content | Supported musl runtime/architecture, shared runtime packaging, W^X and rendering tests |
+| OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup, RV64 runtime port, W^X and rendering tests |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
 
@@ -67,3 +67,19 @@ separate Shield workflow checks the exact integer transport and rejection behavi
 on both musl architectures with undefined-behavior checks (diagnostics on x86-64,
 traps on RV64 where Alpine does not ship libubsan). Its synthetic replies are not evidence of
 GPU execution, and the actual Mesa/service/worker chain remains a release gate.
+
+The [native ABI policy run](https://github.com/EnclaveHost/enclave-os/actions/runs/40585361714)
+passes under actual x86-64 and RV64 Linux kernels. It checks denied RWX requests,
+legal RW-to-RX transitions, inherited restrictions and fatal forbidden syscalls.
+This does not establish production adapter admission.
+
+The [installed graphics API run](https://github.com/EnclaveHost/enclave-os/actions/runs/40587616031)
+passes x86 musl Vulkan compute-to-draw, OpenGL compute, robust-context creation and
+rejection of a compute socket owned by the wrong UID before any request is sent.
+These are real API executions through the installed private Mesa APK, using CPU
+fallback; they are not claims of GPU offload.
+
+Enclave Browser's [nine-check native qualification](https://github.com/EnclaveHost/enclave-browser/actions/runs/40585509254)
+passes Fission navigation, focused keyboard input, interception, downloads, cookies,
+TLS/CSP denial and 960×600 VP9 playback. The native binary provenance is retained
+by that workflow; this JS qualification does not replace the musl/RV64 build gates.

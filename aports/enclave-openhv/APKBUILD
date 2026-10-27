@@ -37,7 +37,7 @@ package() {
     cp COPYING "$dest/COPYING"
     cp engine/COPYING "$dest/COPYING.OpenRA"
     cp enclave-source.json "$dest/enclave-source.json"
-    ln -s /usr/lib/liblua-5.1.so.0 "$dest/bin/lua51.so"
+    ln -s /usr/lib/liblua.so.5 "$dest/bin/lua51.so"
     ln -s /usr/lib/libSDL2-2.0.so.0 "$dest/bin/SDL2.so"
     ln -s /usr/lib/libopenal.so.1 "$dest/bin/soft_oal.so"
     ln -s /usr/lib/libfreetype.so.6 "$dest/bin/freetype6.so"
