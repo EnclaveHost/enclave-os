@@ -21,6 +21,15 @@ s=p.read_text(); needle='elseif (${arch} STREQUAL "mips")'
 assert s.count(needle)==1
 s=s.replace(needle, 'elseif (${arch} STREQUAL "riscv64")\n    set(CBS_ARCH_PATH riscv)\n'+needle)
 p.write_text(s)
+p=Path('third-party/build-deps/cmake/ffmpeg/x264.cmake')
+s=p.read_text(); assert s.count(needle)==1
+p.write_text(s.replace(needle, 'elseif (${arch} STREQUAL "riscv64")\n    set(X264_ARCH riscv64)\n'+needle))
+p=Path('third-party/build-deps/cmake/git_fetch_tags.cmake')
+s=p.read_text().replace('    execute_process(', '    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${repo_path}/.git")\n    execute_process(').replace('endmacro()', '    endif()\nendmacro()')
+p.write_text(s)
+p=Path('third-party/build-deps/cmake/ffmpeg/ffmpeg.cmake')
+s=p.read_text().replace('            --enable-encoder=h264_v4l2m2m\n', '').replace('            --enable-v4l2_m2m\n', '')
+p.write_text(s)
 PY
 }
 build() {
