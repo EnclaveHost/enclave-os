@@ -1,0 +1,58 @@
+pkgname=enclave-sunshine
+pkgver=2026.914.233613
+pkgrel=0
+pkgdesc="Enclave Moonlight server with X11 capture and software encoding"
+url="https://github.com/LizardByte/Sunshine"
+arch="x86_64 riscv64"
+license="GPL-3.0-only"
+makedepends="alpine-sdk bash cmake samurai python3 py3-jinja2 git perl nasm
+ curl-dev eudev-dev freetype-dev glib-dev libcap-dev libevdev-dev libx11-dev
+ libxcb-dev libxfixes-dev libxrandr-dev libxtst-dev linux-headers mesa-dev
+ miniupnpc-dev openssl-dev opus-dev pulseaudio-dev zlib-dev nodejs npm"
+depends="pulseaudio xrandr"
+options="net !check" # real pairing/input/audio remain release gates
+source="enclave-sunshine-source.tar"
+builddir="$srcdir/sunshine"
+prepare() {
+    python3 - <<'PY'
+from pathlib import Path
+p=Path('third-party/build-deps/cmake/ffmpeg/ffmpeg.cmake')
+s=p.read_text(); needle='elseif (${arch} STREQUAL "mips")'
+assert s.count(needle)==1
+s=s.replace(needle, 'elseif (${arch} STREQUAL "riscv64")\n    set(CBS_ARCH_PATH riscv)\n'+needle)
+p.write_text(s)
+PY
+}
+build() {
+    cmake -S third-party/build-deps -B dependencies -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+        -DPARALLEL_BUILDS=2 -DBUILD_ALL=OFF -DBUILD_FFMPEG=ON \
+        -DBUILD_FFMPEG_AMF=OFF -DBUILD_FFMPEG_MF=OFF \
+        -DBUILD_FFMPEG_NV_CODEC_HEADERS=OFF -DBUILD_FFMPEG_CUDA_LLVM=OFF \
+        -DBUILD_FFMPEG_SVT_AV1=OFF -DBUILD_FFMPEG_LIBVA=OFF -DBUILD_FFMPEG_VULKAN=OFF \
+        -DBUILD_FFMPEG_X264=ON -DBUILD_FFMPEG_X265=ON \
+        -DFFMPEG_INSTALL_PREFIX="$builddir/ffmpeg"
+    cmake --build dependencies -j 2
+    cmake --install dependencies
+    export BRANCH=enclave BUILD_VERSION="$pkgver" COMMIT=63d35f702ee9e362e43263742981836ec0710384
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib \
+        -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF -DBUILD_WERROR=OFF \
+        -DFFMPEG_PREPARED_BINARIES="$builddir/ffmpeg" -DFFMPEG_PLATFORM_LIBRARIES=X11 \
+        -DSUNSHINE_ASSETS_DIR=share/enclave-sunshine \
+        -DSUNSHINE_ENABLE_TRAY=OFF -DSUNSHINE_ENABLE_CUDA=OFF -DCUDA_FAIL_ON_MISSING=OFF \
+        -DSUNSHINE_ENABLE_DRM=OFF -DSUNSHINE_ENABLE_VAAPI=OFF -DSUNSHINE_ENABLE_VULKAN=OFF \
+        -DSUNSHINE_ENABLE_WAYLAND=OFF -DSUNSHINE_ENABLE_KWIN=OFF -DSUNSHINE_ENABLE_PORTAL=OFF \
+        -DSUNSHINE_ENABLE_X11=ON -DSUNSHINE_EXECUTABLE_PATH=/usr/bin/enclave-sunshine
+    cmake --build build -j 2
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    mv "$pkgdir/usr/bin/sunshine" "$pkgdir/usr/bin/enclave-sunshine"
+    rm -rf "$pkgdir/usr/lib/systemd" "$pkgdir/usr/lib/udev" "$pkgdir/etc/udev" "$pkgdir/etc/modules-load.d"
+    install -Dm644 enclave-source.json "$pkgdir/usr/share/enclave-sunshine/enclave-source.json"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+# The source archive is made from the exact recursive Git checkout in CI;
+# abuild checksum records its SHA512 before building, retained with provenance.
+sha512sums=""

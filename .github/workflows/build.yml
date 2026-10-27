@@ -1,9 +1,29 @@
 name: Alpine packages and unified userland
 on:
   push:
-    paths-ignore:
-      - README.md
-      - docs/**
+    paths:
+      - aports/enclave-base/**
+      - aports/enclave-cursor/**
+      - aports/enclave-desktop/**
+      - aports/enclave-freedoom/**
+      - aports/enclave-librequake/**
+      - aports/enclave-openarena/**
+      - components/base/**
+      - components/cursor/**
+      - components/desktop/**
+      - components/freedoom/**
+      - profiles/**
+      - provenance/**
+      - tests/contracts.py
+      - tests/*smoke.py
+      - tests/cursor-image.c
+      - tools/assemble.py
+      - tools/stage-aports.py
+      - tools/ci-build.sh
+      - tools/ci-boot.sh
+      - tools/boot-payload.sh
+      - tools/finalize-artifacts.py
+      - .github/workflows/build.yml
   workflow_dispatch:
 concurrency:
   group: enclave-os-${{ github.ref }}
