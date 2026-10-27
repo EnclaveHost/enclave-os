@@ -1,6 +1,6 @@
 [begin] (Enclave OS)
   [exec] (Web Browser) {enclave-browser}
   [exec] (Terminal) {xterm -fn fixed -bg "#101020" -fg "#c8d0ff"}
-  [exec] (FreeDoom) {enclave-doom}
+  [include] (~/.cache/enclave-games.menu)
   [reconfig] (Reload desktop settings)
 [end]

@@ -35,6 +35,8 @@ with tempfile.TemporaryDirectory() as td:
         time.sleep(2)
         assert session.poll() is None,(home/'session.log').read_text()
         assert (home/'.fluxbox/menu').is_file()
+        assert '(FreeDoom)' in (home/'.cache/enclave-games.menu').read_text()
+        assert '(LibreQuake)' in (home/'.cache/enclave-games.menu').read_text()
         helper=subprocess.run(['/usr/libexec/enclave-os/window-helper','list','not-a-real-window'],env=env)
         assert helper.returncode==1
         assert pathlib.Path('/usr/share/fluxbox/styles/Enclave/theme.cfg').is_file()

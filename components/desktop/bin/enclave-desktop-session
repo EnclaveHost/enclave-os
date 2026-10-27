@@ -9,5 +9,6 @@ umask 077
 mkdir -p "$HOME"
 # Preserve user customizations on subsequent logins.
 /usr/libexec/enclave-os/seed-home.py
+/usr/libexec/enclave-os/games-menu.py
 /usr/libexec/enclave-os/cursor/start.py
 exec dbus-run-session -- fluxbox

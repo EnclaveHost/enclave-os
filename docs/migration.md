@@ -50,3 +50,19 @@ ASLR, TLS/certificate validation, Safe Browsing and site isolation remain enable
 - [Alpine RISC-V release manifests](https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/riscv64/)
 - [Sunshine release with Alpine packages](https://github.com/LizardByte/Sunshine/releases/tag/v2026.914.233613)
 - [Alpine package creation](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
+
+## Migration evidence, 2026-10-27
+
+Run [40579464934](https://github.com/EnclaveHost/enclave-os/actions/runs/40579464934)
+built and installed the LibreQuake APK, started its native musl engine with the full
+campaign, and passed the minimal Linux boot checks on x86-64 and RV64. The game
+startup fixture uses CPU rendering and dummy audio; it does not establish streamed
+input/audio or masked graphics parity. The browser-free `shell` artifact is an
+explicit development fixture. `desktop` and `full` require the custom Enclave
+Browser package and cannot substitute Alpine Firefox.
+
+The canonical graphics client and NIR proof sources now live in
+`components/shield-graphics`; `reference/` retains the imported originals. The
+separate Shield workflow checks the exact integer transport and rejection behavior
+on both musl architectures with UBSan. Its synthetic replies are not evidence of
+GPU execution, and the actual Mesa/service/worker chain remains a release gate.
