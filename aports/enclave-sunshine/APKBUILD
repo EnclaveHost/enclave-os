@@ -7,7 +7,7 @@ arch="x86_64 riscv64"
 license="GPL-3.0-only"
 makedepends="alpine-sdk bash cmake samurai python3 py3-jinja2 git perl nasm
  curl-dev eudev-dev freetype-dev glib-dev libcap-dev libevdev-dev libx11-dev
- libxcb-dev libxfixes-dev libxrandr-dev libxtst-dev linux-headers mesa-dev
+ libva-dev libxcb-dev libxfixes-dev libxrandr-dev libxtst-dev linux-headers mesa-dev
  miniupnpc-dev openssl-dev opus-dev pulseaudio-dev zlib-dev nodejs npm"
 depends="pulseaudio xrandr"
 options="net !check" # real pairing/input/audio remain release gates
