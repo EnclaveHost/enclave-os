@@ -1,0 +1,10 @@
+Graphics:
+	WindowMode: PseudoFullscreen
+	WindowedSize: 960,600
+	FullscreenSize: 960,600
+	MaxFramerate: 30
+	VSync: True
+	DisableHardwareCursors: True
+Sound:
+	SoundVolume: 0.6
+	MusicVolume: 0.35

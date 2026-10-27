@@ -1,0 +1,55 @@
+pkgname=enclave-openhv
+pkgver=20250725
+pkgrel=0
+pkgdesc="OpenHV with shared musl .NET and the Enclave desktop defaults"
+url="https://www.openhv.net"
+arch="x86_64"
+license="GPL-3.0-or-later AND CC-BY-SA-4.0"
+makedepends="dotnet10-sdk python3"
+depends="dotnet10-runtime sdl2 openal-soft freetype lua5.1-libs enclave-desktop enclave-shield-graphics"
+options="net !check !strip" # installed menu/game and policy checks run separately
+source="enclave-openhv-source.tar"
+builddir="$srcdir/openhv"
+prepare() {
+    python3 - <<'PORT'
+from pathlib import Path
+p=Path('engine/Directory.Build.props')
+s=p.read_text(); assert s.count('>net6.0<')==1
+p.write_text(s.replace('>net6.0<','>net10.0<'))
+p=Path('mod.config');s=p.read_text()
+assert 'AUTOMATIC_ENGINE_MANAGEMENT="True"' in s
+p.write_text(s.replace('AUTOMATIC_ENGINE_MANAGEMENT="True"','AUTOMATIC_ENGINE_MANAGEMENT="False"'))
+PORT
+}
+build() {
+    export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+    dotnet build engine/OpenRA.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestorePackagesWithLockFile=true -m:2
+    dotnet build OpenHV.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestorePackagesWithLockFile=true -m:2
+}
+package() {
+    local dest="$pkgdir/usr/lib/enclave-os/openhv"
+    mkdir -p "$dest" "$dest/mods" "$dest/bin"
+    cp -a engine/bin/*.dll engine/bin/*.json engine/bin/*.config "$dest/bin/"
+    rm -f "$dest/bin/OpenRA.Mods.Cnc."* "$dest/bin/OpenRA.Mods.D2k."* "$dest/bin/OpenRA.Test."*
+    cp -a engine/glsl engine/VERSION engine/AUTHORS "$dest/"
+    cp -a engine/mods/common "$dest/mods/"
+    cp -a mods/hv "$dest/mods/"
+    cp COPYING "$dest/COPYING"
+    cp engine/COPYING "$dest/COPYING.OpenRA"
+    cp enclave-source.json "$dest/enclave-source.json"
+    ln -s /usr/lib/liblua-5.1.so.0 "$dest/bin/lua51.so"
+    ln -s /usr/lib/libSDL2-2.0.so.0 "$dest/bin/SDL2.so"
+    ln -s /usr/lib/libopenal.so.1 "$dest/bin/soft_oal.so"
+    ln -s /usr/lib/libfreetype.so.6 "$dest/bin/freetype6.so"
+    install -Dm755 /src/aports/enclave-openhv/enclave-openhv "$pkgdir/usr/bin/enclave-openhv"
+    install -Dm644 /src/aports/enclave-openhv/settings.yaml "$pkgdir/etc/enclave-os/openhv-settings.yaml"
+    mkdir -p "$pkgdir/usr/share/enclave-os/openhv/nuget-locks"
+    python3 - "$builddir" "$pkgdir/usr/share/enclave-os/openhv/nuget-locks" <<'LOCKS'
+from pathlib import Path
+import sys,shutil
+src,dst=map(Path,sys.argv[1:])
+for p in src.rglob('packages.lock.json'):
+ d=dst/p.relative_to(src);d.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,d)
+LOCKS
+}
+sha512sums=""

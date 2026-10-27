@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+. /usr/libexec/enclave-os/game-env
+export ZINK_DESCRIPTORS=db
+export DOTNET_EnableWriteXorExecute=1 COMPlus_EnableWriteXorExecute=1
+export DOTNET_ReadyToRun=0 COMPlus_ReadyToRun=0 COMPlus_LTTng=0 DOTNET_EnableDiagnostics=0
+support="${XDG_DATA_HOME:-$HOME/.local/share}/enclave-openhv"
+mkdir -p "$support"
+if [ ! -f "$support/settings.yaml" ]; then
+    cp /etc/enclave-os/openhv-settings.yaml "$support/settings.yaml"
+fi
+cd /usr/lib/enclave-os/openhv
+exec dotnet bin/OpenRA.dll Engine.EngineDir="$PWD" Game.Mod=hv Engine.SupportDir="$support" "$@"

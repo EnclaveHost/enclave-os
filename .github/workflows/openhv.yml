@@ -1,0 +1,57 @@
+name: OpenHV musl package
+on:
+  workflow_dispatch:
+    inputs:
+      mesa_run_id:
+        description: Successful x86 Shield Mesa artifact run
+        required: true
+        default: '40585759556'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  openhv:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: OpenHV/OpenHV
+          ref: 42af818757856be2a0ec8f785b5c53de5d3fb1ee
+          path: openhv
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: OpenRA/OpenRA
+          ref: b4f3d8ae02b6bd6f4a3a5441e6d0daf7c5073787
+          path: openhv/engine
+      - name: Archive pinned sources
+        run: |
+          python3 - <<'VERIFY'
+          import pathlib,subprocess,json
+          commits={'.':'42af818757856be2a0ec8f785b5c53de5d3fb1ee','engine':'b4f3d8ae02b6bd6f4a3a5441e6d0daf7c5073787'}
+          for path,want in commits.items():
+              assert subprocess.check_output(['git','-C','openhv/'+path,'rev-parse','HEAD'],text=True).strip()==want
+          pathlib.Path('openhv/enclave-source.json').write_text(json.dumps(commits,indent=2)+'\n')
+          VERIFY
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --exclude=.git -cf enclave-openhv-source.tar openhv
+      - name: Fetch signed graphics package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MESA_RUN_ID: ${{ inputs.mesa_run_id }}
+        run: |
+          [[ "$MESA_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$MESA_RUN_ID" --name shield-mesa-amd64 --dir packages
+      - name: Build, install and exercise the game
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-openhv.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: openhv-amd64
+          path: out/
+          retention-days: 7
