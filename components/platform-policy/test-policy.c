@@ -8,7 +8,14 @@
 #include <sys/wait.h>
 #include "wx-policy.h"
 
-static void denied(long result) { assert(result == -1 && errno == EPERM); }
+#define denied(expression) do { \
+    errno = 0; \
+    long result = (expression); \
+    if (result != -1 || errno != EPERM) { \
+        fprintf(stderr, "denial failed: %s result=%ld errno=%d\n", #expression, result, errno); \
+        abort(); \
+    } \
+} while (0)
 static void protections(void) {
     void *p = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     assert(p != MAP_FAILED);
