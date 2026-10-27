@@ -1,0 +1,36 @@
+pkgname=enclave-llvm-spirv18
+pkgver=18.1.4
+pkgrel=0
+_commit=242df2cb83e2322b456990fb0ca3e30bd9209ed0
+_headers=1c6bb2743599e6eb6f37b2969acc0aef812e32e3
+pkgdesc="Pinned LLVM 18 SPIR-V translator for Shield OpenCL"
+url="https://github.com/KhronosGroup/SPIRV-LLVM-Translator"
+arch="x86_64 riscv64"
+license="NCSA"
+makedepends="cmake samurai llvm18-dev clang18"
+ldpath="/usr/lib/enclave-llvm18/lib"
+sonameprefix="$pkgname:"
+options="!check"
+source="translator-$_commit.tar.gz::https://codeload.github.com/KhronosGroup/SPIRV-LLVM-Translator/tar.gz/$_commit
+ headers-$_headers.tar.gz::https://codeload.github.com/KhronosGroup/SPIRV-Headers/tar.gz/$_headers"
+builddir="$srcdir/SPIRV-LLVM-Translator-$_commit"
+build() {
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/lib/enclave-llvm18 \
+        -DCMAKE_INSTALL_RPATH=/usr/lib/enclave-llvm18/lib \
+        -DLLVM_DIR=/usr/lib/llvm18/lib/cmake/llvm -DLLVM_LINK_LLVM_DYLIB=ON \
+        -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR="$srcdir/SPIRV-Headers-$_headers" \
+        -DBUILD_SHARED_LIBS=ON -DLLVM_SPIRV_INCLUDE_TESTS=OFF
+    cmake --build build -j2
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    mkdir -p "$pkgdir/usr/bin"
+    ln -s ../lib/enclave-llvm18/bin/llvm-spirv "$pkgdir/usr/bin/llvm-spirv-18"
+    rm -rf "$pkgdir/usr/lib/enclave-llvm18/include" "$pkgdir/usr/lib/enclave-llvm18/lib/pkgconfig"
+    install -Dm644 LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE.TXT"
+}
+sha512sums="
+f9c28f5a655ae8fb41fbdf8cf29300edb733815a4f62fdda4f7436cb95f9ce3579a10d33957768ac372ab24b9393a1cb19a5cdafad4cfc63bd398f87b3ec0674  translator-242df2cb83e2322b456990fb0ca3e30bd9209ed0.tar.gz
+56f2f97b3e118787d2a48a8f83bfe8b1de668b708f5494a4311cc9da2516dbf504a5ebd686d6f1daa20fbdc6dde67722f3e5a52747a0e241346995efba054a60  headers-1c6bb2743599e6eb6f37b2969acc0aef812e32e3.tar.gz
+"

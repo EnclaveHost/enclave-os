@@ -1,0 +1,53 @@
+pkgname=enclave-pocl
+pkgver=6.0
+pkgrel=0
+_commit=952bc559f790e5deb5ae48692c4a19619b53fcdc
+pkgdesc="Shield CPU OpenCL fallback with event, half and vectorizer fixes"
+url="https://portablecl.org"
+arch="x86_64 riscv64"
+license="MIT"
+makedepends="cmake samurai clang18 clang18-libclang llvm18-dev hwloc-dev zstd-dev
+ libxml2-dev opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3"
+depends="clang18 enclave-llvm-spirv18"
+ldpath="/usr/lib/enclave-pocl/lib:/usr/lib/enclave-pocl/lib/pocl"
+sonameprefix="$pkgname:"
+options="!check" # installed OpenCL behavioral fixtures run below
+source="pocl-$_commit.tar.gz::https://codeload.github.com/pocl/pocl/tar.gz/$_commit
+ pocl-callback-errors.patch
+ pocl-half-convert.patch
+ pocl-half-tanh.patch
+ pocl-half-images.patch
+ pocl-vectorizer.patch"
+builddir="$srcdir/pocl-$_commit"
+build() {
+    export PATH="/usr/lib/llvm18/bin:$PATH"
+    case "$CARCH" in
+        x86_64) cpu=x86-64 ;;
+        riscv64) cpu=generic-rv64 ;;
+        *) return 1 ;;
+    esac
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/lib/enclave-pocl -DCMAKE_INSTALL_LIBDIR=lib \
+        -DWITH_LLVM_CONFIG=/usr/lib/llvm18/bin/llvm-config \
+        -DENABLE_ICD=ON -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF \
+        -DENABLE_HOST_CPU_DEVICES=ON -DENABLE_CUDA=OFF -DENABLE_VULKAN=OFF \
+        -DENABLE_HSA=OFF -DENABLE_ALMAIF_DEVICE=OFF -DENABLE_TCE=OFF \
+        -DENABLE_REMOTE_CLIENT=OFF -DENABLE_REMOTE_SERVER=OFF \
+        -DENABLE_SPIRV=ON -DLLVM_SPIRV=/usr/bin/llvm-spirv-18 \
+        -DPOCL_INSTALL_ICD_VENDORDIR=/etc/OpenCL/vendors \
+        -DKERNELLIB_HOST_CPU_VARIANTS=native -DLLC_HOST_CPU="$cpu" -DSTATIC_LLVM=OFF
+    cmake --build build -j2
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    rm -rf "$pkgdir/usr/lib/enclave-pocl/share/doc" "$pkgdir/usr/lib/enclave-pocl/lib/pkgconfig"
+}
+sha512sums="
+ecc75c5832ddee6bf0cc67c818ef25691fef11dbf12480bc62a30e5eaee21018fec259b9f54cb7ad9f2a89ecb67cd3ba65e93bd73a40c0fd3c9ea4c575e0101f  pocl-952bc559f790e5deb5ae48692c4a19619b53fcdc.tar.gz
+509640eb22e92df72782bdf61d2cb4f954e4610875264446357ee329e9c74a667a834fe778860f57bafb8f3ddb47194ca11d7079d7a4ddd23798b27362ef481e  pocl-callback-errors.patch
+d4e0345977a7fa0ce2f1c5e8924271c855d52038f4acfe729f9e1e5d562490effe263ed462444b639935c7d8c39f71878683b467d6866430c0df5cc9f9d1bb92  pocl-half-convert.patch
+76962bac9dfe168ff8d16867d2066cfddde23ce33b2a34581eb5e31ffdfd0db949132471b435ebbb76c36424b22f244c4b939b73de7b08da8a4466a89237f16b  pocl-half-tanh.patch
+15d67c4876c5bb921efbe83ebbd0dfdd3df366e0b3ce52c4b5b3e2776f222f1bcd7c561d7309e145ec5462c383c6975ddb747b9e21b203af5c699e565a0b6157  pocl-half-images.patch
+b2dfbc9e5a57afae357e72543777ffc42d288d739ac5a8800262c279977ffec33d01bdbfb4f42cfce82512537241c594f1b9af078f36cc3dab98f4b846a29d3d  pocl-vectorizer.patch
+"
