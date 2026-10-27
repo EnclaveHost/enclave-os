@@ -10,6 +10,10 @@ makedepends="cmake samurai bison python3 linux-headers"
 subpackages="$pkgname-dev"
 source="$pkgname-$_commit.tar.gz::https://codeload.github.com/vpinball/libwinevbs/tar.gz/$_commit"
 builddir="$srcdir/libwinevbs-$_commit"
+prepare() {
+    default_prepare
+    sed -i 's/-Wno-format/-Wformat/' CMakeLists.txt
+}
 build() {
     cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLATFORM=linux \
         -DARCH="$CARCH" -DBUILD_SHARED=ON -DBUILD_STATIC=OFF -DCMAKE_INSTALL_PREFIX=/usr
