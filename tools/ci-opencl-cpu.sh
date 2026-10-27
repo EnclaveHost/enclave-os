@@ -25,7 +25,9 @@ apk add --no-cache enclave-pocl opencl-icd-loader-dev
 src=/src/reference/kvm-box/shield-compute/opencl
 mkdir -p /out/tests
 for test in event_errors half_convert half_tanh half_images; do
-    c++ -std=c++20 -O2 "$src/test_$test.cpp" -lOpenCL -pthread -o "/out/tests/$test"
+    # Qualify the CPU substrate before installing the logical-GPU frontend.
+    sed 's/CL_DEVICE_TYPE_GPU/CL_DEVICE_TYPE_CPU/g' "$src/test_$test.cpp" >"/out/tests/$test.cpp"
+    c++ -std=c++20 -O2 "/out/tests/$test.cpp" -lOpenCL -pthread -o "/out/tests/$test"
 done
 export POCL_DEVICES=pthread POCL_MAX_PTHREAD_COUNT=2 OCL_ICD_VENDORS=/etc/OpenCL/vendors/pocl.icd
 for test in event_errors half_convert half_tanh half_images; do
