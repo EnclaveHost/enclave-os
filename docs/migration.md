@@ -17,7 +17,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Imported worker/protocol/SDK source | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
 | OpenGL/Vulkan | Imported patched Mesa/driver source | Musl toolchain, platform ISA, full qualification suite; never replace Shield routing with direct GPU access |
-| OpenArena | Custom ioquake3 input mode bridge | Final source diff recovered in `integrations/openarena`; musl builds, menu/relative-mode/sensitivity tests |
+| OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build, menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup and real Shield/input/audio qualification |
 | Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
 | OpenHV | OpenRA/.NET 6 game + content | Supported musl runtime/architecture, shared runtime packaging, W^X and rendering tests |

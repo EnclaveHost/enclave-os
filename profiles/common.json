@@ -54,6 +54,9 @@
     ],
     "librequake": [
       "enclave-librequake"
+    ],
+    "openarena": [
+      "enclave-openarena"
     ]
   },
   "presets": {

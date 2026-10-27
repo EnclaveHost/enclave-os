@@ -10,7 +10,7 @@ python3 /src/tools/stage-aports.py /home/builder/aports/enclave
 chown -R builder:builder /home/builder
 su builder -c 'abuild-keygen -a -n'
 cp /home/builder/.abuild/*.pub /etc/apk/keys/
-for name in base cursor desktop freedoom librequake; do
+for name in base cursor desktop freedoom librequake openarena; do
     su builder -c "cd /home/builder/aports/enclave/enclave-$name && abuild -r"
     if [ "$name" = base ]; then
         printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
@@ -21,13 +21,14 @@ mkdir -p /out/repository
 cp -a /home/builder/packages/enclave/. /out/repository/
 cp /home/builder/.abuild/*.pub /out/
 # No private signing material leaves this disposable builder.
-apk add --no-cache enclave-base enclave-cursor enclave-desktop enclave-freedoom enclave-librequake
+apk add --no-cache enclave-base enclave-cursor enclave-desktop enclave-freedoom enclave-librequake enclave-openarena
 cc /src/tests/cursor-image.c -o /tmp/cursor-image -lX11 -lXfixes
 mkdir -p /tmp/.X11-unix
 chmod 1777 /tmp/.X11-unix
 su builder -c 'python3 /src/tests/desktop-smoke.py'
 chmod 1777 /out
 su builder -c 'xvfb-run -a -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/librequake-smoke.py'
+su builder -c 'xvfb-run -a -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/openarena-smoke.py'
 for preset in minimal shell; do
     python3 /src/tools/assemble.py --arch "$ENCLAVE_ARCH" --preset "$preset" \
         --repository /out/repository --key /out/*.pub --output "/out/root-$preset"

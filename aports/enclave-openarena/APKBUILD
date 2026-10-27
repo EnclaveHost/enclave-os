@@ -1,0 +1,105 @@
+pkgname=enclave-openarena
+pkgver=0.8.8
+pkgrel=0
+pkgdesc="OpenArena with Enclave absolute-menu and relative-game input bridge"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="GPL-2.0-or-later"
+depends="enclave-desktop $pkgname-data"
+makedepends="sdl2-dev mesa-dev curl-dev openal-soft-dev libjpeg-turbo-dev libvorbis-dev opusfile-dev zlib-dev binutils"
+subpackages="$pkgname-data::noarch"
+options="!check" # signed install and isolated startup checks are in CI
+source="https://deb.debian.org/debian/pool/main/i/ioquake3/ioquake3_1.36+u20250316.526edd3+dfsg.orig.tar.xz
+ https://deb.debian.org/debian/pool/main/o/openarena/openarena_0.8.8+dfsg.orig.tar.xz
+ https://deb.debian.org/debian/pool/main/o/openarena/openarena_0.8.8+dfsg-8.debian.tar.xz
+ ioquake3-enclave.patch
+ enclave-openarena
+ defaults.cfg
+ openarena.desktop
+ https://deb.debian.org/debian/pool/main/o/openarena-textures/openarena-081-textures_0.8.5split-15_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-players/openarena-081-players_0.8.5split-15_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-088-data/openarena-088-data_0.8.8-14_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-data/openarena-data_0.8.5split-16_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-maps/openarena-081-maps_0.8.5split-15_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-085-data/openarena-085-data_0.8.5split-16_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-misc/openarena-081-misc_0.8.5split-15_all.deb
+ https://deb.debian.org/debian/pool/main/o/openarena-players-mature/openarena-081-players-mature_0.8.5split-15_all.deb
+"
+builddir="$srcdir/ioquake3-1.36+u20250316.526edd3"
+prepare() {
+    patch --batch --fuzz=0 -p1 < "$srcdir/ioquake3-enclave.patch"
+    cd "$srcdir/oa-0.8.8"
+    while read -r p; do
+        patch --batch --fuzz=0 -p1 < "$srcdir/debian/patches/$p"
+    done < "$srcdir/debian/patches/series"
+}
+build() {
+    make ARCH="$CARCH" BUILD_CLIENT=1 BUILD_SERVER=0 BUILD_GAME_SO=0 BUILD_GAME_QVM=0 \
+        BUILD_MISSIONPACK=0 USE_INTERNAL_LIBS=0 USE_LOCAL_HEADERS=0 \
+        USE_CURL_DLOPEN=0 USE_OPENAL_DLOPEN=0 HAVE_VM_COMPILED= \
+        CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" release
+    for variant in current compat; do
+        compatible=0
+        [ "$variant" != compat ] || compatible=1
+        make -C "$srcdir/oa-0.8.8" ARCH="$CARCH" BR="build/$variant" \
+            BUILD_CLIENT=0 BUILD_SERVER=0 BUILD_GAME_SO=1 BUILD_GAME_QVM=0 BUILD_MISSIONPACK=1 \
+            OPENARENA_081_COMPATIBLE="$compatible" VERSION="$pkgver/Enclave" \
+            USE_INTERNAL_SPEEX=0 USE_INTERNAL_ZLIB=0 USE_LOCAL_HEADERS=0 SDL_CFLAGS= \
+            CFLAGS="$CFLAGS -fsigned-char -fcommon" LDFLAGS="$LDFLAGS -Wl,-z,defs" release
+    done
+}
+package() {
+    runtime="$pkgdir/usr/lib/enclave-os/openarena"
+    content="$pkgdir/usr/share/enclave-os/openarena"
+    mkdir -p "$runtime/baseoa/pak0" "$runtime/baseoa/pak6-patch088" "$runtime/missionpack" "$content"
+    install -m755 build/release-linux-$CARCH/ioquake3.$CARCH "$runtime/ioquake3"
+    install -m755 build/release-linux-$CARCH/renderer_*.so "$runtime/"
+    install -m755 "$srcdir"/oa-0.8.8/build/compat/baseq3/*.so "$runtime/baseoa/pak0/"
+    install -m755 "$srcdir"/oa-0.8.8/build/current/baseq3/*.so "$runtime/baseoa/pak6-patch088/"
+    install -m755 "$srcdir"/oa-0.8.8/build/current/missionpack/*.so "$runtime/missionpack/"
+    ln -s pak6-patch088 "$runtime/baseoa/pak6-patch085"
+    for module in "$runtime"/baseoa/pak6-patch088/*.so; do
+        ln -s "pak6-patch088/${module##*/}" "$runtime/baseoa/${module##*/}"
+    done
+    mkdir -p "$srcdir/content"
+    for archive in "$srcdir"/openarena-*.deb; do
+        member=$(ar t "$archive" | grep '^data\.tar\.')
+        ar p "$archive" "$member" | tar -x -C "$srcdir/content"
+    done
+    cp -a "$srcdir/content/usr/share/games/openarena/." "$content/"
+    for directory in baseoa missionpack; do
+        for asset in "$content/$directory"/*.pk3; do
+            [ -f "$asset" ] || continue
+            ln -s "/usr/share/enclave-os/openarena/$directory/${asset##*/}" "$runtime/$directory/${asset##*/}"
+        done
+    done
+    install -Dm755 "$srcdir/enclave-openarena" "$pkgdir/usr/bin/enclave-openarena"
+    install -Dm644 "$srcdir/defaults.cfg" "$content/defaults.cfg"
+    install -Dm644 "$srcdir/openarena.desktop" "$pkgdir/usr/share/applications/enclave-openarena.desktop"
+    mkdir -p "$pkgdir/usr/share/licenses/$pkgname"
+    cp -a "$srcdir/content/usr/share/doc/." "$pkgdir/usr/share/licenses/$pkgname/"
+    install -m644 COPYING.txt "$pkgdir/usr/share/licenses/$pkgname/ioquake3-COPYING.txt"
+}
+data() {
+    pkgdesc="Pinned full OpenArena assets"
+    depends=
+    amove usr/share/enclave-os/openarena
+    amove usr/share/licenses/enclave-openarena
+}
+sha512sums="
+23d98315acc6a05f8b212b3ac37b62868b33b6259a9fbf9b4f2ca62c1a8cecf5dc3870d9d7a7c32d62cec543297425637ecb821e6274dfe1d55bf0636e19d530  ioquake3_1.36+u20250316.526edd3+dfsg.orig.tar.xz
+b5fa2b6dcb26d9f71aa8df21773b829e3dd1479ae1d01c3c0f097a7ddce139bc38f185c6784aefb3f3358bedfe218d67f98162ca1c239ab51d47025bc22b946c  openarena_0.8.8+dfsg.orig.tar.xz
+314b94348a5bdf5eaa30e0b20874b51da166ad26605f91cb52043c55cc647170d1e7b4fcdccb79995801c77a5e207445849bff86fa80405bb476a637b4d5dac2  openarena_0.8.8+dfsg-8.debian.tar.xz
+bf0bbe89f8f1150a813d75c899a9c5e2d102ee2f6e59bbb65537526f41a1a45449731f5188e0a3eddc879be99058c43b7ef7a11c05dbf8460871268d4ae44f40  ioquake3-enclave.patch
+bfea77346673bb9df5c7064c093bd6f77e3452a2be54b5e2c37b5e768fba9f943c4d21ad414c551da3ac14ca34dc395736fe6f03597296d798b4cd8d31a458af  enclave-openarena
+2208e749a46a52cc0a575751e56eb8d79c1678f2ecaa84298b0fdd2178c24d925ba5621b3deef17a8aba4c37077bfd787076157ef5ccf8884079521377de4119  defaults.cfg
+670a55883601bed2a753f8a852d1fd1a49c6793ad40e798ece0caf5099ee5e724fd76cd44197a7023c5ab4c14c69ebe6a3c56d5b4ca504b8494044a52dd31b10  openarena.desktop
+f09e987ee7beac63b935e168c999b3d8781fb0cdf746fe73242489af475633f250da8c346e67a58ad4e7c599d5f1812f9beb57d132226017e0643cfd492cad04  openarena-081-textures_0.8.5split-15_all.deb
+4b13447c24af91f605144bb00cdc2670806b40f3f0da0f0a97dd30658753d5bf8cfa8c0069bfc5f7a3ed25b36ef9118e695cb77a004d48e518b634402e2df14f  openarena-081-players_0.8.5split-15_all.deb
+6c9dd0c6f8ea198ecfbd0cba4cd9f62e57f0dab868d051f9f9e4726e4c68403d5af3c93328f7614140f172f00933477f35d2ed7911632eb4627d2e372b4e8e15  openarena-088-data_0.8.8-14_all.deb
+0abc0e56de97e867a67ba214360d69ea3c210525ab97e28e224012869a942f2c617e26a8e12e171285868a206b144c2619102afe376ee0a8fa69c067ed58f063  openarena-data_0.8.5split-16_all.deb
+523b476de27fbfd29d5f438206bbeb881833d09744707bfd452b87a66ba60d929d9811aaccb588ef01de5181a13733ee7791abd73374e05dce2e71b71b0c7a87  openarena-081-maps_0.8.5split-15_all.deb
+be741686810ce5e27005fb14536a31d6b6e2b8803e9e5a48be0da2fc7438b5394a33fd4c597f46566551a0e0f0204832601fb5e5675a41c2bf2b1d5df93fe2dc  openarena-085-data_0.8.5split-16_all.deb
+20f84295cf90e949db20744e93f332a4f4beeb58ac43ff657fbc113293a5c6ddb0cc82da70c10ba907e5c920c261b613847f0f2194d9cbfaf06aea762c09dcc5  openarena-081-misc_0.8.5split-15_all.deb
+72fba755e9e38e4f3bf4740f5e6bff67010071df502c8584ba3b10733851ed080728b98fd0807f0d8ee40c021b16ebc42f198b706ced8707ea73d779bf941d03  openarena-081-players-mature_0.8.5split-15_all.deb
+"

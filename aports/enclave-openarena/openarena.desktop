@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=OpenArena
+Comment=OpenArena with Enclave input and Shield graphics
+Exec=enclave-openarena
+Terminal=false
+Categories=Game;ActionGame;
