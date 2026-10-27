@@ -1,0 +1,39 @@
+pkgname=enclave-vpx-core
+pkgver=10.8.1_git20261027
+pkgrel=0
+pkgdesc="Visual Pinball portable core candidate; plugin/game parity is pending"
+url="https://github.com/vpinball/vpinball"
+arch="x86_64 riscv64"
+license="GPL-3.0-or-later AND LicenseRef-VPinball-Legacy"
+makedepends="cmake samurai python3 sdl3-dev sdl3_ttf-dev freeimage-dev hidapi-dev
+ enclave-winevbs-dev enclave-spatialaudio-dev libmysofa-dev zlib-dev linux-headers"
+options="!check"
+source="enclave-vpx-source.tar"
+builddir="$srcdir/vpinball"
+prepare() {
+    python3 - <<'PORT'
+from pathlib import Path
+p=Path('make/CMakeLists_app.txt');s=p.read_text()
+a='$<IF:$<STREQUAL:${ARCH},x64>,third-party/include/glad/src/gl.c,third-party/include/glad/src/gles2.c>'
+assert s.count(a)==1;s=s.replace(a,'third-party/include/glad/src/gl.c')
+a='         $<$<NOT:$<STREQUAL:${ARCH},x64>>:__OPENGLES__>\n'
+assert s.count(a)==1;s=s.replace(a,'')
+p.write_text(s)
+PORT
+}
+build() {
+    case "$CARCH" in x86_64) target=x64;; riscv64) target=riscv64;; *) return 1;; esac
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLATFORM=linux \
+        -DARCH="$target" -DRENDERER=GL -DUSE_SYSTEM_LIBS=ON \
+        -DPOST_BUILD_COPY_EXT_LIBS=OFF -DENABLE_XR=OFF
+    cmake --build build --target vpinball -j2
+}
+package() {
+    local dest="$pkgdir/usr/lib/enclave-os/vpinball"
+    mkdir -p "$dest"
+    cp -a build/VPinballX_GL build/assets build/scripts build/docs build/shaders-* "$dest/"
+    install -Dm644 tests/assets/test000-default-table.vpx "$dest/tables/default-table.vpx"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 enclave-source.json "$dest/enclave-source.json"
+}
+sha512sums=""

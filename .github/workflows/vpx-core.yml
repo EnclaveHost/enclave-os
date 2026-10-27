@@ -1,0 +1,63 @@
+name: Visual Pinball musl core
+on:
+  workflow_dispatch:
+    inputs:
+      dependency_run_id:
+        default: '40589801467'
+        required: true
+      platforms:
+        default: '["amd64"]'
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: vpinball/vpinball
+          ref: 099c8a3864683582a2f89403c14525edcb7c4f02
+          path: vpinball
+      - name: Archive exact engine candidate
+        run: |
+          python3 - <<'VERIFY'
+          import pathlib,subprocess,json
+          commit=subprocess.check_output(['git','-C','vpinball','rev-parse','HEAD'],text=True).strip()
+          assert commit=='099c8a3864683582a2f89403c14525edcb7c4f02'
+          pathlib.Path('vpinball/enclave-source.json').write_text(json.dumps({'repository':'vpinball/vpinball','commit':commit,'releaseQualified':False})+'\n')
+          VERIFY
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --exclude=.git -cf enclave-vpx-source.tar vpinball
+      - name: Fetch signed dependency packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.dependency_run_id }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$RUN_ID" --name "pinball-dependencies-$PLATFORM" --dir packages
+      - name: Compile and install the portable core candidate
+        run: |
+          mkdir out
+          docker run --rm --memory=6g --memory-swap=6g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-vpx-core.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: vpx-core-${{ matrix.platform }}
+          path: out/
+          retention-days: 7

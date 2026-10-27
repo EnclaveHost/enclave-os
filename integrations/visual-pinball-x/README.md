@@ -18,3 +18,10 @@ The RV64 libwinevbs header port selects 64-bit COM interfaces and provides opaqu
 pointer declarations for unused Windows exception types. It does not invent a
 Windows RISC-V register layout or implement native Windows code/SEH. Runtime
 interpreter checks are required on both CPUs.
+
+`vpx-core.yml` builds the pinned newer engine candidate against shared SDL3,
+FreeImage, hidapi and the scripting/audio APKs. `enclave-vpx-core` is deliberately
+a component package without the public game launcher: plugins, retained-table
+compatibility, streamed controls and audio remain required before promotion.
+Both CPUs use desktop OpenGL through Shield; RV64 is not implicitly switched to
+a reduced GLES feature set.
