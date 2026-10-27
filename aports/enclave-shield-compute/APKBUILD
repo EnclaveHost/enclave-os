@@ -1,0 +1,22 @@
+pkgname=enclave-shield-compute
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Native llama.cpp and sd.cpp with guarded Shield backend and CPU fallback"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="MIT AND LicenseRef-Enclave-Source-Available"
+makedepends="build-base cmake samurai git python3 openssl-dev patchelf"
+ldpath="/usr/lib/enclave-shield-compute/lib:/usr/lib/enclave-shield-compute/lib/backends"
+sonameprefix="$pkgname:"
+options="!check"
+source="enclave-shield-compute-source.tar"
+builddir="$srcdir/shield-compute"
+build() {
+    export ENCLAVE_BUILD_ROOT="$builddir/build-output" ENCLAVE_INPUT_ROOT="$builddir" JOBS=2
+    /bin/sh ./build.sh
+}
+package() {
+    mkdir -p "$pkgdir/usr/lib/enclave-shield-compute"
+    cp -a build-output/out/. "$pkgdir/usr/lib/enclave-shield-compute/"
+}
+sha512sums=""

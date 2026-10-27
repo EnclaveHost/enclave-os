@@ -1,0 +1,442 @@
+diff --git a/include/stable-diffusion.h b/include/stable-diffusion.h
+index eeb59f8..45ab432 100644
+--- a/include/stable-diffusion.h
++++ b/include/stable-diffusion.h
+@@ -423,6 +423,16 @@ SD_API void sd_set_log_callback(sd_log_cb_t sd_log_cb, void* data);
+ SD_API void sd_set_progress_callback(sd_progress_cb_t cb, void* data);
+ SD_API void sd_set_preview_callback(sd_preview_cb_t cb, enum preview_t mode, int interval, bool denoised, bool noisy, void* data);
+ SD_API void sd_set_backend_eval_callback(sd_graph_eval_callback_t cb, void* data);
++// Op-level accelerator for CPU runners (e.g. a confidential offload backend):
++// each graph is scheduled over [accel, CPU], the accelerator claiming the ops
++// its supports_op accepts. NULL disables it. sd_load_accel_backend loads a
++// GGML_BACKEND_DL module and uses its ACCEL device; the SD_ACCEL_BACKEND env
++// var does the same on first use. A failed load fails every CPU runner.
++struct ggml_backend;
++SD_API void sd_set_accel_backend(struct ggml_backend* backend);
++SD_API bool sd_load_accel_backend(const char* path);
++// The leading rows the current model asked an accelerator to keep on the CPU (a calibrator reads it).
++SD_API int sd_get_accel_lead_rows(void);
+ SD_API int32_t sd_get_num_physical_cores();
+ SD_API const char* sd_get_system_info();
+ SD_API bool sd_ctx_supports_image_generation(const sd_ctx_t* sd_ctx);
+diff --git a/src/core/ggml_extend.hpp b/src/core/ggml_extend.hpp
+index 36067ce..d581bc5 100644
+--- a/src/core/ggml_extend.hpp
++++ b/src/core/ggml_extend.hpp
+@@ -1752,6 +1752,7 @@ protected:
+ 
+     std::vector<ggml_backend_t> extra_runtime_backends;  // borrowed (SDBackendManager-owned)
+     ggml_backend_sched_t sched             = nullptr;    // owned, multi-device only
++    size_t sched_graph_size                = 0;          // the graph size sched was created for
+     ggml_backend_t cpu_fallback_backend    = nullptr;    // owned, sched requires a trailing CPU backend
+     bool multi_device_eval_callback_warned = false;
+ 
+@@ -2038,11 +2039,25 @@ protected:
+     // Pass explicit buffer types: synthesized defaults can make CUDA devices
+     // report supporting each other's buffers and skip a required copy.
+     bool ensure_sched(ggml_cgraph* gf) {
++        // Sized to the graph, not MAX_GRAPH_SIZE: ggml reserves graph_size x 30 x 2 tensors of split-input
++        // metadata up front (7.5 GB at 327680, which a 5 GiB guest cannot allocate: GGML_ASSERT abort). The
++        // node count of a runner's graph does not depend on resolution; a larger graph later rebuilds the sched.
++        const size_t need = gf != nullptr ? 3 * (size_t)ggml_graph_n_nodes(gf) + 8192 : (size_t)MAX_GRAPH_SIZE;
+         if (sched != nullptr) {
+-            return true;
++            if (need <= sched_graph_size) {
++                return true;
++            }
++            ggml_backend_sched_free(sched);
++            sched = nullptr;
+         }
+         std::vector<ggml_backend_t> backends;
+         backends.reserve(extra_runtime_backends.size() + 2);
++        if (uses_accel()) {
++            // Op-level offload: the accelerator first (it claims single ops by
++            // supports_op), the CPU runtime last, as the sched requires. Its
++            // weights stay in host buffers both backends can read in place.
++            backends.push_back(sd_get_accel_backend());
++        }
+         backends.push_back(runtime_backend);
+         for (ggml_backend_t backend : extra_runtime_backends) {
+             backends.push_back(backend);
+@@ -2068,10 +2083,7 @@ protected:
+             bufts.push_back(buft);
+         }
+ 
+-        size_t graph_size = MAX_GRAPH_SIZE;
+-        if (gf != nullptr) {
+-            graph_size = std::max<size_t>(graph_size, (size_t)ggml_graph_n_nodes(gf));
+-        }
++        const size_t graph_size = need;
+         sched = ggml_backend_sched_new(backends.data(),
+                                        bufts.data(),
+                                        (int)backends.size(),
+@@ -2082,6 +2094,7 @@ protected:
+             LOG_ERROR("%s: failed to create backend sched", get_desc().c_str());
+             return false;
+         }
++        sched_graph_size = graph_size;
+         return true;
+     }
+ 
+@@ -2145,8 +2158,23 @@ protected:
+         return !extra_runtime_backends.empty();
+     }
+ 
++    // A CPU runner with a process-wide accelerator (sd_set_accel_backend /
++    // SD_ACCEL_BACKEND) runs every graph through a sched over [accel, CPU].
++    bool uses_accel() const {
++        return !is_multi_device() && sd_backend_is_cpu(runtime_backend) && sd_get_accel_backend() != nullptr;
++    }
++
++    bool uses_sched() const {
++        return is_multi_device() || uses_accel();
++    }
++
+     bool alloc_compute_buffer(ggml_cgraph* gf) {
+-        if (is_multi_device()) {
++        if (sd_backend_is_cpu(runtime_backend) && !is_multi_device() && sd_accel_backend_failed()) {
++            LOG_ERROR("%s: the requested accelerator backend failed to load; refusing to compute on the CPU alone",
++                      get_desc().c_str());
++            return false;
++        }
++        if (uses_sched()) {
+             // The sched replaces the gallocr. Do NOT ggml_backend_sched_reserve
+             // the graph here: reserve runs split_graph, which rewires the
+             // graph's src pointers to sched-internal copy tensors, and the
+@@ -2751,9 +2779,11 @@ protected:
+         };
+         ComputeBufferGuard compute_buffer_guard(this, free_compute_buffer);
+ 
+-        if (is_multi_device()) {
++        if (uses_sched()) {
+             ggml_backend_sched_reset(sched);
+-            pin_multi_device_nodes(gf);  // reset clears the pins; re-apply before alloc
++            if (is_multi_device()) {
++                pin_multi_device_nodes(gf);  // reset clears the pins; re-apply before alloc
++            }
+             if (!ggml_backend_sched_alloc_graph(sched, gf)) {
+                 LOG_ERROR("%s sched alloc compute graph failed", get_desc().c_str());
+                 return std::nullopt;
+@@ -2772,7 +2802,15 @@ protected:
+         }
+ 
+         ggml_status status;
+-        if (is_multi_device()) {
++        if (uses_accel()) {
++            ggml_backend_sched_set_eval_callback(sched,
++                                                 sd_get_backend_eval_callback(),
++                                                 sd_get_backend_eval_callback_data());
++            status = ggml_backend_sched_graph_compute(sched, gf);
++            if (status == GGML_STATUS_SUCCESS) {
++                ggml_backend_sched_synchronize(sched);
++            }
++        } else if (is_multi_device()) {
+             if (sd_get_backend_eval_callback() != nullptr && !multi_device_eval_callback_warned) {
+                 LOG_WARN("%s: eval callback is not supported with multiple runtime backends; ignoring",
+                          get_desc().c_str());
+@@ -3011,12 +3049,13 @@ public:
+         if (sched != nullptr) {
+             ggml_backend_sched_free(sched);
+             sched = nullptr;
++            sched_graph_size = 0;
+         }
+     }
+ 
+     // do copy after alloc graph
+     void set_backend_tensor_data(ggml_tensor* tensor, const void* data) {
+-        if (is_multi_device()) {
++        if (uses_sched()) {
+             // The sched only assigns a backend (and thus a buffer) to tensors
+             // that participate in the graph; flag standalone data tensors as
+             // inputs so they get one.
+@@ -3314,6 +3353,70 @@ public:
+     }
+ };
+ 
++
++// ---- TEST-ONLY: emulate a Shield site's activation encoding on the CPU (SD_SHIELD_EMULATE=<calib>) ----
++// Before a calibrated linear, its input is replaced by a copy whose rows past the lead rows (the
++// caption rows a Shield backend keeps exact) are rounded to round(x * 2^af) / 2^af, outlier
++// channels exact: the activation half of the masked offload's arithmetic, with no worker and
++// none of its memory. Inert unless the env var names a calibration file.
++struct SdShieldEmuSite {
++    int af = 0;
++    std::vector<char> outlier;   // per input channel
++};
++__STATIC_INLINE__ const SdShieldEmuSite* sd_shield_emu_site(const std::string& weight_name) {
++    static std::map<std::string, SdShieldEmuSite> sites;
++    static bool loaded = false;
++    if (!loaded) {
++        loaded           = true;
++        const char* path = getenv("SD_SHIELD_EMULATE");
++        if (path && *path) {
++            std::ifstream f(path);
++            std::string line;
++            while (std::getline(f, line)) {
++                if (line.rfind("site ", 0) != 0) continue;
++                std::istringstream is(line.substr(5));
++                std::string name;
++                int af = 0, n = 0;
++                is >> name >> af >> n;
++                SdShieldEmuSite site;
++                site.af = af;
++                for (int i = 0; i < n; i++) {
++                    int64_t o = 0;
++                    is >> o;
++                    if (o >= (int64_t)site.outlier.size()) site.outlier.resize((size_t)o + 1, 0);
++                    site.outlier[(size_t)o] = 1;
++                }
++                sites[name] = site;
++            }
++            LOG_INFO("SD_SHIELD_EMULATE: %zu sites from %s", sites.size(), path);
++        }
++    }
++    if (sites.empty()) return nullptr;
++    std::string key = weight_name;   // the Shield group key: w3 -> w1, k/v -> q, up -> gate
++    for (auto& m : std::vector<std::pair<std::string, std::string>>{{"feed_forward.w3", "feed_forward.w1"}, {"self_attn.k_proj", "self_attn.q_proj"},
++                                                                     {"self_attn.v_proj", "self_attn.q_proj"}, {"mlp.up_proj", "mlp.gate_proj"}}) {
++        size_t at = key.find(m.first);
++        if (at != std::string::npos) { key.replace(at, m.first.size(), m.second); break; }
++    }
++    auto it = sites.find(key);
++    return it == sites.end() ? nullptr : &it->second;
++}
++__STATIC_INLINE__ void sd_shield_emu_op(ggml_tensor* dst, const ggml_tensor* a, int ith, int nth, void* ud) {
++    const SdShieldEmuSite* site = (const SdShieldEmuSite*)ud;
++    const int64_t K = a->ne[0], rows = ggml_nrows(a), per = a->ne[1];
++    const int lead  = sd_get_accel_lead_rows();
++    const double sc = ldexp(1.0, site->af);
++    for (int64_t r = ith; r < rows; r += nth) {
++        const float* x = (const float*)((const char*)a->data + r * a->nb[1]);
++        float* y       = (float*)((char*)dst->data + r * dst->nb[1]);
++        const bool exact_row = (r % per) < lead;
++        for (int64_t k = 0; k < K; k++) {
++            const bool out = k < (int64_t)site->outlier.size() && site->outlier[(size_t)k];
++            y[k]           = (exact_row || out) ? x[k] : (float)(std::nearbyint(x[k] * sc) / sc);
++        }
++    }
++}
++
+ class Linear : public UnaryBlock {
+ protected:
+     int64_t in_features;
+@@ -3383,6 +3486,10 @@ public:
+             forward_params.linear.scale          = scale;
+             out                                  = ctx->weight_adapter->forward_with_lora(ctx->ggml_ctx, ctx->backend, x, w, linear_bias, prefix, forward_params);
+         } else {
++            if (const SdShieldEmuSite* emu = sd_shield_emu_site(prefix + "weight")) {
++                if (x->type == GGML_TYPE_F32 && sd_get_accel_lead_rows() >= 0)
++                    x = ggml_map_custom1(ctx->ggml_ctx, ggml_cont(ctx->ggml_ctx, x), sd_shield_emu_op, GGML_N_TASKS_MAX, (void*)emu);
++            }
+             out = ggml_ext_linear(ctx->ggml_ctx, x, w, linear_bias, force_prec_f32, scale);
+         }
+         if (has_weight_scale) {
+@@ -3396,7 +3503,12 @@ public:
+ };
+ 
+ __STATIC_INLINE__ bool support_get_rows(ggml_type wtype) {
+-    std::set<ggml_type> allow_types = {GGML_TYPE_F16, GGML_TYPE_Q8_0, GGML_TYPE_Q5_1, GGML_TYPE_Q5_0, GGML_TYPE_Q4_1, GGML_TYPE_Q4_0};
++    // The K-quants too: ggml's CPU get_rows dequantizes any type with a to_float, so an embedding
++    // stored as Q6_K (Qwen3-4B's token_embd, 319 MB) is read in place from the mapped model file
++    // instead of being widened to a private f32 copy (1.55 GB). This fork runs its text encoders on
++    // the CPU only; ggml-cuda's get_rows does not take K-quants, so do not use it with -DSD_CUDA.
++    std::set<ggml_type> allow_types = {GGML_TYPE_F16, GGML_TYPE_Q8_0, GGML_TYPE_Q5_1, GGML_TYPE_Q5_0, GGML_TYPE_Q4_1, GGML_TYPE_Q4_0,
++                                       GGML_TYPE_Q2_K, GGML_TYPE_Q3_K, GGML_TYPE_Q4_K, GGML_TYPE_Q5_K, GGML_TYPE_Q6_K};
+     if (allow_types.find(wtype) != allow_types.end()) {
+         return true;
+     }
+diff --git a/src/core/util.cpp b/src/core/util.cpp
+index ff53c65..5c21ce8 100644
+--- a/src/core/util.cpp
++++ b/src/core/util.cpp
+@@ -9,6 +9,7 @@
+ #include <exception>
+ #include <fstream>
+ #include <locale>
++#include <mutex>
+ #include <regex>
+ #include <sstream>
+ #include <string>
+@@ -660,6 +661,96 @@ bool sd_should_preview_noisy() {
+     return sd_preview_noisy;
+ }
+ 
++// Op-level accelerator for CPU runners: a backend that claims individual ops
++// (supports_op) while the CPU computes the rest, scheduled per graph. Set by
++// sd_set_accel_backend, or loaded once from the SD_ACCEL_BACKEND module path.
++// A requested accelerator that cannot be loaded is a hard failure for every
++// CPU runner (sd_accel_backend_failed), never a silent all-CPU run.
++static ggml_backend_t sd_accel_backend_ = nullptr;
++static bool sd_accel_failed_            = false;
++static bool sd_accel_env_checked_       = false;
++static std::mutex sd_accel_mu_;
++
++void sd_set_accel_backend(ggml_backend_t backend) {
++    std::lock_guard<std::mutex> lk(sd_accel_mu_);
++    sd_accel_backend_     = backend;
++    sd_accel_failed_      = false;
++    sd_accel_env_checked_ = true;
++}
++
++bool sd_load_accel_backend(const char* path) {
++    ggml_backend_reg_t reg = path != nullptr ? ggml_backend_load(path) : nullptr;
++    ggml_backend_dev_t dev = nullptr;
++    if (reg != nullptr) {
++        for (size_t i = 0; i < ggml_backend_reg_dev_count(reg); i++) {
++            if (ggml_backend_dev_type(ggml_backend_reg_dev_get(reg, i)) == GGML_BACKEND_DEVICE_TYPE_ACCEL) {
++                dev = ggml_backend_reg_dev_get(reg, i);
++                break;
++            }
++        }
++    }
++    ggml_backend_t backend = dev != nullptr ? ggml_backend_dev_init(dev, nullptr) : nullptr;
++    std::lock_guard<std::mutex> lk(sd_accel_mu_);
++    sd_accel_env_checked_ = true;
++    if (backend == nullptr) {
++        LOG_ERROR("accelerator backend '%s' did not load an ACCEL device", path ? path : "(null)");
++        sd_accel_backend_ = nullptr;
++        sd_accel_failed_  = true;
++        return false;
++    }
++    LOG_INFO("accelerator backend: %s (%s)", ggml_backend_name(backend), path);
++    sd_accel_backend_ = backend;
++    sd_accel_failed_  = false;
++    return true;
++}
++
++ggml_backend_t sd_get_accel_backend() {
++    {
++        std::lock_guard<std::mutex> lk(sd_accel_mu_);
++        if (sd_accel_env_checked_) {
++            return sd_accel_backend_;
++        }
++    }
++    const char* path = getenv("SD_ACCEL_BACKEND");
++    if (path == nullptr || *path == '\0') {
++        std::lock_guard<std::mutex> lk(sd_accel_mu_);
++        sd_accel_env_checked_ = true;
++        return sd_accel_backend_;
++    }
++    sd_load_accel_backend(path);
++    std::lock_guard<std::mutex> lk(sd_accel_mu_);
++    return sd_accel_backend_;
++}
++
++// Leading rows of the joint [caption, image] sequence that an accelerator must keep
++// on the CPU (set by a model while it builds its graph; 0 = none). Caption-token
++// activations are 10-200x the image tokens' in Z-Image, so a fixed-point offload
++// calibrated for both rounds the image rows coarsely; with the caption rows local,
++// its exponent fits the image rows. The row count is already visible as the batch.
++static int sd_accel_lead_rows_ = 0;
++void sd_set_accel_lead_rows(int n) {
++    sd_accel_lead_rows_ = n > 0 ? n : 0;
++    ggml_backend_t be  = sd_get_accel_backend();
++    if (be == nullptr) {
++        return;
++    }
++    ggml_backend_dev_t dev = ggml_backend_get_device(be);
++    ggml_backend_reg_t reg = dev ? ggml_backend_dev_backend_reg(dev) : nullptr;
++    auto fn = reg ? (void (*)(int))ggml_backend_reg_get_proc_address(reg, "ggml_backend_shielded_set_lead_rows") : nullptr;
++    if (fn != nullptr) {
++        fn(sd_accel_lead_rows_);
++    }
++}
++int sd_get_accel_lead_rows() {
++    return sd_accel_lead_rows_;
++}
++
++bool sd_accel_backend_failed() {
++    sd_get_accel_backend();
++    std::lock_guard<std::mutex> lk(sd_accel_mu_);
++    return sd_accel_failed_;
++}
++
+ sd_graph_eval_callback_t sd_get_backend_eval_callback() {
+     return sd_backend_eval_cb;
+ }
+diff --git a/src/core/util.h b/src/core/util.h
+index 35b5206..44894c2 100644
+--- a/src/core/util.h
++++ b/src/core/util.h
+@@ -101,6 +101,10 @@ bool sd_should_preview_noisy();
+ sd_graph_eval_callback_t sd_get_backend_eval_callback();
+ void* sd_get_backend_eval_callback_data();
+ 
++ggml_backend_t sd_get_accel_backend();
++void sd_set_accel_lead_rows(int n);
++bool sd_accel_backend_failed();
++
+ // test if the backend is a specific one, e.g. "CUDA", "ROCm", "Vulkan" etc.
+ bool sd_backend_is(ggml_backend_t backend, const std::string& name);
+ 
+diff --git a/src/model/common/rope.hpp b/src/model/common/rope.hpp
+index 04ecde3..424659d 100644
+--- a/src/model/common/rope.hpp
++++ b/src/model/common/rope.hpp
+@@ -903,6 +903,38 @@ namespace Rope {
+         return embed_nd(ids, bs, static_cast<float>(theta), axes_dim, wrap_dims);
+     }
+ 
++    // apply_rope's interleaved graph (permute+cont, permute+cont, two ggml_repeat of a size-1
++    // inner dim, two broadcast muls, an add) in ONE pass that also writes the [d_head, L,
++    // n_head*N] layout the attention reads. Per element it does exactly what that graph does:
++    // y[2j+r] = (x[2j] * M[r][0]) + (x[2j+1] * M[r][1]), two roundings for the products and one
++    // for the sum (this file is built without FMA contraction, and ggml's mul/add round
++    // separately), so the output is bit-identical. On a CPU-only diffusion pass (a Shield
++    // guest) the repeats alone were ~1 s of every Z-Image 512px step. Opt-in: SD_ROPE_FUSED=1
++    // (a custom op runs on the CPU; on a GPU backend it would force a copy round trip).
++    __STATIC_INLINE__ void rope_fused_interleaved_op(ggml_tensor* dst, int ith, int nth, void*) {
++        const ggml_tensor* x  = dst->src[0];
++        const ggml_tensor* pe = dst->src[1];
++        const int64_t d_head = x->ne[0], n_head = x->ne[1], L = x->ne[2], N = x->ne[3];
++        const int64_t half = d_head / 2, rows = L * n_head * N;
++        const int64_t per = (rows + nth - 1) / nth, r0 = per * ith, r1 = std::min(rows, r0 + per);
++        for (int64_t row = r0; row < r1; row++) {
++            const int64_t l = row % L, hp = row / L, head = hp % n_head, n = hp / n_head;
++            const char* xr = (const char*)x->data + head * x->nb[1] + l * x->nb[2] + n * x->nb[3];
++            float* yr      = (float*)((char*)dst->data + l * dst->nb[1] + hp * dst->nb[2]);
++            for (int64_t j = 0; j < half; j++) {
++                const float x0  = *(const float*)(xr + (2 * j) * x->nb[0]);
++                const float x1  = *(const float*)(xr + (2 * j + 1) * x->nb[0]);
++                const char* pj  = (const char*)pe->data + j * pe->nb[2] + l * pe->nb[3];   // M[r][c] at c*nb0 + r*nb1
++                const float m00 = *(const float*)pj, m01 = *(const float*)(pj + pe->nb[0]);
++                const float m10 = *(const float*)(pj + pe->nb[1]), m11 = *(const float*)(pj + pe->nb[0] + pe->nb[1]);
++                const float a0 = x0 * m00, b0 = x1 * m01;
++                const float a1 = x0 * m10, b1 = x1 * m11;
++                yr[2 * j]     = a0 + b0;
++                yr[2 * j + 1] = a1 + b1;
++            }
++        }
++    }
++
+     __STATIC_INLINE__ ggml_tensor* apply_rope(ggml_context* ctx,
+                                               ggml_tensor* x,
+                                               ggml_tensor* pe,
+@@ -913,6 +945,14 @@ namespace Rope {
+         int64_t n_head = x->ne[1];
+         int64_t L      = x->ne[2];
+         int64_t N      = x->ne[3];
++        static const bool fused = [] { const char* e = getenv("SD_ROPE_FUSED"); return e && e[0] == '1' && e[1] == 0; }();
++        if (fused && rope_interleaved && x->type == GGML_TYPE_F32 && pe->type == GGML_TYPE_F32 && d_head % 2 == 0 &&
++            pe->ne[0] == 2 && pe->ne[1] == 2 && pe->ne[2] == d_head / 2 && pe->ne[3] == L) {
++            ggml_tensor* args[2] = {x, pe};
++            ggml_tensor* y       = ggml_custom_4d(ctx, GGML_TYPE_F32, d_head, L, n_head * N, 1, args, 2,
++                                                  rope_fused_interleaved_op, GGML_N_TASKS_MAX, nullptr);
++            return ggml_reshape_3d(ctx, y, d_head, L, n_head * N);  // [N*n_head, L, d_head]
++        }
+         x              = ggml_cont(ctx, ggml_permute(ctx, x, 0, 2, 1, 3));  // [N, n_head, L, d_head]
+         if (rope_interleaved) {
+             x = ggml_reshape_4d(ctx, x, 2, d_head / 2, L, n_head * N);  // [N * n_head, L, d_head/2, 2]
+diff --git a/src/model/diffusion/z_image.hpp b/src/model/diffusion/z_image.hpp
+index 9fb333c..87ab7fa 100644
+--- a/src/model/diffusion/z_image.hpp
++++ b/src/model/diffusion/z_image.hpp
+@@ -489,6 +489,8 @@ namespace ZImage {
+             }
+ 
+             auto txt_img = ggml_concat(ctx->ggml_ctx, txt, img, 1);  // [N, n_txt_token + n_txt_pad_token + n_img_token + n_img_pad_token, hidden_size]
++            // the joint layers' caption rows stay on the CPU when an offload accelerator is on (util.cpp)
++            sd_set_accel_lead_rows(N == 1 ? (int)txt->ne[1] : 0);
+             sd::ggml_graph_cut::mark_graph_cut(txt_img, "z_image.prelude", "txt_img");
+ 
+             for (int i = 0; i < config.num_layers; i++) {
