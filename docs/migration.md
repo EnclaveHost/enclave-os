@@ -30,7 +30,7 @@ There is **one** shared OS definition; platform profiles only select architectur
 
 The desktop is unprivileged. Platform startup creates fresh session credentials and authenticated X sockets; no credential is baked into the rootfs. Only the masked Shield service may reach GPU compute; desktop software must not receive raw DRM/CUDA or host GPU passthrough. Unsupported work stays on the CPU.
 
-W^X enforcement belongs in the platform boundary, with forbidden allocation requests rejected rather than killing the entire VM. The existing native seccomp code is **x86-64-specific** and must not be reused on RV64 without a separately tested syscall-ABI implementation. Browser preferences are defense in depth, not a substitute for that enforcement.
+W^X enforcement belongs in the platform boundary, with forbidden allocation requests rejected rather than killing the entire VM. The imported native seccomp code is **x86-64-specific**. Its editable port in `components/platform-policy` uses native libc syscall constants and separate x86-64/RV64 architecture guards; the dedicated kernel tests and actual adapter admission remain required before use. Browser preferences are defense in depth, not a substitute for that enforcement.
 
 ASLR, TLS/certificate validation, Safe Browsing and site isolation remain enabled. Xorg SECURITY must remain enabled. The new desktop session refuses to start without a readable authority file and inherits the adapter's display/authority rather than assuming Debian paths.
 

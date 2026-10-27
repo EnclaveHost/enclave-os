@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real kernel boot of the shared minimal userland under system emulation."""
-import gzip,pathlib,subprocess,sys
+import gzip,os,pathlib,subprocess,sys
 arch=sys.argv[1];out=pathlib.Path('out');kernel=out/'smoke-kernel'
 if arch=='x86_64':
     cmd=['qemu-system-x86_64','-machine','q35,accel=tcg','-cpu','max']
@@ -18,6 +18,6 @@ try:
 except subprocess.TimeoutExpired as e:
     log=(e.stdout or b'').decode(errors='replace');code=124
 (out/'boot.log').write_text(log)
-if code or f'ENCLAVE_BOOT_OK {arch}' not in log:
+if code or f'ENCLAVE_BOOT_OK {arch}' not in log or (os.environ.get('ENCLAVE_POLICY_TEST') == '1' and 'ENCLAVE_POLICY_OK' not in log):
     print(log[-16000:]);raise SystemExit(f'{arch}: boot failed (exit {code})')
 print(f'PASS: {arch} kernel boot, Enclave userland, ASLR, shutdown')
