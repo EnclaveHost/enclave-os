@@ -42,9 +42,9 @@ with tempfile.TemporaryDirectory() as td:
             try:
                 time.sleep(3)
                 code=game.poll(); output=(home/'doom.log').read_text()
-                # Doom reports a completed timedemo through I_Error (exit 1).
+                # Doom reports a completed timedemo through I_Error (exit(-1), observed as 255).
                 completed=bool(re.search(r'timed [0-9]+ gametics in [0-9]+ realtics', output))
-                assert code is None or (code==1 and completed), output[-4000:]
+                assert code is None or (code==255 and completed), output[-4000:]
             finally:
                 if game.poll() is None:game.terminate();game.wait(timeout=10)
         subprocess.run(['/tmp/cursor-image'],env=env,check=True)

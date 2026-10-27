@@ -23,6 +23,8 @@ cp /home/builder/.abuild/*.pub /out/
 # No private signing material leaves this disposable builder.
 apk add --no-cache enclave-base enclave-cursor enclave-desktop enclave-freedoom
 cc /src/tests/cursor-image.c -o /tmp/cursor-image -lX11 -lXfixes
+mkdir -p /tmp/.X11-unix
+chmod 1777 /tmp/.X11-unix
 su builder -c 'python3 /src/tests/desktop-smoke.py'
 for preset in minimal desktop; do
     python3 /src/tools/assemble.py --arch "$ENCLAVE_ARCH" --preset "$preset" \

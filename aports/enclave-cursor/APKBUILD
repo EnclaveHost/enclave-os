@@ -18,4 +18,4 @@ package() {
     install -m755 start.py supervise.py "$pkgdir/usr/libexec/enclave-os/cursor/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
-sha512sums="af9fcd3abc4f2e5c3672f7c800b4d320beca223f792e8de8b4845c47f42d5934aadfc61b4d00eef7c71f883e32621fc8bf5d8edfbeccc5ed688aa819310340df  enclave-cursor-0.1.0.tar"
+sha512sums="1c6e729564ecbaebd05fb2afb5905180af04015156fd42e1532663a30fb94cb3ed48fd7c722fbaa4630a33817b99f336e9a01daa6dff90f64d73407a96e323a8  enclave-cursor-0.1.0.tar"
