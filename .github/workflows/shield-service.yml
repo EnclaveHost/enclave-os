@@ -1,0 +1,55 @@
+name: Shield trusted service on musl
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  service:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64, riscv64]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave
+          ref: 04a27e8da4e7d8a5f4b1270e6d02231a2b96d29a
+          path: upstream
+          sparse-checkout: |
+            wasm/ggml-shielded
+            LICENSE
+      - name: Export pinned core and migrated service
+        run: |
+          python3 - <<'PYCODE'
+          import pathlib,subprocess,json,shutil,tarfile,hashlib
+          commit=subprocess.check_output(['git','-C','upstream','rev-parse','HEAD'],text=True).strip()
+          assert commit=='04a27e8da4e7d8a5f4b1270e6d02231a2b96d29a'
+          target=pathlib.Path('shield-service')
+          shutil.copytree('components/shield-service',target)
+          subprocess.run(['git','-C','upstream','archive','--output=../core.tar',commit,'wasm/ggml-shielded','LICENSE'],check=True)
+          archive=pathlib.Path('core.tar')
+          with tarfile.open(archive) as tar: tar.extractall(target/'upstream',filter='data')
+          (target/'enclave-source.json').write_text(json.dumps({'repository':'EnclaveHost/enclave','commit':commit,'archiveSha256':hashlib.sha256(archive.read_bytes()).hexdigest()})+'\n')
+          PYCODE
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf enclave-shield-service-source.tar shield-service
+      - name: Build, test and install the masking core and guest service
+        run: |
+          mkdir out
+          docker run --rm --memory=6g --memory-swap=6g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-shield-service.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: shield-service-${{ matrix.platform }}
+          path: out/
+          retention-days: 7

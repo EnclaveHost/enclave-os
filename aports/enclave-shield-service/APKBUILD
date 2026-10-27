@@ -1,0 +1,34 @@
+pkgname=enclave-shield-service
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Measured guest compute boundary and non-dealer masking core"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="LicenseRef-Enclave-Source-Available"
+makedepends="build-base python3 git linux-headers"
+checkdepends="py3-numpy"
+depends="python3 py3-numpy"
+ldpath="/usr/lib/enclave-shield-service"
+sonameprefix="$pkgname:"
+source="enclave-shield-service-source.tar"
+builddir="$srcdir/shield-service"
+build() {
+    python3 build-core.py --enclave upstream --output core --native-worker-route
+}
+check() {
+    for test in field prepare half prefix-kv postmortem; do
+        ./core/$test-selftest
+    done
+    python3 -m unittest -v test_compiler test_service test_q8_service test_q8_finite
+}
+package() {
+    local dest="$pkgdir/usr/lib/enclave-shield-service"
+    mkdir -p "$dest"
+    for name in service compiler channel q8_service; do
+        install -m644 "$name.py" "$dest/"
+    done
+    install -m755 core/libshield-core.so "$dest/"
+    install -m644 core/provenance.json enclave-source.json "$dest/"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+sha512sums=""
