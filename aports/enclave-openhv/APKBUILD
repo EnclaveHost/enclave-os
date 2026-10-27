@@ -11,6 +11,7 @@ options="net !check !strip" # installed menu/game and policy checks run separate
 source="enclave-openhv-source.tar"
 builddir="$srcdir/openhv"
 prepare() {
+    cp -a /src/integrations/openhv/nuget-locks/. .
     python3 - <<'PORT'
 from pathlib import Path
 p=Path('engine/Directory.Build.props')
@@ -22,9 +23,10 @@ p.write_text(s.replace('AUTOMATIC_ENGINE_MANAGEMENT="True"','AUTOMATIC_ENGINE_MA
 PORT
 }
 build() {
+    printf 'release-20250330\n' >engine/VERSION
     export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
-    dotnet build engine/OpenRA.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestorePackagesWithLockFile=true -m:2
-    dotnet build OpenHV.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestorePackagesWithLockFile=true -m:2
+    dotnet build engine/OpenRA.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestoreLockedMode=true -m:2
+    dotnet build OpenHV.sln -c Release -p:TargetPlatform=unix-generic -p:UseAppHost=false -p:RestoreLockedMode=true -m:2
 }
 package() {
     local dest="$pkgdir/usr/lib/enclave-os/openhv"

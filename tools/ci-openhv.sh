@@ -26,4 +26,6 @@ cp /home/builder/.abuild/*.pub /out/
 cp /home/builder/aports/enclave/enclave-openhv/APKBUILD /out/APKBUILD
 apk add --no-cache enclave-openhv
 chown builder:builder /out
+export LIBGL_DRIVERS_PATH=/usr/lib/enclave-shield/dri LD_LIBRARY_PATH=/usr/lib/enclave-shield
+export VK_DRIVER_FILES=/usr/share/enclave-shield/vulkan/icd.json LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=zink
 su builder -c 'xvfb-run -a -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/openhv-smoke.py'

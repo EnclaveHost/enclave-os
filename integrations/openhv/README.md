@@ -6,8 +6,9 @@ customizations; no engine source patch was recovered. Those defaults are retaine
 
 The port targets Alpine's shared .NET 10 runtime and system SDL2, OpenAL, Lua 5.1
 and FreeType. It ships no glibc AppImage or private .NET runtime. Managed build
-outputs and resolved NuGet lock files are retained; release promotion requires
-reviewing and pinning the resulting dependency closure before offline rebuilds.
+outputs and resolved NuGet lock files are retained. The reviewed first build closure
+is committed in `nuget-locks`; subsequent restore uses locked mode. Offline release
+rebuilds still require the recorded NuGet packages in the source mirror.
 The launcher requires the shared Shield graphics environment and preserves W^X
 runtime settings. Actual kernel-policy compatibility remains a separate gate.
 

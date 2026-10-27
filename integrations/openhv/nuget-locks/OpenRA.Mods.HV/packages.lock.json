@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Cyberboss.SmartIrc4net.Standard": {
+        "type": "Direct",
+        "requested": "[0.4.7, )",
+        "resolved": "0.4.7",
+        "contentHash": "7BGnuQXFfBYwM+BPlouZB74GyKH2vM34j/97BOdx6N2UuqwKAVONpa4n7g2M98N3ymhFsgVi6Uro9O1edWbHfg=="
+      },
+      "DiffPlex": {
+        "type": "Direct",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+      },
+      "Roslynator.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "3N8CNx1Q/Q5VDDL7qgfZRgTURyMqzHAkAB59AZKRnsOXoh2n9xRzhiBMIbJaUtBATmieECBx68GcjRn2xoNDug=="
+      },
+      "Roslynator.Formatting.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "cJpb6q2j92a3QTz6yJs2ZHi3F/AfEnpMXe38X5rfVlCLzF01t68dNz460HyI0BnO4UyJ3B+QhLHeqof2oh019w=="
+      },
+      "StyleCop.Analyzers": {
+        "type": "Direct",
+        "requested": "[1.2.0-beta.435, )",
+        "resolved": "1.2.0-beta.435",
+        "contentHash": "TADk7vdGXtfTnYCV7GyleaaRTQjfoSfZXprQrVMm7cSJtJbFc1QIbWPyLvrgrfGdfHbGmUPvaN4ODKNxg2jgPQ==",
+        "dependencies": {
+          "StyleCop.Analyzers.Unstable": "1.2.0.435"
+        }
+      },
+      "DiscordRichPresence": {
+        "type": "Transitive",
+        "resolved": "1.2.1.24",
+        "contentHash": "DVmmlFQ/oQmidNRmZhPzYjC7ryaT4beWcKaMKPVw6fhOzM/HOoY6NOL4KMOYEnD4M7SNsODjleYimvUNIZcbiA==",
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.1"
+        }
+      },
+      "Linguini.Bundle": {
+        "type": "Transitive",
+        "resolved": "0.8.1",
+        "contentHash": "JXHdVG2rpbEDVL5K4P7sltB/ISYJzfOySEnMPa0PWhxpnczYF9aEdtRR3ntFllXENT/A+YfY4AOOpkF2P/H8yg==",
+        "dependencies": {
+          "Linguini.Shared": "0.8.0",
+          "Linguini.Syntax": "0.8.0"
+        }
+      },
+      "Linguini.Shared": {
+        "type": "Transitive",
+        "resolved": "0.8.0",
+        "contentHash": "o4CerBzUuyeexu3OoDDk57phWjKk4Ga1gr6MTQD44S9B4KmUkhG/IHuOkHbs2tLt0OtiOkq7Molsz1YDdEUj5g=="
+      },
+      "Linguini.Syntax": {
+        "type": "Transitive",
+        "resolved": "0.8.0",
+        "contentHash": "VxF6m0BKFdNrIT98RDJ7kyBmm729EhvOfYk+fxrj9MjK+qyrpypxJmBPkvK8SavPc2DKpblT3TIKG7p9Hp4EaA==",
+        "dependencies": {
+          "Linguini.Shared": "0.8.0"
+        }
+      },
+      "Microsoft.Extensions.DependencyModel": {
+        "type": "Transitive",
+        "resolved": "6.0.2",
+        "contentHash": "HS5YsudCGSVoCVdsYJ5FAO9vx0z04qSAXgVzpDJSQ1/w/X9q8hrQVGU2p+Yfui+2KcXLL+Zjc0SX3yJWtBmYiw=="
+      },
+      "Mono.Nat": {
+        "type": "Transitive",
+        "resolved": "3.0.4",
+        "contentHash": "oodXnwdcML4qUaZ+J44gaC/hn0n3uZHkvxScdt8NOcBbmbNmA7z1t5FEvUvn8cOnYSha8F4ZS57FJuXSKYhqdw=="
+      },
+      "MP3Sharp": {
+        "type": "Transitive",
+        "resolved": "1.0.5",
+        "contentHash": "KyGy1ZBVEXfovHdJRY8NzjWZBdL75PSx+13KW720JuUTKyWbDCHk0jgjif9b62UPnBZu5V/ZB+tpHWcPhoZS8Q=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "13.0.1",
+        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+      },
+      "NuGet.CommandLine": {
+        "type": "Transitive",
+        "resolved": "6.12.1",
+        "contentHash": "w6KIGi+Zdc/pUi9/v5o1sE4iJiXNgpQdODfBKmiFlYMuKoNit272LVBqQ4n94B/uPc0uAO2UcCUQjLYRaWnf2Q=="
+      },
+      "NVorbis": {
+        "type": "Transitive",
+        "resolved": "0.10.5",
+        "contentHash": "o+IptCG4Avze39HrGeztC+xIp6fOOwGVAwkoa1J++4Ji1WmZ+KIKlFl5wsgxsXqBkmdpfs/vFSUproiLKYa2bw=="
+      },
+      "OpenRA-Eluant": {
+        "type": "Transitive",
+        "resolved": "1.0.22",
+        "contentHash": "sx+LNYp+MYQL+hSN1gOsLEqZK2nfftkQC62nnAYqmmPSWt5nYOZqm/U8lm8WsmGVllU3V8Y4W/bOZXMzux7l9g=="
+      },
+      "OpenRA-FuzzyLogicLibrary": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "s0946MdefEATcnR003jlO4eEbnSp2hGgJ6Wgpodwzw5BYWVisvJHAVFNLCUwEMxMrSVe0YBUucqlugoVyb3/ig=="
+      },
+      "Pfim": {
+        "type": "Transitive",
+        "resolved": "0.11.3",
+        "contentHash": "UNVStuGHVIGyBlQaLX8VY6KpzZm/pG2zpV8ewNSXNFKFVPn8dLQKJITfps3lwUMzwTL+Do7RrMUvgQ1ZsPTu4w=="
+      },
+      "rix0rrr.BeaconLib": {
+        "type": "Transitive",
+        "resolved": "1.0.2",
+        "contentHash": "zIrNwNejV0lS9Zg1AFkODpoH2x1a38SNWs7Jhous87fbIK3OBAScIIF26QmQG4Q7ZBlBPsG/oldfUfygbqW65w==",
+        "dependencies": {
+          "NuGet.CommandLine": "4.4.1"
+        }
+      },
+      "SharpZipLib": {
+        "type": "Transitive",
+        "resolved": "1.4.2",
+        "contentHash": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A=="
+      },
+      "StyleCop.Analyzers.Unstable": {
+        "type": "Transitive",
+        "resolved": "1.2.0.435",
+        "contentHash": "ouwPWZxbOV3SmCZxIRqHvljkSzkCyi1tDoMzQtDb/bRP8ctASV/iRJr+A2Gdj0QLaLmWnqTWDrH82/iP+X80Lg=="
+      },
+      "TagLibSharp": {
+        "type": "Transitive",
+        "resolved": "2.3.0",
+        "contentHash": "Qo4z6ZjnIfbR3Us1Za5M2vQ97OWZPmODvVmepxZ8XW0UIVLGdO2T63/N3b23kCcyiwuIe0TQvMEQG8wUCCD1mA=="
+      },
+      "openra.game": {
+        "type": "Project",
+        "dependencies": {
+          "Linguini.Bundle": "[0.8.1, )",
+          "Microsoft.Extensions.DependencyModel": "[6.0.2, )",
+          "Mono.NAT": "[3.0.4, )",
+          "OpenRA-Eluant": "[1.0.22, )",
+          "SharpZipLib": "[1.4.2, )"
+        }
+      },
+      "openra.mods.common": {
+        "type": "Project",
+        "dependencies": {
+          "DiscordRichPresence": "[1.2.1.24, )",
+          "MP3Sharp": "[1.0.5, )",
+          "NVorbis": "[0.10.5, )",
+          "NuGet.CommandLine": "[6.12.1, )",
+          "OpenRA-FuzzyLogicLibrary": "[1.0.1, )",
+          "OpenRA.Game": "[1.0.0, )",
+          "Pfim": "[0.11.3, )",
+          "TagLibSharp": "[2.3.0, )",
+          "rix0rrr.BeaconLib": "[1.0.2, )"
+        }
+      }
+    }
+  }
+}
