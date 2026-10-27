@@ -1,0 +1,48 @@
+pkgname=enclave-freeimage
+pkgver=3.19.0
+pkgrel=0
+_commit=b1613452a0c3849d43ac877b154cf51ff9e078d3
+pkgdesc="Visual Pinball's pinned FreeImage fork with half-float textures"
+url="https://github.com/toxieainc/freeimage"
+arch="x86_64 riscv64"
+license="GPL-2.0-only AND BSD-3-Clause AND IJG AND libpng-2.0 AND Zlib"
+makedepends="cmake samurai python3"
+subpackages="$pkgname-dev"
+source="$pkgname-$_commit.tar.gz::https://codeload.github.com/toxieainc/freeimage/tar.gz/$_commit
+ roundtrip.cpp"
+builddir="$srcdir/freeimage-$_commit"
+prepare() {
+    python3 - <<'PORT'
+from pathlib import Path
+p=Path('CMakeLists.txt');s=p.read_text()
+s=s.replace('set(FREEIMAGE_OUTPUT_NAME "freeimage")','set(FREEIMAGE_OUTPUT_NAME "enclave-freeimage")')
+s=s.replace('install(FILES source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)',
+            'install(FILES Source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/enclave-freeimage)')
+p.write_text(s)
+PORT
+}
+build() {
+    case "$CARCH" in x86_64) target=x64;; riscv64) target=riscv64;; *) return 1;; esac
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+        -DPLATFORM=linux -DARCH="$target" -DBUILD_STATIC=OFF -DBUILD_SHARED=ON
+    cmake --build build -j2
+}
+check() {
+    c++ -std=c++17 -ISource "$srcdir/roundtrip.cpp" -Lbuild -lenclave-freeimage -o build/roundtrip
+    LD_LIBRARY_PATH="$builddir/build" ./build/roundtrip
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    python3 - "$pkgdir/usr/share/licenses/$pkgname" <<'COPY'
+from pathlib import Path
+import shutil,sys
+out=Path(sys.argv[1])
+for p in Path('.').rglob('*'):
+ if p.is_file() and 'build' not in p.parts and p.name.lower().startswith(('license','copying','copyright')):
+  dst=out/p;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,dst)
+COPY
+}
+sha512sums="
+62decce4b0ee02c6a60dd0b528dc57d49f1b18187dc526030196870f564fe9f9c571345dd1eb698fc9bceca0047f61f9a571f64b3f0a3ad02f371e3b81a918b3  enclave-freeimage-b1613452a0c3849d43ac877b154cf51ff9e078d3.tar.gz
+354ea6d2cf34fbdec30aa039ca9e41b36055c41e26d5bd4928794d3cd4088fc94f417045b69f9c3075a77e4876d7adcdbebf4338c2572d7a6e97528a00f68e2d  roundtrip.cpp
+"

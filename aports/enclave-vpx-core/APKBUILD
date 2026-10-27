@@ -5,7 +5,7 @@ pkgdesc="Visual Pinball portable core candidate; plugin/game parity is pending"
 url="https://github.com/vpinball/vpinball"
 arch="x86_64 riscv64"
 license="GPL-3.0-or-later AND LicenseRef-VPinball-Legacy"
-makedepends="cmake samurai python3 sdl3-dev sdl3_ttf-dev freeimage-dev hidapi-dev
+makedepends="cmake samurai python3 sdl3-dev sdl3_ttf-dev enclave-freeimage-dev hidapi-dev
  enclave-winevbs-dev enclave-spatialaudio-dev libmysofa-dev zlib-dev linux-headers"
 options="!check"
 source="enclave-vpx-source.tar"
@@ -18,6 +18,9 @@ a='$<IF:$<STREQUAL:${ARCH},x64>,third-party/include/glad/src/gl.c,third-party/in
 assert s.count(a)==1;s=s.replace(a,'third-party/include/glad/src/gl.c')
 a='         $<$<NOT:$<STREQUAL:${ARCH},x64>>:__OPENGLES__>\n'
 assert s.count(a)==1;s=s.replace(a,'')
+a='      SDL3_ttf\n      freeimage\n      hidapi-hidraw'
+assert s.count(a)==1;s=s.replace(a,'      SDL3_ttf\n      enclave-freeimage\n      hidapi-hidraw')
+s += '\ntarget_include_directories(vpinball BEFORE PUBLIC /usr/include/enclave-freeimage)\n'
 p.write_text(s)
 PORT
 }
