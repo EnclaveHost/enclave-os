@@ -12,13 +12,13 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Desktop | Fluxbox, tiny theme, 960×600, outline dragging | Real input, clipboard, resize and accessibility checks |
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
-| Browser | Common lightweight profile; Alpine Firefox as development baseline | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
+| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
 | Sunshine/Moonlight | Alpine x86-64 upstream APK exists; client audio/input patch preserved in `integrations/moonlight` | Build/verify patched Sunshine on musl, RV64 capture/encoder feasibility; audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Imported worker/protocol/SDK source | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
 | OpenGL/Vulkan | Imported patched Mesa/driver source | Musl toolchain, platform ISA, full qualification suite; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | Final source diff recovered in `integrations/openarena`; musl builds, menu/relative-mode/sensitivity tests |
-| LibreQuake | QuakeSpasm + pinned game content | Rebuild engine against musl; share libraries through APK dependencies |
+| LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup and real Shield/input/audio qualification |
 | Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
 | OpenHV | OpenRA/.NET 6 game + content | Supported musl runtime/architecture, shared runtime packaging, W^X and rendering tests |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |

@@ -13,7 +13,7 @@ This is the home for the VM customizations previously embedded in `EnclaveHost/e
 | x86-64 | 3.54 MiB | 317.13 MiB |
 | RISC-V 64 | 3.30 MiB | 290.20 MiB |
 
-The desktop figures include Firefox, custom FreeDoom, audio, noVNC, Python and Node.js. They exclude the pending Shield/streaming/game ports and production boot wrapper. See [exact sizes, checks and limitations](docs/validation-20261027.md).
+These historical desktop figures include stock Firefox, custom FreeDoom, audio, noVNC, Python and Node.js. They exclude the pending Shield/streaming/game ports and production boot wrapper. See [exact sizes, checks and limitations](docs/validation-20261027.md).
 
 ## Why Alpine, and why was the native image Debian?
 
@@ -43,9 +43,9 @@ python3 tests/contracts.py
 python3 tools/stage-aports.py staging
 ```
 
-The disposable CI builder compiles four packages, signs a temporary APK repository, installs it with signature verification, checks X authentication and cursor recovery, and starts the custom FreeDoom engine. It then assembles minimal and desktop root filesystems, executes their native programs, boots the minimal OS with real Linux kernels under system emulation, and exports rootfs archives, package inventory, size reports and checksums. Compression runs on the native CI host to avoid wasting time emulating gzip. See `tools/ci-build.sh` for the exact commands.
+The disposable CI builder compiles five packages, signs a temporary APK repository, installs it with signature verification, checks X authentication and cursor recovery, and starts the custom FreeDoom engine. It also compiles QuakeSpasm against musl, packages the pinned full LibreQuake campaign and runs an isolated CPU-rendered startup check. This does not qualify Shield rendering or streaming. It then assembles minimal and browser-free shell development root filesystems, executes their native programs, boots the minimal OS with real Linux kernels under system emulation, and exports rootfs archives, package inventory, size reports and checksums. Compression runs on the native CI host to avoid wasting time emulating gzip. See `tools/ci-build.sh` for the exact commands.
 
-**Do not run `ci-build.sh` on a workstation or running guest**: it provisions a disposable Alpine build container. The workflow shows the container invocation. Its temporary mount capability is used to mount procfs for chrooted Firefox, as Firefox expects in a booted OS. CI public keys are test-only; no private key is published and test keys are removed from final rootfs trust stores. Development artifacts are not production releases and do not automatically update running apps.
+**Do not run `ci-build.sh` on a workstation or running guest**: it provisions a disposable Alpine build container. The workflow shows the container invocation. CI public keys are test-only; no private key is published and test keys are removed from final rootfs trust stores. Development artifacts are not production releases and do not automatically update running apps.
 
 ## Repository map
 
@@ -65,7 +65,7 @@ The disposable CI builder compiles four packages, signs a temporary APK reposito
 
 ## Release scope
 
-The initial APKs are `enclave-base`, `enclave-cursor`, `enclave-desktop` and `enclave-freedoom`. The native C components are rebuilt against musl for both architectures. The desktop currently selects Alpine's Firefox ESR; **this is not yet the separately patched [Enclave Browser](https://github.com/EnclaveHost/enclave-browser)**.
+The initial APKs are `enclave-base`, `enclave-cursor`, `enclave-desktop` and `enclave-freedoom`. The native C components are rebuilt against musl for both architectures. Both `desktop` and `full` select the custom [`enclave-browser` APK](https://github.com/EnclaveHost/enclave-browser/tree/enclave-esr153/enclave/alpine), built from Enclave Browser's engine fork. The desktop launcher requires `enclave-firefox` and never falls back to stock Firefox. Its musl build and browser qualification are in progress; a signed browser APK must be supplied before assembling either preset. The explicit `shell` preset is the browser-free development test image, not a replacement desktop.
 
 The [migration matrix](docs/migration.md) records Sunshine, Enclave Browser, Shield compute/graphics and game work that must be completed before claiming parity with the running native VM. User-mode tests are not proof that the RISC Box emulator can boot this newer userland/kernel combination or that KVM admission/attestation accepts it. Those are separate mandatory release checks.
 

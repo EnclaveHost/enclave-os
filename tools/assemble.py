@@ -7,7 +7,7 @@ def main():
     profile=json.loads((ROOT/'profiles/common.json').read_text())
     p=argparse.ArgumentParser()
     p.add_argument('--arch',choices=['x86_64','riscv64'],required=True)
-    p.add_argument('--preset',choices=list(profile['presets']),default=profile['default_preset'],help='default: full shared image; minimal/desktop are explicit development subsets')
+    p.add_argument('--preset',choices=list(profile['presets']),default=profile['default_preset'],help='default: full shared image; minimal/shell/desktop are explicit development subsets')
     p.add_argument('--repository',type=pathlib.Path,required=True,help='signed local repository parent (contains architecture dirs)')
     p.add_argument('--key',type=pathlib.Path,required=True,help='public APK signing key ONLY')
     p.add_argument('--output',type=pathlib.Path,required=True)
@@ -17,6 +17,8 @@ def main():
     lock=json.loads((ROOT/'profiles/upstream-lock.json').read_text())
     platform=json.loads((ROOT/f'profiles/{a.arch}.json').read_text())
     missing=[feature for feature in profile['presets'][a.preset] if feature not in profile['features']]
+    if a.preset == 'full':
+        missing=sorted(set(missing) | set(profile['pending_features']))
     if missing:p.error('Full feature parity is not qualified: '+', '.join(missing))
     packages=sorted(set(pkg for feature in profile['presets'][a.preset] for pkg in profile['features'][feature]))
     if 'desktop' in profile['presets'][a.preset]: packages+=platform['packages']

@@ -1,0 +1,18 @@
+# Shared by game launchers; the platform owns credentials and the masked service.
+: "${DISPLAY:?The Enclave desktop adapter must supply DISPLAY}"
+: "${XAUTHORITY:?The Enclave desktop adapter must supply XAUTHORITY}"
+if [ ! -r "$XAUTHORITY" ]; then
+    printf '%s\n' 'Desktop X authority is unreadable.' >&2
+    exit 1
+fi
+if [ ! -r /usr/share/enclave-shield/vulkan/icd.json ] || [ ! -d /usr/lib/enclave-shield/dri ]; then
+    printf '%s\n' 'The masked Shield graphics package is required for this game.' >&2
+    exit 1
+fi
+export VK_DRIVER_FILES=/usr/share/enclave-shield/vulkan/icd.json
+export VK_ICD_FILENAMES="$VK_DRIVER_FILES"
+export LIBGL_DRIVERS_PATH=/usr/lib/enclave-shield/dri
+export LD_LIBRARY_PATH=/usr/lib/enclave-shield
+export ZINK_DESCRIPTORS=lazy LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=zink
+export MESA_LOADER_DRIVER_OVERRIDE=zink LIBGL_KOPPER_DRI2=true LP_NUM_THREADS=2
+export SDL_AUDIODRIVER=pulseaudio SDL_MOUSE_RELATIVE_MODE_WARP=1

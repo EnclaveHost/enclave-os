@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=LibreQuake
+Comment=Free Quake campaign through Shield graphics
+Exec=enclave-librequake
+Terminal=false
+Categories=Game;ActionGame;

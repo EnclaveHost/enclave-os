@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+. /usr/libexec/enclave-os/game-env
+config="$HOME/.quakespasm/id1"
+mkdir -p "$config"
+if [ ! -e "$config/autoexec.cfg" ]; then
+    cp /usr/share/enclave-os/librequake/autoexec.cfg "$config/autoexec.cfg"
+fi
+exec /usr/libexec/enclave-os/quakespasm -basedir /usr/share/enclave-os/librequake \
+    -width 960 -height 600 -fullscreen -nojoy -sndspeed 48000 "$@"

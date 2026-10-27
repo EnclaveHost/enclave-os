@@ -30,4 +30,5 @@ def main():
         elif expected not in text: raise SystemExit(f'{name}: source/checksum mismatch')
         target=args.destination/name;target.mkdir(parents=True,exist_ok=True)
         (target/filename).write_bytes(data);(target/'APKBUILD').write_text(text)
+    shutil.copytree(ROOT/'aports/enclave-librequake',args.destination/'enclave-librequake',dirs_exist_ok=True)
 if __name__=='__main__': main()

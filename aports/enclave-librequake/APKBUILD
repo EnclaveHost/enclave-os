@@ -1,0 +1,35 @@
+pkgname=enclave-librequake
+pkgver=0.09_beta
+pkgrel=0
+pkgdesc="LibreQuake full campaign with Enclave desktop and Shield settings"
+url="https://github.com/lavenderdotpet/LibreQuake"
+arch="x86_64 riscv64"
+license="GPL-2.0-or-later AND BSD-3-Clause"
+depends="enclave-desktop"
+makedepends="sdl2-dev mesa-dev libmad-dev libvorbis-dev flac-dev libmikmod-dev opusfile-dev"
+source="https://deb.debian.org/debian/pool/main/q/quakespasm/quakespasm_0.96.3+dfsg.orig.tar.xz
+ librequake-v0.09-beta-full.zip::https://github.com/lavenderdotpet/LibreQuake/releases/download/v0.09-beta/full.zip
+ enclave-librequake
+ autoexec.cfg
+ librequake.desktop"
+builddir="$srcdir/quakespasm-0.96.3"
+options="!check" # installed engine startup tested in disposable Xvfb; real Shield qualification is separate
+build() {
+    make -C Quake USE_SDL2=1 DO_USERDIRS=1 USE_CODEC_FLAC=1 USE_CODEC_MIKMOD=1 USE_CODEC_OPUS=1
+}
+package() {
+    install -Dm755 Quake/quakespasm "$pkgdir/usr/libexec/enclave-os/quakespasm"
+    mkdir -p "$pkgdir/usr/share/enclave-os/librequake"
+    cp -a "$srcdir/full/id1" "$pkgdir/usr/share/enclave-os/librequake/"
+    install -Dm644 "$srcdir/autoexec.cfg" "$pkgdir/usr/share/enclave-os/librequake/autoexec.cfg"
+    install -Dm755 "$srcdir/enclave-librequake" "$pkgdir/usr/bin/enclave-librequake"
+    install -Dm644 "$srcdir/librequake.desktop" "$pkgdir/usr/share/applications/enclave-librequake.desktop"
+    install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/quakespasm-COPYING"
+}
+sha512sums="
+9329f6005966b7f28f02c1b28d0ca052b0a7a03f0f7141c340ce6d248fcd5e4c022a7830e614a30ee2ec1eb22b3ef5de15eca08857ac147d1fdd71c12ad0927a  quakespasm_0.96.3+dfsg.orig.tar.xz
+5517b051a4d9d85a32e1660e4fbb6199d8a37d29b4204806049ff90705ee307ac491f1c93686761235ab00f5fae1f1f669b1cb68beae71bc343a77bca00f58ee  librequake-v0.09-beta-full.zip
+59f8e456784f3767b2fe8adc9a1859be7ed8d1eac9b3a192ae454f137f6f058e3b24aa55d0a3d217bef3bdb5af731e4b6efbce6758ead205b766d428177c2fbd  enclave-librequake
+d7f7d8cd8e5c66a4d39cbf3536b9f016d08bfe9019983ca4845b8a60796312ac1759f4c6227e0d662b32a2655c3221d3839b0c1b35b3dff4e669b290181d180e  autoexec.cfg
+822d5ff320e331416c07b1ea6f5a51f2963f4d95502ae1032e7065777efdb21b2c73255d03d776148fd6ac78a7ea3a62f90f77c530dc4f1164bfc5b13abb75c7  librequake.desktop
+"

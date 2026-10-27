@@ -10,10 +10,13 @@ profile=json.loads((root/'profiles/common.json').read_text())
 assert profile['resolution']==[960,600]
 assert profile['default_preset']=='full'
 assert {'freedoom','openarena','librequake','visual-pinball-x','openhv'}<=set(profile['presets'][profile['default_preset']])
-assert {'browser','freedoom','agent','web-desktop'}<=set(profile['presets']['desktop'])
+assert {'enclave-browser','freedoom','agent','web-desktop'}<=set(profile['presets']['desktop'])
 assert set(profile['presets']['minimal'])=={'core'}
 assert set(profile['pending_features'])<=set(profile['presets']['full'])
-assert 'browser' not in profile['presets']['full'] # full image replaces upstream Firefox, not duplicates it
+assert 'browser' not in profile['features']
+assert profile['features']['enclave-browser']==['enclave-browser']
+assert 'enclave-browser' not in profile['presets']['shell']
+assert 'firefox-esr' not in (root/'components/desktop/bin/enclave-browser').read_text()
 for arch in ('x86_64','riscv64'):
     p=json.loads((root/f'profiles/{arch}.json').read_text())
     assert p['architecture']==arch and not p['production_qualified']

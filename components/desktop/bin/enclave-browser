@@ -2,11 +2,11 @@
 set -eu
 export GDK_BACKEND=x11
 mkdir -p "$HOME/.mozilla/firefox/enclave"
-browser=firefox-esr
-class=firefox
-if command -v enclave-firefox >/dev/null 2>&1; then
-    browser=enclave-firefox
-    class=enclave-browser
+browser=enclave-firefox
+class=enclave-browser
+if ! command -v "$browser" >/dev/null 2>&1; then
+    printf "%s\n" "Enclave Browser is not installed; install the signed enclave-browser package." >&2
+    exit 127
 fi
 helper=/usr/libexec/enclave-os/window-helper
 if "$helper" list "$class" >/dev/null 2>&1; then

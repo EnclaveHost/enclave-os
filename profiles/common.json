@@ -28,9 +28,6 @@
       "dbus-x11",
       "pulseaudio"
     ],
-    "browser": [
-      "firefox-esr"
-    ],
     "freedoom": [
       "enclave-freedoom"
     ],
@@ -51,6 +48,12 @@
       "novnc",
       "websockify",
       "x11vnc"
+    ],
+    "enclave-browser": [
+      "enclave-browser"
+    ],
+    "librequake": [
+      "enclave-librequake"
     ]
   },
   "presets": {
@@ -60,7 +63,7 @@
     "desktop": [
       "core",
       "desktop",
-      "browser",
+      "enclave-browser",
       "freedoom",
       "agent",
       "web-desktop"
@@ -79,6 +82,13 @@
       "librequake",
       "visual-pinball-x",
       "openhv"
+    ],
+    "shell": [
+      "core",
+      "desktop",
+      "freedoom",
+      "agent",
+      "web-desktop"
     ]
   },
   "pending_features": [

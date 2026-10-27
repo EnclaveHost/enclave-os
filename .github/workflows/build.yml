@@ -61,6 +61,7 @@ jobs:
             out/*.apk-installed
             out/*.tar.gz
             out/SHA256SUMS
+            out/*smoke.log
             out/boot.log
             out/smoke-kernel
             out/smoke-initramfs.cpio.gz
