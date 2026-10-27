@@ -37,7 +37,7 @@ build() {
     make ARCH="$CARCH" BUILD_CLIENT=1 BUILD_SERVER=0 BUILD_GAME_SO=0 BUILD_GAME_QVM=0 \
         BUILD_MISSIONPACK=0 USE_INTERNAL_LIBS=0 USE_LOCAL_HEADERS=0 \
         USE_CURL_DLOPEN=0 USE_OPENAL_DLOPEN=0 HAVE_VM_COMPILED= \
-        CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" release
+        CFLAGS="$CFLAGS -DWITH_OPENARENA -fsigned-char" LDFLAGS="$LDFLAGS" release
     for variant in current compat; do
         compatible=0
         [ "$variant" != compat ] || compatible=1
@@ -90,7 +90,7 @@ sha512sums="
 23d98315acc6a05f8b212b3ac37b62868b33b6259a9fbf9b4f2ca62c1a8cecf5dc3870d9d7a7c32d62cec543297425637ecb821e6274dfe1d55bf0636e19d530  ioquake3_1.36+u20250316.526edd3+dfsg.orig.tar.xz
 b5fa2b6dcb26d9f71aa8df21773b829e3dd1479ae1d01c3c0f097a7ddce139bc38f185c6784aefb3f3358bedfe218d67f98162ca1c239ab51d47025bc22b946c  openarena_0.8.8+dfsg.orig.tar.xz
 314b94348a5bdf5eaa30e0b20874b51da166ad26605f91cb52043c55cc647170d1e7b4fcdccb79995801c77a5e207445849bff86fa80405bb476a637b4d5dac2  openarena_0.8.8+dfsg-8.debian.tar.xz
-bf0bbe89f8f1150a813d75c899a9c5e2d102ee2f6e59bbb65537526f41a1a45449731f5188e0a3eddc879be99058c43b7ef7a11c05dbf8460871268d4ae44f40  ioquake3-enclave.patch
+53a1e3a63dd6be1c6cfb4b44ad6b9476bca9821be9e23be068e02499b504a38b379e91b73271aa4ed35c4e8e69b44a01e62ca5520cb36a1205c34ad392089aaf  ioquake3-enclave.patch
 bfea77346673bb9df5c7064c093bd6f77e3452a2be54b5e2c37b5e768fba9f943c4d21ad414c551da3ac14ca34dc395736fe6f03597296d798b4cd8d31a458af  enclave-openarena
 2208e749a46a52cc0a575751e56eb8d79c1678f2ecaa84298b0fdd2178c24d925ba5621b3deef17a8aba4c37077bfd787076157ef5ccf8884079521377de4119  defaults.cfg
 670a55883601bed2a753f8a852d1fd1a49c6793ad40e798ece0caf5099ee5e724fd76cd44197a7023c5ab4c14c69ebe6a3c56d5b4ca504b8494044a52dd31b10  openarena.desktop

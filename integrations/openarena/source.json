@@ -1,7 +1,7 @@
 {
   "url": "https://deb.debian.org/debian/pool/main/i/ioquake3/ioquake3_1.36+u20250316.526edd3+dfsg.orig.tar.xz",
   "sha256": "1f42270e8e950f7d048724059143ce8c00372b3aa1f63c8ec3e7067823275986",
-  "description": "Final local ioquake3 sources, including Debian compatibility changes and Enclave menu/capture support, diffed against the pristine DFSG source archive. Not yet ported/qualified on Alpine.",
+  "description": "Final local ioquake3 sources, including the newly added menu pointer header, Debian compatibility changes and Enclave menu/capture support. Musl build qualification is in progress.",
   "files": [
     {
       "path": "Makefile",
@@ -92,6 +92,11 @@
       "path": "code/server/sv_main.c",
       "base_sha256": "659ee45a743fe4455151d9593f74b47739e4889d029ff661033333edc866878c",
       "patched_sha256": "81bd5fe9546daa4db2b4e58e6f4e20e6fb20fccdd006eba614f321e233707103"
+    },
+    {
+      "path": "code/client/menu_pointer.h",
+      "base_sha256": null,
+      "patched_sha256": "b6e1b5c1387ed5ae3b1f68042d947939b658dfd49e2b4f72c505f089e1447844"
     }
   ]
 }
