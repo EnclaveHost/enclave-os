@@ -1,0 +1,48 @@
+name: Installed graphics API qualification
+on:
+  workflow_dispatch:
+    inputs:
+      mesa_run_id:
+        required: true
+        type: string
+      platform:
+        type: choice
+        options: [amd64, riscv64]
+        default: amd64
+permissions:
+  contents: read
+  actions: read
+jobs:
+  graphics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: inputs.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Download the signed investigation package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MESA_RUN_ID: ${{ inputs.mesa_run_id }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          case "$MESA_RUN_ID" in ''|*[!0-9]*) exit 1;; esac
+          gh run download "$MESA_RUN_ID" --name "shield-mesa-$PLATFORM" --dir packages
+          mkdir -p out
+      - name: Exercise CPU fallback and authenticated transport rejection through real APIs
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          docker run --rm --memory=2g --memory-swap=2g --cpus=2 --network=bridge --platform "linux/$PLATFORM" \
+            -v "$PWD:/src:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-graphics-api.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: graphics-api-${{ inputs.platform }}
+          path: out/
+          retention-days: 7
