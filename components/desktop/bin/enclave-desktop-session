@@ -1,0 +1,12 @@
+#!/bin/sh
+# Called as the desktop user by the platform adapter AFTER authenticated X is ready.
+set -eu
+: "${DISPLAY:?platform adapter must provide DISPLAY}"
+: "${XAUTHORITY:?platform adapter must provide an authenticated X authority}"
+[ -r "$XAUTHORITY" ] || { echo "X authority is not readable" >&2; exit 1; }
+umask 077
+mkdir -p "$HOME"
+# Preserve user customizations on subsequent logins.
+cp -Rn /usr/share/enclave-os/skel/. "$HOME/"
+/usr/libexec/enclave-os/cursor/start.py
+exec dbus-run-session -- fluxbox

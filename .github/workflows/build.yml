@@ -1,0 +1,46 @@
+name: Alpine packages and unified userland
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            platform: amd64
+          - arch: riscv64
+            platform: riscv64
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.arch == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Validate migration provenance and profiles
+        run: python3 tests/contracts.py
+      - name: Compile, sign, install and smoke test APKs; assemble both profiles
+        run: |
+          mkdir -p out
+          docker run --rm --platform linux/${{ matrix.platform }} \
+            -e ENCLAVE_ARCH=${{ matrix.arch }} -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-build.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: enclave-os-alpine-${{ matrix.arch }}
+          path: |
+            out/repository
+            out/*.pub
+            out/*.json
+            out/*.apk-installed
+            out/*.tar.gz
+            out/SHA256SUMS
+          retention-days: 7

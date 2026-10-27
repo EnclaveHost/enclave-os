@@ -1,0 +1,9 @@
+{
+  "architecture": "riscv64",
+  "platform": "risc-box",
+  "packages": [
+    "xf86-video-fbdev"
+  ],
+  "boot_adapter": "opensbi-linux-simplefb",
+  "production_qualified": false
+}

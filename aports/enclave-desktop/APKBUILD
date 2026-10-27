@@ -1,0 +1,18 @@
+pkgname=enclave-desktop
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Shared lightweight Enclave desktop settings"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="LicenseRef-Enclave-Source-Available"
+source="$pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver"
+options="!check" # integration checks run after signed repository installation
+depends="enclave-cursor fluxbox dbus xterm"
+package() {
+    mkdir -p "$pkgdir/usr/share/enclave-os/skel" "$pkgdir/usr/bin"
+    cp -a skel/. "$pkgdir/usr/share/enclave-os/skel/"
+    install -m755 bin/* "$pkgdir/usr/bin/"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+sha512sums="6f9c3664369519f4b31bb262abff3df94dfe01ae02d899761b2d8a247ea6cbcecf3a32a675c517a1d202b89530200cb4a01e89eb10810bf15c8b7a4b1c9c7fd8  enclave-desktop-0.1.0.tar.gz"

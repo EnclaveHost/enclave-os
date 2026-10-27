@@ -1,0 +1,13 @@
+{
+  "alpine_branch": "v3.24",
+  "alpine_version": "3.24.3",
+  "container": "alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+  "minirootfs": {
+    "x86_64": {
+      "sha256": "f8e1cafba9b1b283b5d30d06f9885c8d2bc161ffe9083ade8e2e157813a53407"
+    },
+    "riscv64": {
+      "sha256": "9714553757e7bf645eff5dcc52bdd206f358a7bed77874842567852e8326a51d"
+    }
+  }
+}

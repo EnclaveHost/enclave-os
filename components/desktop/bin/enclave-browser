@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+export GDK_BACKEND=x11
+mkdir -p "$HOME/.mozilla/firefox/enclave"
+if command -v enclave-firefox >/dev/null 2>&1; then
+    exec enclave-firefox --profile "$HOME/.mozilla/firefox/enclave" "$@"
+fi
+exec firefox-esr --profile "$HOME/.mozilla/firefox/enclave" "$@"

@@ -1,0 +1,3 @@
+NAME="Enclave OS"
+VERSION="0.1.0-dev"
+BASE="Alpine 3.24"

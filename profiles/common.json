@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "base": "alpine-3.24",
+  "resolution": [
+    960,
+    600
+  ],
+  "features": {
+    "core": [
+      "alpine-baselayout",
+      "busybox",
+      "musl",
+      "ca-certificates-bundle",
+      "enclave-base"
+    ],
+    "desktop": [
+      "enclave-desktop",
+      "enclave-cursor",
+      "fluxbox",
+      "xorg-server",
+      "xf86-input-libinput",
+      "xterm",
+      "font-dejavu",
+      "xauth",
+      "xsetroot",
+      "dbus",
+      "dbus-x11",
+      "pulseaudio"
+    ],
+    "browser": [
+      "firefox-esr"
+    ],
+    "freedoom": [
+      "enclave-freedoom"
+    ],
+    "agent": [
+      "python3",
+      "curl",
+      "git",
+      "jq"
+    ],
+    "web-desktop": [
+      "novnc",
+      "websockify",
+      "x11vnc"
+    ]
+  },
+  "presets": {
+    "minimal": [
+      "core"
+    ],
+    "desktop": [
+      "core",
+      "desktop",
+      "browser",
+      "freedoom",
+      "agent",
+      "web-desktop"
+    ]
+  },
+  "pending_features": [
+    "enclave-browser",
+    "shield-graphics",
+    "shield-compute",
+    "moonlight-server",
+    "openarena",
+    "librequake",
+    "visual-pinball-x",
+    "openhv"
+  ]
+}

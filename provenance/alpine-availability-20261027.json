@@ -1,0 +1,256 @@
+{
+  "x86_64": {
+    "alpine-base": {
+      "version": "3.24.3-r0",
+      "installed_bytes": 0,
+      "repository": "main"
+    },
+    "busybox": {
+      "version": "1.37.0-r31",
+      "installed_bytes": 813480,
+      "repository": "main"
+    },
+    "dbus": {
+      "version": "1.16.2-r2",
+      "installed_bytes": 339016,
+      "repository": "main"
+    },
+    "dbus-x11": {
+      "version": "1.16.2-r2",
+      "installed_bytes": 26672,
+      "repository": "main"
+    },
+    "font-dejavu": {
+      "version": "2.37-r6",
+      "installed_bytes": 10230171,
+      "repository": "main"
+    },
+    "libx11": {
+      "version": "1.8.14-r0",
+      "installed_bytes": 2325832,
+      "repository": "main"
+    },
+    "mesa-dri-gallium": {
+      "version": "26.1.6-r0",
+      "installed_bytes": 96032,
+      "repository": "main"
+    },
+    "mesa-vulkan-swrast": {
+      "version": "26.1.6-r0",
+      "installed_bytes": 14570766,
+      "repository": "main"
+    },
+    "musl": {
+      "version": "1.2.6-r3",
+      "installed_bytes": 670312,
+      "repository": "main"
+    },
+    "openrc": {
+      "version": "0.63.2-r0",
+      "installed_bytes": 1360464,
+      "repository": "main"
+    },
+    "python3": {
+      "version": "3.14.10-r1",
+      "installed_bytes": 23625229,
+      "repository": "main"
+    },
+    "firefox-esr": {
+      "version": "140.12.0-r0",
+      "installed_bytes": 244164116,
+      "repository": "community"
+    },
+    "fluxbox": {
+      "version": "1.3.7-r9",
+      "installed_bytes": 1720973,
+      "repository": "community"
+    },
+    "freedoom": {
+      "version": "0.13.0-r2",
+      "installed_bytes": 79835197,
+      "repository": "community"
+    },
+    "libpulse": {
+      "version": "17.0-r7",
+      "installed_bytes": 1466617,
+      "repository": "community"
+    },
+    "novnc": {
+      "version": "1.6.0-r1",
+      "installed_bytes": 1951098,
+      "repository": "community"
+    },
+    "pulseaudio": {
+      "version": "17.0-r7",
+      "installed_bytes": 2353463,
+      "repository": "community"
+    },
+    "websockify": {
+      "version": "0.13.0-r2",
+      "installed_bytes": 139282,
+      "repository": "community"
+    },
+    "xauth": {
+      "version": "1.1.5-r0",
+      "installed_bytes": 39568,
+      "repository": "community"
+    },
+    "xf86-input-libinput": {
+      "version": "1.5.0-r0",
+      "installed_bytes": 81349,
+      "repository": "community"
+    },
+    "xf86-video-dummy": {
+      "version": "0.4.1-r3",
+      "installed_bytes": 23200,
+      "repository": "community"
+    },
+    "xf86-video-fbdev": {
+      "version": "0.5.0-r6",
+      "installed_bytes": 23456,
+      "repository": "community"
+    },
+    "xorg-server": {
+      "version": "21.1.25-r0",
+      "installed_bytes": 2870458,
+      "repository": "community"
+    },
+    "xsetroot": {
+      "version": "1.1.3-r1",
+      "installed_bytes": 18320,
+      "repository": "community"
+    },
+    "xterm": {
+      "version": "410-r0",
+      "installed_bytes": 776417,
+      "repository": "community"
+    }
+  },
+  "riscv64": {
+    "alpine-base": {
+      "version": "3.24.3-r0",
+      "installed_bytes": 0,
+      "repository": "main"
+    },
+    "busybox": {
+      "version": "1.37.0-r31",
+      "installed_bytes": 833952,
+      "repository": "main"
+    },
+    "dbus": {
+      "version": "1.16.2-r2",
+      "installed_bytes": 296768,
+      "repository": "main"
+    },
+    "dbus-x11": {
+      "version": "1.16.2-r2",
+      "installed_bytes": 22400,
+      "repository": "main"
+    },
+    "font-dejavu": {
+      "version": "2.37-r6",
+      "installed_bytes": 10230171,
+      "repository": "main"
+    },
+    "libx11": {
+      "version": "1.8.14-r0",
+      "installed_bytes": 2255040,
+      "repository": "main"
+    },
+    "mesa-dri-gallium": {
+      "version": "26.1.6-r0",
+      "installed_bytes": 116680,
+      "repository": "main"
+    },
+    "mesa-vulkan-swrast": {
+      "version": "26.1.6-r0",
+      "installed_bytes": 13460158,
+      "repository": "main"
+    },
+    "musl": {
+      "version": "1.2.6-r3",
+      "installed_bytes": 613024,
+      "repository": "main"
+    },
+    "openrc": {
+      "version": "0.63.2-r0",
+      "installed_bytes": 1073784,
+      "repository": "main"
+    },
+    "python3": {
+      "version": "3.14.8-r0",
+      "installed_bytes": 23044997,
+      "repository": "main"
+    },
+    "firefox-esr": {
+      "version": "140.12.0-r0",
+      "installed_bytes": 213042509,
+      "repository": "community"
+    },
+    "fluxbox": {
+      "version": "1.3.7-r9",
+      "installed_bytes": 1675261,
+      "repository": "community"
+    },
+    "freedoom": {
+      "version": "0.13.0-r2",
+      "installed_bytes": 79835197,
+      "repository": "community"
+    },
+    "libpulse": {
+      "version": "17.0-r7",
+      "installed_bytes": 1261857,
+      "repository": "community"
+    },
+    "novnc": {
+      "version": "1.6.0-r1",
+      "installed_bytes": 1951098,
+      "repository": "community"
+    },
+    "pulseaudio": {
+      "version": "17.0-r7",
+      "installed_bytes": 2011111,
+      "repository": "community"
+    },
+    "websockify": {
+      "version": "0.13.0-r2",
+      "installed_bytes": 139282,
+      "repository": "community"
+    },
+    "xauth": {
+      "version": "1.1.5-r0",
+      "installed_bytes": 43520,
+      "repository": "community"
+    },
+    "xf86-input-libinput": {
+      "version": "1.5.0-r0",
+      "installed_bytes": 77237,
+      "repository": "community"
+    },
+    "xf86-video-dummy": {
+      "version": "0.4.1-r3",
+      "installed_bytes": 18960,
+      "repository": "community"
+    },
+    "xf86-video-fbdev": {
+      "version": "0.5.0-r6",
+      "installed_bytes": 23272,
+      "repository": "community"
+    },
+    "xorg-server": {
+      "version": "21.1.25-r0",
+      "installed_bytes": 2637930,
+      "repository": "community"
+    },
+    "xsetroot": {
+      "version": "1.1.3-r1",
+      "installed_bytes": 14048,
+      "repository": "community"
+    },
+    "xterm": {
+      "version": "410-r0",
+      "installed_bytes": 812793,
+      "repository": "community"
+    }
+  }
+}

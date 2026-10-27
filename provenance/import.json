@@ -1,0 +1,4239 @@
+{
+  "repository": "https://github.com/EnclaveHost/enclave-apps",
+  "commit": "77e3872e19a6549b7c6eb460f76048c89c00dcb1",
+  "excluded": {
+    "risc-box/guest/overlay/root/.ssh/authorized_keys": "Do not preauthorize a developer SSH identity."
+  },
+  "files": [
+    {
+      "path": "reference/kvm-box/guest/Dockerfile",
+      "source_path": "kvm-box/guest/Dockerfile",
+      "sha256": "78dbbf2d287b602313e293298549ab393bf639769a2d019648820ca60c63ef9b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/compute.html",
+      "source_path": "kvm-box/guest/compute.html",
+      "sha256": "e35568306223d18216f65cb2b840452ac90cec185119f67b90c36d3fdc5f69bd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/compute.mjs",
+      "source_path": "kvm-box/guest/compute.mjs",
+      "sha256": "bc5a8e3b8e3498dc64c06e1a7f8bf71ed9810b2f42d2e1cf017a6220eb555c04",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/controller-start.sh",
+      "source_path": "kvm-box/guest/controller-start.sh",
+      "sha256": "72c2cebb1191a2e282ae73ebc30f1eb7691e36e36c60d85406fa5700c2481c93",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop-session.sh",
+      "source_path": "kvm-box/guest/desktop-session.sh",
+      "sha256": "40dddb97f77a9b47ed44c18c98f39a1f38600dd25ccd20cf5ca96d7abf1d01eb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop-start.sh",
+      "source_path": "kvm-box/guest/desktop-start.sh",
+      "sha256": "a24c26abb2397bd8f4265bb06d4c58c2e6bc891b1b17a0e32cf523c25fd2d644",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/PORTING.txt",
+      "source_path": "kvm-box/guest/desktop/PORTING.txt",
+      "sha256": "0b24562b08a5f6c9d966d226bd9f179e4b7051c1c857541457e0640b31e22d45",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/bin/doom-fs",
+      "source_path": "kvm-box/guest/desktop/bin/doom-fs",
+      "sha256": "bf5e84b792d66a7aa3ce5be646c12b4677fe1aeee4c79d2ea0e79b5c669f7ab4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/bin/risc-browser",
+      "source_path": "kvm-box/guest/desktop/bin/risc-browser",
+      "sha256": "5911d9055c14efc74c4c0ebeb37032ae0b14ad32b7d15ef58da487b3ffec3b6b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/firefox/policies.json",
+      "source_path": "kvm-box/guest/desktop/firefox/policies.json",
+      "sha256": "e0f0da1361e7161b9c056310e795f203ce0c73fa7c4fd926de831f91c010f7ec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/firefox/ublock-origin.xpi",
+      "source_path": "kvm-box/guest/desktop/firefox/ublock-origin.xpi",
+      "sha256": "5b74415860456370644bd80f16125e865b0e6c356bb5dfcfb84069967eaa5287",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/games/COPYING.freedoom",
+      "source_path": "kvm-box/guest/desktop/games/COPYING.freedoom",
+      "sha256": "ed60abcf1ff64bf61bf8b4c585ab63643d655a21f8997ba284c01f94ed681fc5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/games/freedoom1.wad",
+      "source_path": "kvm-box/guest/desktop/games/freedoom1.wad",
+      "sha256": "f02a511c0f99ce67645d734c387b7b462542228badc54f2f57a25898f50be2fc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.blank.xbm",
+      "source_path": "kvm-box/guest/desktop/home/.blank.xbm",
+      "sha256": "ea0da9e044c2ef0df324c3d7810f7faac238e7582fde91fa31b4cbfaf95e7b09",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.config/gtk-3.0/settings.ini",
+      "source_path": "kvm-box/guest/desktop/home/.config/gtk-3.0/settings.ini",
+      "sha256": "d7d14f26f6c97b54b378562d5976320823b360f3ea9f9c6c17efc5043b9fd23b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.fluxbox/apps",
+      "source_path": "kvm-box/guest/desktop/home/.fluxbox/apps",
+      "sha256": "e42f76862da44318efd957bfa9c6b8cbcdf589f78fa2e5173831fadb4787feb7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.fluxbox/init",
+      "source_path": "kvm-box/guest/desktop/home/.fluxbox/init",
+      "sha256": "31ef10744acd51004de49e9c47d30ceda048466baa4e5d196329f8dd571b4712",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.fluxbox/keys",
+      "source_path": "kvm-box/guest/desktop/home/.fluxbox/keys",
+      "sha256": "a85874130770dc3e0eabcc57be89492f33c8222d9149e0a01f44f8e920e9de0f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.fluxbox/menu",
+      "source_path": "kvm-box/guest/desktop/home/.fluxbox/menu",
+      "sha256": "8568d2db0ffa1315b3154c563fc110778e94cf354b97f4ec71ddc1c7f808473c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.fluxbox/overlay",
+      "source_path": "kvm-box/guest/desktop/home/.fluxbox/overlay",
+      "sha256": "a1e632f87079c771ede68fe7c39d73e8eaf199cd4aaf86af89b8b5e697387633",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.mozilla/firefox/kvm-box/chrome/userContent.css",
+      "source_path": "kvm-box/guest/desktop/home/.mozilla/firefox/kvm-box/chrome/userContent.css",
+      "sha256": "889b2c24be607227b9737381df8b01932a130cd2bc02730a65c81c06ecbf595a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.mozilla/firefox/kvm-box/user.js",
+      "source_path": "kvm-box/guest/desktop/home/.mozilla/firefox/kvm-box/user.js",
+      "sha256": "c654abecbb3c2b97e9dbe8fc4ce9bb994e385e73b71554d36157830a4dabcb30",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.mozilla/firefox/profiles.ini",
+      "source_path": "kvm-box/guest/desktop/home/.mozilla/firefox/profiles.ini",
+      "sha256": "182d37855ad5433cbe94c965936f83741c993395dabf14d0627e59895ebb47bb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/home/.themes/RiscBox/gtk-3.0/gtk.css",
+      "source_path": "kvm-box/guest/desktop/home/.themes/RiscBox/gtk-3.0/gtk.css",
+      "sha256": "438f0c9c110da82653613d0e67088c16962b63a99076172be9ac045fd33a38cb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/native-auth-provenance.json",
+      "source_path": "kvm-box/guest/desktop/native-auth-provenance.json",
+      "sha256": "08c2ddecae80084836e05872cbdbec01f7bd5ac93a5b0c6dd986ff6753f03ac7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/provenance.json",
+      "source_path": "kvm-box/guest/desktop/provenance.json",
+      "sha256": "1acfc0f0df37f38a6325c294490a8c5cfc080bd123390f0dcd6887bcea2a8574",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/reference/firefox-risc-build.ini",
+      "source_path": "kvm-box/guest/desktop/reference/firefox-risc-build.ini",
+      "sha256": "8954b3f3edf371562a6d44372c28cf4e3314f186b5a2a5542e4f9ba45b4ec034",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/reference/provenance-before-native-auth.json",
+      "source_path": "kvm-box/guest/desktop/reference/provenance-before-native-auth.json",
+      "sha256": "4faf6dc7ae2ca910c7e06a3f9e071e9a1444e58d250c4da3b4dc67438931bfe0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/risc-xwin.c",
+      "source_path": "kvm-box/guest/desktop/risc-xwin.c",
+      "sha256": "bdf7cd8030ca5d32bcf5c953a6b8e2e12db7f79219942e16dab7b1972be65998",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/bullet.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/bullet.xpm",
+      "sha256": "d7f10624d7a286a709250ce16d8f42005d61594843be371d5fdeca4f6b8778ac",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/closefcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/closefcs.xpm",
+      "sha256": "d0c32763e26a1503db6c3abd1a52d6205fc9cde1a436e5e10d2b7d5ac1dad7fb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/closepr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/closepr.xpm",
+      "sha256": "1c97f56409641e0f1efa6dcbc0c631d4b0c45999c36e5d8bb8a1bffbf005cb3d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/closeufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/closeufcs.xpm",
+      "sha256": "1aca5b833834e824351c22bcf3f8f80bc7d02cda03d1ac392e93f32f3876cf5b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/frame.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/frame.xpm",
+      "sha256": "4b95d9d4e164f08a60fac87d795fbbab8f42b5ec73fa5169f921e70a3a64d36a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/maxfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/maxfcs.xpm",
+      "sha256": "3c921f7b077733f2fe0a4810c347065870cdd88724f28643b5ee1d74cf7b742c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/maxpr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/maxpr.xpm",
+      "sha256": "b2a6c794bd945b5fd05319651437f4270e7d10cf7c4ac7e49311cbff0c4a7123",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/maxufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/maxufcs.xpm",
+      "sha256": "3b66e3fa619515d5df55123bdfc5e7db073e003604c592bf018f5394a144adc3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconfcs.xpm",
+      "sha256": "e88c9ee3ec7e907d8ac3b9af9f7e10ff4998c8283f26015e2ec6e3f1819e21db",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconpr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconpr.xpm",
+      "sha256": "d43bcc78bdae2d74fc9c07993e7b2d5648232d345009acc4c9a16265f7fa9f97",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/menuiconufcs.xpm",
+      "sha256": "41b97a41de6da59110bf1f1827836d0c1ac5aaea20ed9c497c3972169e9cc894",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/minfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/minfcs.xpm",
+      "sha256": "2a3163116dc11925032bf88f7ec5a6c82053f95fa3161895b0e1b39362c32e45",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/minpr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/minpr.xpm",
+      "sha256": "fd51bb9056d11b3cfb32f03bafe2cc7097f878f8ff83b6f5f9680629c99bc00a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/minufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/minufcs.xpm",
+      "sha256": "6aaeb2140c92ac25a683941c41df01df23bac33c8877eb354cfe346d06529e7d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/selected.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/selected.xpm",
+      "sha256": "72ed3c3079e50020d303947efd201e919ee8854ee4df20304af099e727152bc8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/shadefcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/shadefcs.xpm",
+      "sha256": "d84a8783b603fa7f894e22d82922770960e7db13468aaa2f89a208bde37ae649",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/shadepr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/shadepr.xpm",
+      "sha256": "8784d5d48765537fae3bb104348c2c33d409367ebc74cf99ec9cd620dea28650",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/shadeufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/shadeufcs.xpm",
+      "sha256": "c539dc1d97e3890a386cc1f8de6cafbb2ed63f64afb5e87d412a605eb566280d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/stickfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/stickfcs.xpm",
+      "sha256": "88e40092e4934c7cb7ffc49f8a32f4f818183dd5164e6fd3e6b2ab5347363fc4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/stickpr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/stickpr.xpm",
+      "sha256": "663e16b3fe71b8703dbdfcc0168144a6aa914754f6bbbbfd10eee6c000b0a924",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/stickufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/stickufcs.xpm",
+      "sha256": "9b6e8b13bf8d8282e16302400872c355408c4b22c12ef01b75039d694ac7ae0e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/stuckfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/stuckfcs.xpm",
+      "sha256": "ad106c10072d7d99816bdeeda16e8f355f217a4f252eaaf9bf24f602f0577cad",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/stuckufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/stuckufcs.xpm",
+      "sha256": "e6e925ec0789de363e0ed4f22495caf7bf08979231a2275c6230f56b52a783c7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/tbarfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/tbarfcs.xpm",
+      "sha256": "7b6edbd20e131b44a64a710e87fa1250a4514a8aa489f006294dbc51e0315aac",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/tbarufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/tbarufcs.xpm",
+      "sha256": "edf898daa3d55f0cc4c3b34fc9336978b457917d628dbcaa7f29515aa85a28e1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/unselected.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/unselected.xpm",
+      "sha256": "2991bb5f87ae372d7783208cb2151b82a8595cc7a465410a8709d33ef46ee789",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/unshadefcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/unshadefcs.xpm",
+      "sha256": "05710abb57aec024674a203e711ddb3d91550812aa7a2d2cb7536cef1f9229ae",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/unshadepr.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/unshadepr.xpm",
+      "sha256": "689da81b952742a8d1cc9ae2ed432fe3584f9001a7d6673981ad5ec320682797",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/unshadeufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/unshadeufcs.xpm",
+      "sha256": "12798904a0329647aa705a70ea069adcf2200e415e9fbd127d0a7e44dab7e7a3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/windowlabelfcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/windowlabelfcs.xpm",
+      "sha256": "8de325ee109515b994a804ac2db4e62afd1f548e78c18196dfd9f1dcad6891c3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/pixmaps/windowlabelufcs.xpm",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/pixmaps/windowlabelufcs.xpm",
+      "sha256": "13ee28f68f9b772880f8790ffd274baf594bd4b7cb6eb42020d5f6984f6d0afe",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/styles/bloe/theme.cfg",
+      "source_path": "kvm-box/guest/desktop/styles/bloe/theme.cfg",
+      "sha256": "777a392454c02152c6fcc3d5169911a99a67377c805d98a256e7fa5196842622",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/COPYING",
+      "source_path": "kvm-box/guest/desktop/xdoom/COPYING",
+      "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/COPYING.opl3",
+      "source_path": "kvm-box/guest/desktop/xdoom/COPYING.opl3",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/Makefile",
+      "source_path": "kvm-box/guest/desktop/xdoom/Makefile",
+      "sha256": "c69e0365b560b2b01a7f95ee7e582feed8af5a4a7e40298bf9fec0c6740045f0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/README.upstream.txt",
+      "source_path": "kvm-box/guest/desktop/xdoom/README.upstream.txt",
+      "sha256": "ad25533083b8f5ef62ce23208ff06a563adb01160d8b95abb1829b03060a2299",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/am_map.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/am_map.c",
+      "sha256": "4d62b1c824f161f84efdc6fb7dfd3c02123a532f28f5296e0eef9c79778aee65",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/am_map.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/am_map.h",
+      "sha256": "1755affedbe06d36901c5d4754f931ddd214f28ac6625706eb56533925f4651d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/config.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/config.h",
+      "sha256": "cb2b2944ff454f344416952802d1c31e1ac6ca69c6586111d10dba312b187c45",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_englsh.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_englsh.h",
+      "sha256": "a87f7d2d4693bdae0e0f8bf81918fe19bd78742d28ee4bfc3c7a92759d73c06a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_event.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_event.c",
+      "sha256": "f06d11316e62d26f8d4687103d77e88ec92e2273b5dedcd798136496ba8e9004",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_event.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_event.h",
+      "sha256": "e42a92f9e8bbd27c3f810acc5d50929d9329019240b41af13fc886815ead2a64",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_items.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_items.c",
+      "sha256": "57796c266d224c2cab69f9c8c9fae564d4161f04e2f859a80062675ada61e23b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_items.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_items.h",
+      "sha256": "f251ed3bcdd5b15250db5c38c6b52996bc684c88802ff87dbfe5b4859d59dab4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_iwad.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_iwad.c",
+      "sha256": "998fc48c9f92f1d8bae7a8681f1fe227798ab43e7f793f0787316bbfc39ac911",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_iwad.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_iwad.h",
+      "sha256": "b9fd8c8bd82d8e2f6952ee7645e221c42ba7c3f1793939a7596067ec1bc68396",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_loop.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_loop.c",
+      "sha256": "4985bb6dbb785f7104f185d7dd78937fc3d8af8771e40041d32d9892e62eeda2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_loop.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_loop.h",
+      "sha256": "11edd3d77d0298675b1cb2fa6ebec3611f6b0f00100492e1696792ca521dc5f1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_main.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_main.c",
+      "sha256": "a9321ea078772942ae10db8a03229d4885905beb66b435f0e8702b8dc5e07c66",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_main.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_main.h",
+      "sha256": "93d04e541a63430da34396b546b4561867b60fe72a21ee7cf382159c8dbac421",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_mode.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_mode.c",
+      "sha256": "4db5e599badeb809b8f1bcdf0ce483dcd704cdbc1abdb3fbdba447cda150ea0d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_mode.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_mode.h",
+      "sha256": "809224d5ab46b4a29be0ea2d82f3cbbd9eea6e476a38441f3aa42bb0f99b08e4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_net.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_net.c",
+      "sha256": "dd6cbd6e3ebc379bcdfca2e02e2bf0a5a3bfe8c1945a920f8c8dacac9fc45890",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_player.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_player.h",
+      "sha256": "09b7131047153ebf3bdd0c4941ac436fb508e771704d77880255d307dec41f2e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_textur.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_textur.h",
+      "sha256": "7500fb01de1fe637e05110a0aa189425979bddf0de327a31527434418f4d3efc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_think.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_think.h",
+      "sha256": "a500e07ef47fd0e1ab24d34f5df24e7a59c7ad1b657f67c9c977704b72cef08b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/d_ticcmd.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/d_ticcmd.h",
+      "sha256": "96bebe68c88b81a8fb35bfb6e8d74870d792107e1ceabc1c69069ed257aff851",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/deh_main.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/deh_main.h",
+      "sha256": "de68692339596b59f8903e41ce88842d79bef3c92d3995f4d68f9056f90ecb9e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/deh_misc.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/deh_misc.h",
+      "sha256": "cf07e29421704d2491f53cc3e055e367c6aaecce2baa9759e9bcace21e657cb2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/deh_str.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/deh_str.h",
+      "sha256": "2387262e1fd9751575be33659145dfc900d7525587e267b3dab5c63c7daa5ac0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doom.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doom.h",
+      "sha256": "09f5e81390611c078348327489b08e4eda85306c83dc2c2a764406b2e0abf51d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomdata.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomdata.h",
+      "sha256": "a258ffd069833b0c81a132c4db74fd9121e1815267b309c2b3b5dc501971a3eb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomdef.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomdef.c",
+      "sha256": "56e23ec1235d7478f64577ac349f9fad92a9fe6f77a0197630d6319f0838b02a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomdef.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomdef.h",
+      "sha256": "87eaafe4d3366fe89924c8649c45b91fe89b6780a17f655e90c8a1d77b318a77",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomfeatures.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomfeatures.h",
+      "sha256": "2280f7cf7de879a2e0514b9295c84c48e29a334b24c31e89859144ad01ba4072",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomkeys.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomkeys.h",
+      "sha256": "9bacfdc85b2003913b8a571c0762226d07e5e303dbdaa6c64887a194a4279ba2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomstat.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomstat.c",
+      "sha256": "fa9332d64d0278e8eaa1481e18175b5b06d012af9e3f56a72edf823401a473bc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomstat.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomstat.h",
+      "sha256": "a4c71dc810f4ac7b23a881a03566b4427356f7d59de37d5ddd38b43069c1f1a5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/doomtype.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/doomtype.h",
+      "sha256": "6564f88aa3e3ce4f613c1fe40045560d9a63386c08c55b2ab906272bb21dc6ea",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/dstrings.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/dstrings.c",
+      "sha256": "9804ceaafe342d4a12d0ce52a1f882f84e1d8d62482bd8edf914bec8f4d6fb84",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/dstrings.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/dstrings.h",
+      "sha256": "81e8527b9264b1271fe7ab0737a359d24fb1f4052994ac3aea9a98c7a3a651c7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/dummy.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/dummy.c",
+      "sha256": "41604a2bc1a3b2eb8ef697021dfaa753a86e44bcdfde12f3f002022ddf333b5e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/f_finale.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/f_finale.c",
+      "sha256": "ac5ea9aff7dc47a8621e014b9f65ff91ac5cf8cdc1dcdaa855bbd5e3acc00861",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/f_finale.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/f_finale.h",
+      "sha256": "8b1d4777e91f0f8be1c97475698701e0f17013d00c394cb6a2cfbb87f46b9d62",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/f_wipe.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/f_wipe.c",
+      "sha256": "60969b7843a0eb0483f549abff2c4fcd20ccfeafc5ace8817836d1e895819fa0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/f_wipe.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/f_wipe.h",
+      "sha256": "e3e769803e2998aab83a6f98634654ce76f9c51aa6c7c551c4489deac5a2e041",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/g_game.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/g_game.c",
+      "sha256": "88d13781006089e80f8d1e4c1bea9fe6934f1314c290a1f379fc8155c3268123",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/g_game.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/g_game.h",
+      "sha256": "b808b2ca10e734e22bef8591b0124d9ff4a4ef808ac12a6170189b4ef96c0c90",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/gusconf.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/gusconf.c",
+      "sha256": "4efa93fb1d49a1c8d8c4f0cefee09066da9cd59159f868fd9658a064898d516a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/gusconf.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/gusconf.h",
+      "sha256": "beec7b7cceabc46ecf932ed584c85cbb68acb6dff7776f4df8586b35054afa58",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/hu_lib.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/hu_lib.c",
+      "sha256": "fa6fa03cab0645248aeb16400ced25f9b8d52cadb9bf988ec9a6e2dcac228018",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/hu_lib.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/hu_lib.h",
+      "sha256": "6ce06bc30e0275d8c77ebbf1b70d581f93594ead3efd2a0d84dcc8d00394fea5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/hu_stuff.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/hu_stuff.c",
+      "sha256": "726c8fa2a23a4da67b87b312156d9b04472c9cf966f210031e6924d46865ce0f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/hu_stuff.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/hu_stuff.h",
+      "sha256": "b7c9078a1eac5ccfc0e70ca691490ece0dae6171c28e315f4ece12ccff60cee5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_cdmus.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_cdmus.c",
+      "sha256": "682b60b78f59e949aa05d242b986471196730f4f99a8e9218748db42f8af1217",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_cdmus.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_cdmus.h",
+      "sha256": "e0024e794a5e507c476b011a23770726c940e211c7c9603452d3bd156db47c30",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_endoom.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_endoom.c",
+      "sha256": "8ff100d293faa3d7f99f11e3a30b6cd7e276ff98ee430972f52d3ed0840eef87",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_endoom.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_endoom.h",
+      "sha256": "54834211849d212b3aec65b03ff8a8906f0b1f1985d334188eaad8990af73e4c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_input_sdl.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_input_sdl.c",
+      "sha256": "c525670a672b6d16a800fe602c7701cba7ede9f139eff5d712cfdc7bfe8a2e09",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_input_tty.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_input_tty.c",
+      "sha256": "fa21e03bfe13256de86904b6e09c0d3fbea0dce8ba36a54b0eca6d6e29fa594d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_input_tty.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_input_tty.h",
+      "sha256": "fc80ca1ce9a61893b9ea5c577f99f5b870ba2cdd0af81e29aa5ebfe93de745c1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_joystick.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_joystick.c",
+      "sha256": "01f52e0e986dfe3114e97a388f977a01d74e9bd16a454a57df58d6ecaeb7d519",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_joystick.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_joystick.h",
+      "sha256": "1980f8481b417416d048ad03968058f0ff0cce9700e10f1bafd8e965190a80d1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_main.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_main.c",
+      "sha256": "6a26b131d4b3af764680a46a2f4a8e747c10095a36a63f574033b8b390fdcd44",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_oplmusic.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_oplmusic.c",
+      "sha256": "599a3513dbc7f71873f9e1ad2833c776f179d06591c5f6978dcec52ff8ae9ac6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_pcsound.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_pcsound.c",
+      "sha256": "4b72e35ebf6dd4d16697286ee4df0f397eb9a26029bcc37df284e19bc639e536",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_scale.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_scale.c",
+      "sha256": "f9dad27d7cae5ca6a63c87570c359d40e35002fb499c7d8a2e58ebb291a93e92",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_scale.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_scale.h",
+      "sha256": "23d43b89fea35c33ee14959643441dafe2ba478b66f0d9c25af170abf27d203f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sdlmusic.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sdlmusic.c",
+      "sha256": "1fa0e775b1ff7926adbdf56d6a954f3f448fcd9f139113ea5eab2ce61ec0abf7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sdlsound.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sdlsound.c",
+      "sha256": "27455f2bb6ecc21669bc0f8400c0c6548b6c04a54ac82fcffc56eb4d4cc444d4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sound.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sound.c",
+      "sha256": "74e47770c98495373b7a6ebd9d500ac7585c6c3a46d17921a73bf4516102ab2f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sound.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sound.h",
+      "sha256": "d80e480cfb3acecd367b12c1641cfba2735e6a44b1cbf1eeabdfcb8ee4d17530",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sound_dummy.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sound_dummy.c",
+      "sha256": "b9fb77c8f14c4852490c12076eaa5b5e66d4603f30d2767559a9bfae64a06ee7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_sound_rbx.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_sound_rbx.c",
+      "sha256": "176f47e86fb4800a723f03c9a2aa8597f36748451c0434516a700cdf32814eb5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_swap.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_swap.h",
+      "sha256": "b08eda19489441b3d90571413f9e717c8b8db78f6bff690e0c1067a73c0aa04a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_system.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_system.c",
+      "sha256": "d2366731f68be6c735d09dd847f919716c0a2fb35c9263fd047ab718a9717e03",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_system.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_system.h",
+      "sha256": "19084cfd6ffb7b69516cb62916c2a510ace67545f17dd6fb673be848f1d81d9e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_timer.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_timer.c",
+      "sha256": "a4cc80912d76522a71d6e12bf99a14a77af92bca3921d4237245147d142a081f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_timer.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_timer.h",
+      "sha256": "39449001def04dbd4984be2ea42ed48e3a4ba1e0b10fdb43e43d9e18b23f5081",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_video.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_video.c",
+      "sha256": "6db5159c4292c5ae0f9e88dacab24e59f881e6fd58b8131a11ec0432d1963ec9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_video.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_video.h",
+      "sha256": "824fd30d8c66ee0a4b85d219a7238f55336a8a37becf7104790366c037e6ae9d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_video_fbdev.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_video_fbdev.c",
+      "sha256": "da3f70cb891e362b7a99a857292f32b81f0b06300fc716772181f21855537674",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/i_video_x11raw.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/i_video_x11raw.c",
+      "sha256": "ca07af4d6475c5d6dfbe66c4a7ac5522c3b20fa830a46783166bfd392b97d127",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/icon.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/icon.c",
+      "sha256": "d1fc9187565142fb687830b151b63190c47ad4220210661dbe98edb0f74c068f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/info.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/info.c",
+      "sha256": "43ed8b32ecd053e26b485a5443d8c11d4cf302377d5f62655d302964c90e2a0f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/info.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/info.h",
+      "sha256": "7ddb348b1f09c500446fb7e8c1e6dd3eec715f3a01e1fdee211ad3b0ec9516df",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_argv.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_argv.c",
+      "sha256": "7fb6bde5640bcce06a92cfc96bfab58c39a172d55823c7f7fae62864996f8da6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_argv.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_argv.h",
+      "sha256": "f6e755d39f0edb6654625e11f328ae1cfa66f0898da57202eeebeda49bf8dd85",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_bbox.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_bbox.c",
+      "sha256": "89b9abb5d7b112e1d49052a7936020503d884e7368729dbf079439d2efd2b900",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_bbox.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_bbox.h",
+      "sha256": "6290e396400b65a87c9c14eddb04c455c64381f116b9784870e5162cfb6d1857",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_cheat.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_cheat.c",
+      "sha256": "4d68a9eaa79bfdf4efad2f92246aaff7d067c3b5aa4aecc06902ea98ae76cdb7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_cheat.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_cheat.h",
+      "sha256": "30ae07736b39f44b57edbcd9c4b861dcd6d81cede100aa7c3c6c85648af05ab2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_config.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_config.c",
+      "sha256": "5ce41c736b917a24abb3efaecf2a033ae89990af715502f3d5f2d37f5afc223c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_config.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_config.h",
+      "sha256": "002679e7cd0e9a5aeeede9e57fa9052c8f18e34e8273bd47b34ef878c95714eb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_controls.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_controls.c",
+      "sha256": "8b85c59a9af0cf2d698e6ed1fa0796e4759ca94fa7bae94c853b775cb9584718",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_controls.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_controls.h",
+      "sha256": "089b36825ad0f49957990f52fc10fd3c4b2404b7822bf3051b0a69b297ea8f7b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_fixed.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_fixed.c",
+      "sha256": "d5e13eb7d84416055a5981b8c9bf6495821795626114de40d9b1d4ca36bdc544",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_fixed.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_fixed.h",
+      "sha256": "0928f51e77d3d9dadcd8593821e5c3788a82144e3d74ad40414e87d82cd28c70",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_menu.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_menu.c",
+      "sha256": "1c28e12ec0364faf560d80c01c4378692e655e4af4ee65da80bc773cca05399a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_menu.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_menu.h",
+      "sha256": "bd8d8c0c6d3f759a5bada0b2a8210c4242b5a46fa0f85439eefa0c425ae31d23",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_misc.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_misc.c",
+      "sha256": "241643dfe44551b450a2477ce7ca786770603215188a64b3b10a2fe7bb6aa02f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_misc.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_misc.h",
+      "sha256": "5e35de7b90304c2ef4a88dd4f4f672addb9062ced9b6f98566d253177b8cab7c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_random.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_random.c",
+      "sha256": "5be0ddef0e84bd3e4789e4d6311d979263b8da43a32f30403b9e6d08bf070fea",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/m_random.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/m_random.h",
+      "sha256": "f9d5a08dc6dcab13c22c8bb20a65e70ff42b35623dee81c0d2f363b595c2b612",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/memio.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/memio.c",
+      "sha256": "1edbd3d198dd64afbb3c201555f7d8a6377193dc00880f1062b2845ef1d64432",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/memio.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/memio.h",
+      "sha256": "3dff35a40b042f831d0b2505b6238c8ff96663ea527aae3614d23ee1870fcc92",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/midifile.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/midifile.c",
+      "sha256": "17c83a9b306c919334dda009f966af0f2d6daeb5687419b3099c5cb821ac4609",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/midifile.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/midifile.h",
+      "sha256": "6df63dc0eb22cdb4082caf342ab68bc24d1c8b3e21de22396d8cc806a6d7d13b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/mus2mid.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/mus2mid.c",
+      "sha256": "c20f0550c5b29aee602c56844f6dfd65a8092b5fe82b3af7a2dadb99ece1ac4c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/mus2mid.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/mus2mid.h",
+      "sha256": "a1eee41f5dd505882a5cbb6a5c57eb7885103e056f4dba15865b7a0014e9f9a3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/music_compat.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/music_compat.c",
+      "sha256": "fe42e3883049ba9f8044966700cb587779e181456fa5ad25af1bab371d246592",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/music_compat.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/music_compat.h",
+      "sha256": "8ce9cc7b5596a5ae0712c06a25b3207e0d3ee934ed98c9bf0351fc4e4b9e1587",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_client.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_client.h",
+      "sha256": "76d382f79cd596e99cedfc1e8ea50d472aa3ed03cc5ac734ef3e5effc9a8dfff",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_dedicated.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_dedicated.h",
+      "sha256": "d842253025919a48f3c314f354450dd64ef31448912e6ed86ab2a75f33add287",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_defs.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_defs.h",
+      "sha256": "a35b30a1e248fc28f190113794f9c11c3d991a196ad11a31cd2dd9717160247a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_gui.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_gui.h",
+      "sha256": "da25eac4d1e2e6e18d05039f3830dda814e81cbad4bf1af4f8fd9c1d5e7297c3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_io.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_io.h",
+      "sha256": "50d07149d4603b20b4477443e88adac8ba72303a190253d7d1fede4901db64bf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_loop.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_loop.h",
+      "sha256": "6b2517390fda6c5a71b4db7cb8de885de685960d8d469e750712712434c0a998",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_packet.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_packet.h",
+      "sha256": "3386dce3169cb8a5ad37cccc010b64bf8a66eb36d847eb55d38c5554af10ffec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_query.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_query.h",
+      "sha256": "2c1a1be246d9b560683b2ef56719b6b6b3958f62819a033bb3a35dedf724d60f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_sdl.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_sdl.h",
+      "sha256": "73c88c6ec8ffad3a30583a48e1ace2ff186d4b5bb08061776c0fd01ec81ca51a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/net_server.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/net_server.h",
+      "sha256": "33437f02e5ce1b5cb2cc3fef790512f75b3afb1b14a90bf92378738c54af3cef",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl.h",
+      "sha256": "82133cff253a2fcce4feee87e0820bf962e7fced247d9920a2cda74196d68315",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl3.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl3.c",
+      "sha256": "560a2bf28f121add41e6450a31aa7fac134ef2fbe2b5837856620cc757063bc1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl3.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl3.h",
+      "sha256": "8403e1f52e9ab5642d18e3aa20fc154800054b9ebfe9cddf885bae52258a8ead",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl_internal.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl_internal.h",
+      "sha256": "b13e3b8be9247c8b4d563d8d7fb791464e6d0668af1c2276789000a129ed0fe0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl_queue.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl_queue.c",
+      "sha256": "6bad487968bec7cd66732cc3751071e57c228a558496c2c0d5d23221b3534664",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl_queue.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl_queue.h",
+      "sha256": "1fdc0259467f6801457ba1adbd5943eb335ee6ba34a7944808deeaf24952ba49",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/opl_rbx.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/opl_rbx.c",
+      "sha256": "9f3da735b322111b11f4eefa117cfd54a84f4cb24399d475fd1446bd2e86b514",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_ceilng.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_ceilng.c",
+      "sha256": "20c58a9336c44f61d42f5b57bcab08f866889776083365850b34cc24a90f7017",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_doors.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_doors.c",
+      "sha256": "429bc5c7446caf4c95bfc0ac8a6c4f9892f88e9f4615fa02103f180a3dbb4178",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_enemy.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_enemy.c",
+      "sha256": "0043c0fa6107ddd001737e5da25d80c3d8c606769710d25a9fa064661cd6a7d3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_floor.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_floor.c",
+      "sha256": "8bc68d1f1bea828aa72ef09213addebd946483e07886ca7e51457c95e87a4ec8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_inter.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_inter.c",
+      "sha256": "2b8f7c1c38feefd296406438820ddb7fb13c09c2b3cb5a78ee030b7838f318ba",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_inter.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_inter.h",
+      "sha256": "83b5c68164306ca2b51675d9753e118ca854a2eadc56c2c9e5bdf4b9bdd83cb4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_lights.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_lights.c",
+      "sha256": "f0aebf42466c7995f7d84faac28bee1abd25cb83e76f668edb7a24b77311ed91",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_local.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_local.h",
+      "sha256": "f9c74f3ec882f4f759653fd96bdece15c83b4bbafa9baf47a3d86ae56d72ce1d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_map.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_map.c",
+      "sha256": "7e39f8a82c7a7b3de34845a28ac14ea8252509ed6af2ba280f1ba5d9d050c3e4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_maputl.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_maputl.c",
+      "sha256": "46b752624ae6686fffab2493c121f42eaa29816eb9bb487689ca6dd79a9373bc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_mobj.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_mobj.c",
+      "sha256": "6fdfdab71bb4d0c2e1ba63e98bb065d9c74b5366cb1ae1fc7b30f35d5c93c26f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_mobj.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_mobj.h",
+      "sha256": "ffb953f695c4716c86b64983283547bdf9fe3bf95f2e5ffaec13985fda63f7e3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_plats.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_plats.c",
+      "sha256": "9fd0e8bfdeced8ef16a46694b3d3159cf110e499c3a4ef7ce68e9b8c12f7f2dc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_pspr.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_pspr.c",
+      "sha256": "5abd9d516f6e75e31c471e6929df7d842786ce86d6b1c7a5b4cc3cf604547f61",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_pspr.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_pspr.h",
+      "sha256": "8f6b1055caaf10d1342ea313bd5fd7675489f31fbba52c07767e0a0ce22e54fc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_saveg.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_saveg.c",
+      "sha256": "00618c964bea7664fef9f6b15e76f5b6d8766d7bebb4e0e979f0c2e4d8289cb5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_saveg.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_saveg.h",
+      "sha256": "1fb50d63262bd64046c3553d4a2f3e5913878c792338d0ae77934ce59bcd1ee4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_setup.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_setup.c",
+      "sha256": "e6735d36ac04a58c77467776d96ab2fa0f8234fd00c522cf7484ed1510abe3c0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_setup.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_setup.h",
+      "sha256": "b694051e5a6981cfd5800c4f6a64484553172c4587148b5354c5db082af46dc9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_sight.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_sight.c",
+      "sha256": "9435efa2f2d2755c64155b3a490ead7587838bc32a8d081d45b64c3d45836271",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_spec.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_spec.c",
+      "sha256": "7b79a0d9972f0866ab0f1a0cdcbf377ca28851d1d2139e8651037808eaca276e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_spec.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_spec.h",
+      "sha256": "0215f64ac43834fd292bc32003f84e6b195f9fb0ab30d0b6cb7fad04fdf78109",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_switch.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_switch.c",
+      "sha256": "e7621d563f384a2e228644612a59702c7cd0f5c7ed88fa8f69a09098c062c236",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_telept.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_telept.c",
+      "sha256": "34c8bee94924dac8b5951b115fbc10ed091ba645a3d02aa5e923690e6ade3710",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_tick.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_tick.c",
+      "sha256": "824179765df5de9c3c93a420b606cad7aa48ccbd393bd4ce22f7fba9d9d54a19",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_tick.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_tick.h",
+      "sha256": "558c6879d9fb461ae1bf0f3e42f492fcdf4c7291e1795f9a283add8f78149567",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/p_user.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/p_user.c",
+      "sha256": "93d9a9cc4b35c647c3318473c2ed080882afaf5a4099d52b6069d1f47ea23482",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_bsp.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_bsp.c",
+      "sha256": "08197bf2685b9c9467af4483517e4842396889504a7311506ff0c73b8f56f371",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_bsp.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_bsp.h",
+      "sha256": "fc1adc08614fd463384c8af565e82bca4dd396316d18302cd2baa3a9250a303f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_data.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_data.c",
+      "sha256": "6806c473319095e24fd422a9156be7a19eea01c9f11ade5543782a25813c6e57",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_data.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_data.h",
+      "sha256": "ad200859ba61da621a82182bac9835dcc79f03e35d1ac91064c791676e1954c4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_defs.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_defs.h",
+      "sha256": "ab5e553358945af3cc800eb05d5275eed5e678e7452b0d872b35d837c866d272",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_draw.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_draw.c",
+      "sha256": "b13e6ac18a4e911875601c15ccc02b7f1958712f13e5edf85cf0134372623bce",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_draw.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_draw.h",
+      "sha256": "9e8d667a90785e93b44547a94cd7c0f317e6fce199ab3d551f9346d6ef9465ee",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_local.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_local.h",
+      "sha256": "f0b87b3534d532b37b58386519de6b1d06328a580fe2af62f3de340aea95faeb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_main.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_main.c",
+      "sha256": "eeaf8003c7ebbcfd71491cc7d38002fd748b6841a639b718369a1ba7cbc1093d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_main.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_main.h",
+      "sha256": "f10c0a9cb857688f2c25e4482202166e0f433b34410d7eb7020a1dada9614a30",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_plane.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_plane.c",
+      "sha256": "d16c45af2658781620254b4ce2bc6985980912a208b3cc7037986a142ee3c7a8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_plane.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_plane.h",
+      "sha256": "e792ae34f6440363cc1e7ed68a9d4880b8a1057fc5293aebfbcf4466c889d773",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_segs.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_segs.c",
+      "sha256": "3c473ad15d4830bfe24be959cd3e2ce72e7a6bbb2a41bef93495a7f11ffd53b4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_segs.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_segs.h",
+      "sha256": "4ed0b751b8a0db73b01cdd0f6ec24dafef61c1b403de2be83094cf84e93c26ae",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_sky.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_sky.c",
+      "sha256": "5e7ea2b14c227ff7df297741e1be674e6a7865ce2eeab29c99ca12d1f3209ade",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_sky.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_sky.h",
+      "sha256": "cc53c08d1cc7ef042944a2f9d1924ebe27022b6ef172bee3e492d4cfd6e9240a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_state.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_state.h",
+      "sha256": "7ec040a913b05ec2c57ea33720fd600b702186701076faad5a4f135e65a562f6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_things.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_things.c",
+      "sha256": "1d9e69488285d81db547f0654a3b30b940c404974896395e7603376d50db4aeb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/r_things.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/r_things.h",
+      "sha256": "664ba8ac66b160e321dce8a00a9d29eea4f39643f20f7711f6d439286e58ef60",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/s_sound.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/s_sound.c",
+      "sha256": "b11d6990c9308edf686a1c77bcca1eded7e3b5c0e233a918cb195861ca412101",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/s_sound.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/s_sound.h",
+      "sha256": "08c6e17c15a86927f86e9e68fd16b8b7c7b50f7a11abd313e9905703969cd4d1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/scale3.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/scale3.h",
+      "sha256": "2191ac937cc5f434de5384b0e91c7b34a9d9fbc44aff5ba0b024bbb361393b93",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/sha1.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/sha1.c",
+      "sha256": "1920c8f3c669f86678c250d997d2159c6d562f41414891e34544c331e45aef22",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/sha1.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/sha1.h",
+      "sha256": "cda0dd9326ef9bcf5622076fab20e7e420c8dfe2d173a9859cc7cddefb78804b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/sounds.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/sounds.c",
+      "sha256": "28d358a0b76ec79208773ce4f9644ac2624a3950a518a3dad1decc8697d57d71",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/sounds.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/sounds.h",
+      "sha256": "8a360f02c2bcb17c0fae62bf41317f91b785cd63ef7c9f35bc0cbbf708e9aa7a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/st_lib.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/st_lib.c",
+      "sha256": "f30d72536657f369a4fea6c03e60122ee7d385d1062615c7e5a917c8c086c63c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/st_lib.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/st_lib.h",
+      "sha256": "e0486603bc4154e87fb6c90cb4e669365f9c2e66a29e6c8296e8534d7e6223eb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/st_stuff.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/st_stuff.c",
+      "sha256": "da145ef218df8f46cbfa23854dc6a993f80c53b15a9bbee628cebd3fb78d024b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/st_stuff.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/st_stuff.h",
+      "sha256": "7315a6067fe21c6b0b88be1c2eaca4f2e3623c7c24f4949bc30bcf0d71216772",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/statdump.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/statdump.c",
+      "sha256": "79ab0c3af80f05e01df1f80f37d4e3902387f9a69acf50118e763d3a46302761",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/statdump.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/statdump.h",
+      "sha256": "15b7f0891cc6848d4f17bbb75508cb0f7ab1eee56067e7a8e556d0d151bf849b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/stubs.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/stubs.c",
+      "sha256": "1b43771815a0d48985499ccd8540ab24492f2abc5bfbd71e7b276bee7c224357",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/tables.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/tables.c",
+      "sha256": "b20ffe17b3b32e6eb689199db0b314deea234091301f2c34dd82b3512b42c411",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/tables.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/tables.h",
+      "sha256": "f37583bc957fb456c4229fb85a6cb57fece3d24c069df622c8c9690dd66d094a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/v_patch.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/v_patch.h",
+      "sha256": "e5300f9c7b7c762131569f0e9d906b30fabe1d90eec040ad5808561fe7ff7da0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/v_video.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/v_video.c",
+      "sha256": "19d99cc57a49fb83a7357332a2a2338970633b477a883ffe61f9ee876ac13fe6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/v_video.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/v_video.h",
+      "sha256": "42f84f7588c2c33d6b7ba4297dedc83927063a39fb40f391df7399c8b05ad0e5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_checksum.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_checksum.c",
+      "sha256": "95a62cd90d615d67cb4326aea446e516df68a2384827236c55b01e483afdc571",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_checksum.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_checksum.h",
+      "sha256": "3ce1d2fcaf078d69d38bf7ae11e85c195463cf7da728c0546296eb3959b8b16c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_file.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_file.c",
+      "sha256": "087fcc0b2d211106c0181ddbef6f96c5285c734cac7fcd439fc6b6183f0980f6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_file.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_file.h",
+      "sha256": "3d2fcf565ae7ed32f2000bf3517ae55d6311a2e71069c80d3aa54d6c267e2c3c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_file_stdc.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_file_stdc.c",
+      "sha256": "515a68720dc0f4b3d66be0fd7831e5dc15d57d2015a2ff60613d26d120332237",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_file_stdc_unbuffered.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_file_stdc_unbuffered.c",
+      "sha256": "517e7806742de9ea778c4b5287d500ac3a0e573fb4dd2556effbb7fc6874547f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_main.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_main.c",
+      "sha256": "fc9768762a4f5d3ee487f08ac483ad7088e443c9291fd7d4696b5177b7770b10",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_main.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_main.h",
+      "sha256": "9c8fc5515ef36b90e1ffd66a7934b94ac581ba7119f675037992f4ba9a6c4628",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_merge.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_merge.h",
+      "sha256": "e8c2ba4f7f357fe265acde37122e42d6d4fd73bf135efcdb5b9af3043409ac34",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_wad.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_wad.c",
+      "sha256": "5e3a6c495c5fc839f816ab6fb856272cd887ee4e9db67fbd6e0d339dd7847027",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/w_wad.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/w_wad.h",
+      "sha256": "5fb042b3db5b20a09f2dd70134e734c26dd42230925c1dc9068274885bcc7d5e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/wf_rom.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/wf_rom.h",
+      "sha256": "13b289c71911775cc312f63cb92eb39100c416b07626bf71248e312fdff5de8a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/wi_stuff.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/wi_stuff.c",
+      "sha256": "881c934b7100507ce4141c74255c03ba381434632e233a34f7b98ff1c7ed4e03",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/wi_stuff.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/wi_stuff.h",
+      "sha256": "82013f95fa7d59e1006f4f080d8bfedf69919571f57714415cf3413e049f273b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/x11-auth.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/x11-auth.h",
+      "sha256": "62c9364b012584bad2f3cc6d4175286855e15466c4691cdf1a85bb044aa2fd5f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/z_zone.c",
+      "source_path": "kvm-box/guest/desktop/xdoom/z_zone.c",
+      "sha256": "37b296f9ad28decc44b5bca9d38c6ea81ddbd8ab977c1d06f03fc7360e316423",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/desktop/xdoom/z_zone.h",
+      "source_path": "kvm-box/guest/desktop/xdoom/z_zone.h",
+      "sha256": "d392cb68bf7c05b5950db5556757fb9271e8be903674afa01ab4b6d9d767871d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/go.mod",
+      "source_path": "kvm-box/guest/go.mod",
+      "sha256": "34970f6b76822fa043b7247c69852f628ad25718d9ed75d37343673b3e73d133",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/helper.go",
+      "source_path": "kvm-box/guest/helper.go",
+      "sha256": "65d53b61620e0ec2df147553e7a0b273216a21e4c4afde5c6b92b4a3d2291fe8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/init.c",
+      "source_path": "kvm-box/guest/init.c",
+      "sha256": "d818ea820af49c2b147ba5febc61573e66ff0fb44a57718df79c5b0f167478ba",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/moonlight.go",
+      "source_path": "kvm-box/guest/moonlight.go",
+      "sha256": "b3f925d1a223ce3fda7d5e1e9dd30b17b221a088f667781787c350fa64538ca7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/moonlight_test.go",
+      "source_path": "kvm-box/guest/moonlight_test.go",
+      "sha256": "41965405ea8bb5f68527859af11ceecff5d034cac8d3769edb4250d558a473a4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native.html",
+      "source_path": "kvm-box/guest/native.html",
+      "sha256": "9a1c18bd4cf29f8f9ab10db168ab2c0207e0ee76c5977b409708178258659a1d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/70-kvm-box-input.rules",
+      "source_path": "kvm-box/guest/native/70-kvm-box-input.rules",
+      "sha256": "1484a506e3e12f11ed869af2bff3229970f649e87a6a3d9f740988895a0c93f4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/DEPLOYMENT_STATUS.md",
+      "source_path": "kvm-box/guest/native/DEPLOYMENT_STATUS.md",
+      "sha256": "9bd181c5e7407ed84e660fe0829e80c9627fcd90d3cf0a23c8c071b348151076",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/README.md",
+      "source_path": "kvm-box/guest/native/README.md",
+      "sha256": "83bdd2e5c822093dc76da7dc8cc14ff441e8a4f4035626b7ff8aab1cb28a0ec8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/automation/README.md",
+      "source_path": "kvm-box/guest/native/automation/README.md",
+      "sha256": "b31a25bf28ab554c043e21a612a54dad3fd83a76322bccac701252d625429490",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/automation/automation.go",
+      "source_path": "kvm-box/guest/native/automation/automation.go",
+      "sha256": "f01e8f4c75589af865ee79b873d99b6cd3780102456ebda83f8b7f5c04879ac5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/automation/automation_test.go",
+      "source_path": "kvm-box/guest/native/automation/automation_test.go",
+      "sha256": "22dcb3dd7191cc442f8030a27fc621a2d96cb5ea345843fc10de39db329802f6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/automation/computer.go",
+      "source_path": "kvm-box/guest/native/automation/computer.go",
+      "sha256": "f55f5b7def3685c9af044235289a96f4d1987df96a3b005ba86cac6b61d57588",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/automation/computer_test.go",
+      "source_path": "kvm-box/guest/native/automation/computer_test.go",
+      "sha256": "37015c668284acc1e19ebcf247676c64d1745f85da6fd45e9b9ec07f28d1b6f9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/build_home_defaults.py",
+      "source_path": "kvm-box/guest/native/build_home_defaults.py",
+      "sha256": "8fe357b5c5c9499531d7bde05d500e6ebbb4acadba7270ddb0090ec2707eeda4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/build_iso.py",
+      "source_path": "kvm-box/guest/native/build_iso.py",
+      "sha256": "d3e81de99b0593a8fd201dd9eb59a4920411148e3945f0494fd77cd5db9fbf59",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/build_root_image.py",
+      "source_path": "kvm-box/guest/native/build_root_image.py",
+      "sha256": "fb862b5eb52121bf6c4147d6f5bf87932e1439d9a9a5f16d1ed17ed851b7e0fd",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/build_service_config.py",
+      "source_path": "kvm-box/guest/native/build_service_config.py",
+      "sha256": "83d1d78a313fb24f3f337ab0f2a087ea3ba9406db0679628355a64dcdc0cb6b2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/build_ui_assets.py",
+      "source_path": "kvm-box/guest/native/build_ui_assets.py",
+      "sha256": "63c4400dbd2c64e71dac79a6db999603b7179edf761d6c6880d90748c937a7ef",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/desktop-auth.h",
+      "source_path": "kvm-box/guest/native/desktop-auth.h",
+      "sha256": "13eb3c0bd3792396eaf6c5a2a987d52efb4d641a31a40dfd51bb4e7b252ea394",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/desktop-capture.c",
+      "source_path": "kvm-box/guest/native/desktop-capture.c",
+      "sha256": "13e64c0756dbda502568fb0cef090e957cf2efec4f68f6766d5a5cb3f56692b2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/desktop-pacing.mjs",
+      "source_path": "kvm-box/guest/native/desktop-pacing.mjs",
+      "sha256": "5086e9eba4938bb4978c11dd2aa8de0941dc62ed6fdfd694b1644a5585a39074",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/desktop-pacing.test.mjs",
+      "source_path": "kvm-box/guest/native/desktop-pacing.test.mjs",
+      "sha256": "99a7065b6c2a38a29a8bcd6c711812ea9732de4fdc305d50a2416e8be9115b7f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/gateway/gateway.go",
+      "source_path": "kvm-box/guest/native/gateway/gateway.go",
+      "sha256": "7545c8df341bb86fc4fc69e3eb52b73bcc9fc37bdfe6780615855b9680a1b2e7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/gateway/gateway_test.go",
+      "source_path": "kvm-box/guest/native/gateway/gateway_test.go",
+      "sha256": "89bb7bf31220026b6457835440364fc53e7cef00a0b6981a54518e14edf4f90a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/gateway/notes.md",
+      "source_path": "kvm-box/guest/native/gateway/notes.md",
+      "sha256": "2598a672b948f2475bd144c4633f2cbc7c0964af847f24284a42881a60d4dea9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults-manifest.json",
+      "source_path": "kvm-box/guest/native/home-defaults-manifest.json",
+      "sha256": "ef4f3aa69388990fa55bc0017f9d99928c4abe4d67e57bb99a8de10848fc7b07",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults.h",
+      "source_path": "kvm-box/guest/native/home-defaults.h",
+      "sha256": "c23168c660efe9b83331f6836b4bccd7e380169b5674554ad0aec2788a0790d7",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.bash_logout",
+      "source_path": "kvm-box/guest/native/home-defaults/.bash_logout",
+      "sha256": "26882b79471c25f945c970f8233d8ce29d54e9d5eedcd2884f88affa84a18f56",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.bashrc",
+      "source_path": "kvm-box/guest/native/home-defaults/.bashrc",
+      "sha256": "afae8986f549c6403410e029f9cce7983311512d04b1f02af02e4ce0af0dd2bf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.blank.xbm",
+      "source_path": "kvm-box/guest/native/home-defaults/.blank.xbm",
+      "sha256": "ea0da9e044c2ef0df324c3d7810f7faac238e7582fde91fa31b4cbfaf95e7b09",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.config/gtk-3.0/settings.ini",
+      "source_path": "kvm-box/guest/native/home-defaults/.config/gtk-3.0/settings.ini",
+      "sha256": "d7d14f26f6c97b54b378562d5976320823b360f3ea9f9c6c17efc5043b9fd23b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.fluxbox/apps",
+      "source_path": "kvm-box/guest/native/home-defaults/.fluxbox/apps",
+      "sha256": "e42f76862da44318efd957bfa9c6b8cbcdf589f78fa2e5173831fadb4787feb7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.fluxbox/init",
+      "source_path": "kvm-box/guest/native/home-defaults/.fluxbox/init",
+      "sha256": "0effee7f3f4bcaec2475d2e2d6957f2749fff6738bed8a57ead67eea397a2e1b",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.fluxbox/keys",
+      "source_path": "kvm-box/guest/native/home-defaults/.fluxbox/keys",
+      "sha256": "a85874130770dc3e0eabcc57be89492f33c8222d9149e0a01f44f8e920e9de0f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.fluxbox/menu",
+      "source_path": "kvm-box/guest/native/home-defaults/.fluxbox/menu",
+      "sha256": "8568d2db0ffa1315b3154c563fc110778e94cf354b97f4ec71ddc1c7f808473c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.fluxbox/overlay",
+      "source_path": "kvm-box/guest/native/home-defaults/.fluxbox/overlay",
+      "sha256": "a1e632f87079c771ede68fe7c39d73e8eaf199cd4aaf86af89b8b5e697387633",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.mozilla/firefox/kvm-box/chrome/userContent.css",
+      "source_path": "kvm-box/guest/native/home-defaults/.mozilla/firefox/kvm-box/chrome/userContent.css",
+      "sha256": "266b3596dedb2d7456cc3f657b776317fcfb8c13db83809adb7f9fa9c2f69429",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.mozilla/firefox/kvm-box/user.js",
+      "source_path": "kvm-box/guest/native/home-defaults/.mozilla/firefox/kvm-box/user.js",
+      "sha256": "c654abecbb3c2b97e9dbe8fc4ce9bb994e385e73b71554d36157830a4dabcb30",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.mozilla/firefox/profiles.ini",
+      "source_path": "kvm-box/guest/native/home-defaults/.mozilla/firefox/profiles.ini",
+      "sha256": "182d37855ad5433cbe94c965936f83741c993395dabf14d0627e59895ebb47bb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.profile",
+      "source_path": "kvm-box/guest/native/home-defaults/.profile",
+      "sha256": "28b4a453b68dde64f814e94bab14ee651f4f162e15dd9920490aa1d49f05d2a4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-defaults/.themes/RiscBox/gtk-3.0/gtk.css",
+      "source_path": "kvm-box/guest/native/home-defaults/.themes/RiscBox/gtk-3.0/gtk.css",
+      "sha256": "438f0c9c110da82653613d0e67088c16962b63a99076172be9ac045fd33a38cb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-seed-notes.md",
+      "source_path": "kvm-box/guest/native/home-seed-notes.md",
+      "sha256": "d8e54c1fde123e591df080cfb2ab2b9facede61d1436a6d5e601bef9dcebcd51",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/home-seed.h",
+      "source_path": "kvm-box/guest/native/home-seed.h",
+      "sha256": "8859734365ad8e845e02ca61bbfe3bfe31c14483d218ea6f4afd106c1261e3dc",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/inner/automation.go",
+      "source_path": "kvm-box/guest/native/inner/automation.go",
+      "sha256": "3a566735e60811695502a9dd03c4260767ec8895ff0b44183e4535d90e935550",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/inner/automation_test.go",
+      "source_path": "kvm-box/guest/native/inner/automation_test.go",
+      "sha256": "e60957df11376e03a8391a3af775906ff73c45a8421489f884e9df72d981f08d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/inner/inner.go",
+      "source_path": "kvm-box/guest/native/inner/inner.go",
+      "sha256": "2369cc05846841f38a4465f222993f62dce591b7d869d2ff0a75c783e53c76aa",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/inner/inner_test.go",
+      "source_path": "kvm-box/guest/native/inner/inner_test.go",
+      "sha256": "0b84c3ee2910b40cb9774a12a340ca4b667ce464865727b7ebd4f1f931be72c0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/inner/notes.md",
+      "source_path": "kvm-box/guest/native/inner/notes.md",
+      "sha256": "fdb609ba7e33633ccd534dead97f08f124328569c64269367f3c56f0c68f0dd3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/native-root-notes.md",
+      "source_path": "kvm-box/guest/native/native-root-notes.md",
+      "sha256": "91a99773f3a38c70cba9a86817f18230f21e6b5005a5adb05492420e70e67e5a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/native-root.h",
+      "source_path": "kvm-box/guest/native/native-root.h",
+      "sha256": "b46297bbbae396bb7a74142fde4793ed5ccff3d29b69217769945b578dad34b2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/network_policy.py",
+      "source_path": "kvm-box/guest/native/network_policy.py",
+      "sha256": "2f152788e7bdcc136ff29bcc71f12254d685ce3372d20c09cc32c3040f48838a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/nsinit.c",
+      "source_path": "kvm-box/guest/native/nsinit.c",
+      "sha256": "3043951d696bbe95e5f00711bf6dd49fb83ec463c6d143c3f7527652f3130d11",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/nsinit.md",
+      "source_path": "kvm-box/guest/native/nsinit.md",
+      "sha256": "4fb931b4778d2d40a95095a459d5868b7e93e86aad9eb95bdf882f86bed20467",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/platform-policy/SOURCE.json",
+      "source_path": "kvm-box/guest/native/platform-policy/SOURCE.json",
+      "sha256": "49de19680d243295e6c70a853239d651a7734eb2dee1d26dfce3c10e65026cbc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/platform-policy/app-seccomp.h",
+      "source_path": "kvm-box/guest/native/platform-policy/app-seccomp.h",
+      "sha256": "1bcc87cc8c202caa1d1c3572a535da7f291b4e68f199ceb34419f5341666b325",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/platform-policy/sha256-min.h",
+      "source_path": "kvm-box/guest/native/platform-policy/sha256-min.h",
+      "sha256": "9b857776a74ded12ca64f56e45fc4a37a4d73d2e5c6785493f2f625d6448c9c7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/proc-privacy.h",
+      "source_path": "kvm-box/guest/native/proc-privacy.h",
+      "sha256": "3fc1200223f886966e08958399276ecc0ed9c270da07854b42869f4ac787cdc8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/readiness.py",
+      "source_path": "kvm-box/guest/native/readiness.py",
+      "sha256": "b41832c1a1c678014bbfd13973a5fbfee1b7858ea60ae2536ca93a8c55da0b87",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/role-policy.h",
+      "source_path": "kvm-box/guest/native/role-policy.h",
+      "sha256": "6b4bb95fbc363f9524a1bd945425ca21387e9e2ecb35441f71c94220d6c3613f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/supervisor.c",
+      "source_path": "kvm-box/guest/native/supervisor.c",
+      "sha256": "96c8275dfb0097e14d2facf20b268a0777dd323b0c6cc36ed08878f6a2cc51d8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/test_build_iso.py",
+      "source_path": "kvm-box/guest/native/test_build_iso.py",
+      "sha256": "b191c05e33eec22daf6d0e9905ec8fc33088c058169803fac6979c5fe92531e3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/test_loopback_policy.py",
+      "source_path": "kvm-box/guest/native/test_loopback_policy.py",
+      "sha256": "32aeedcdf8e1f7e28d09a1e7664befa1ddb8aefe68d2c5975736d7fee104c7be",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/test_native_base.py",
+      "source_path": "kvm-box/guest/native/test_native_base.py",
+      "sha256": "4b812b1ecbc981fc5ac9b3727316361f080ff7df0d61f7beebbd622c19eb34ce",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/udev-launch.c",
+      "source_path": "kvm-box/guest/native/udev-launch.c",
+      "sha256": "a14f999da97b7719b817f4796c6b0ca9b72727793d2fd2c273b10a0201feee4f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/udev-policy.h",
+      "source_path": "kvm-box/guest/native/udev-policy.h",
+      "sha256": "600d136bc0c9516114027fc4e2d6c8810ed7495e9ccfee5e1f89f6839a93eac1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/worker-route.md",
+      "source_path": "kvm-box/guest/native/worker-route.md",
+      "sha256": "e9fb9d3ceb0fc61e715348bc46d96e03c058cda7988c287d287084b0e2c3efae",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/wx-policy.h",
+      "source_path": "kvm-box/guest/native/wx-policy.h",
+      "sha256": "fe461b3ba32d1d65e3ec8b1ab3191d3426bca3fc176f633c380f7305626730ec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/shield.go",
+      "source_path": "kvm-box/guest/shield.go",
+      "sha256": "e6ca9b0ec43e3d328e1944e06e7e93058fa52c84c4633b1b88a34acc7294ba68",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/sunshine-apps.json",
+      "source_path": "kvm-box/guest/sunshine-apps.json",
+      "sha256": "4641adb5f1d835617953d72a46e3335188209d50ee9183ea180bcbd126002078",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/sunshine.conf",
+      "source_path": "kvm-box/guest/sunshine.conf",
+      "sha256": "e5fa33039e874bdcc0ea0aa3e9565de16e58a6f861a9b9ceb3f91d5837055b4c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/welcome.html",
+      "source_path": "kvm-box/guest/welcome.html",
+      "sha256": "9a09dc3b19fef946e08d4b98a64cde852c3354498cb7cae58d53a8cc9baef43d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/xorg.conf",
+      "source_path": "kvm-box/guest/xorg.conf",
+      "sha256": "c06188130bd974fd37773ccb815b050f97bce4413e975344e786ce77e4ddeae8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/DEPLOYMENT_BINDING.md",
+      "source_path": "kvm-box/host/DEPLOYMENT_BINDING.md",
+      "sha256": "babc03921ac1d845627875051bbc914f4fbef4e6c3a24342cfedabd52e5e43c1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/NATIVE_LOCAL_DESKTOP.md",
+      "source_path": "kvm-box/host/NATIVE_LOCAL_DESKTOP.md",
+      "sha256": "de0e2fe1360d397e44e75a389b3015f741eb7cdc540b58e81649439804ad5bb0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/broker.py",
+      "source_path": "kvm-box/host/broker.py",
+      "sha256": "d59e3008e69a2fac0815d1b7a1b85bc132b9b7bfa230be61505da3e969b272ed",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/build.py",
+      "source_path": "kvm-box/host/build.py",
+      "sha256": "7796c11112a2e0435a3d4e7119e8516162b6f172de0fb3e5780ee2aa86540f23",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/connect.mjs",
+      "source_path": "kvm-box/host/connect.mjs",
+      "sha256": "7fcf243fe7cc0590f48e668d9a700d3c85ec22a5ed2afe1d78f9b8c1ac0eb196",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/deployment-binding.mjs",
+      "source_path": "kvm-box/host/deployment-binding.mjs",
+      "sha256": "28d186ad8555f30ceca24780e1e8516955153e211c65e83fe51fda787ee2e140",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/hyperv/CONTROLLER.md",
+      "source_path": "kvm-box/host/hyperv/CONTROLLER.md",
+      "sha256": "3844049c62ac764e7ec51ce5095ac926abd3519c1e055409e5ea3a87da99e89b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/hyperv/README.md",
+      "source_path": "kvm-box/host/hyperv/README.md",
+      "sha256": "a1325f90ff67f23331e7e70a4551faf1a8f0cd3ae8313e54228c80f44474e67e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/hyperv/prepare-kernel.py",
+      "source_path": "kvm-box/host/hyperv/prepare-kernel.py",
+      "sha256": "89b973f07d3362f58515e93896a5ddfdfe631cfd82af729204aaabd47f4cd73e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/moonlight.mjs",
+      "source_path": "kvm-box/host/moonlight.mjs",
+      "sha256": "b68cddc0741df0a7d19089b30553308a7b3c2c5eb73d02a363066d5e27b85790",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/native-local-desktop.mjs",
+      "source_path": "kvm-box/host/native-local-desktop.mjs",
+      "sha256": "135d264984644d653e77720798b60c1f94396aa380563a7332c2ebd3a06bcb06",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/native-local-desktop.test.mjs",
+      "source_path": "kvm-box/host/native-local-desktop.test.mjs",
+      "sha256": "ca01f329ce1ceb35b3ba31e64f83d3cb8815f04e843dfdeed2c960952bba9a4c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/pair-local.py",
+      "source_path": "kvm-box/host/pair-local.py",
+      "sha256": "1a0e4ef1814285a1fb3a4b8ba2f3159da7fb2dae173aea7cbde592fd2813220c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/start.sh",
+      "source_path": "kvm-box/host/start.sh",
+      "sha256": "2ac3d836ad47cee11614fd75f134ad664f495eedace8b0981edd47757d1735a0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/host/stop.sh",
+      "source_path": "kvm-box/host/stop.sh",
+      "sha256": "7477b491a1f2c3dd8bfb2277ff46013ef09b3c62c3de50fd20248e869eb67e5e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/FAULT_TESTING.md",
+      "source_path": "kvm-box/shield-compute/FAULT_TESTING.md",
+      "sha256": "30ebf2fae163d6b25f9f2ce3abeb1b5a28072a2f2eb243e3ec74a24242ed85a1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/GRAPHICS.md",
+      "source_path": "kvm-box/shield-compute/GRAPHICS.md",
+      "sha256": "23426b92a5f20b571ab3b8fb18b99f0ebb62f2685cad95228a0a8931b633b871",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/IMPLEMENTATION.md",
+      "source_path": "kvm-box/shield-compute/IMPLEMENTATION.md",
+      "sha256": "ca61a3df5f82d6b6cb426b2416a12a640a387ecf5a389293e6b75a9f2fb86f98",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/README.md",
+      "source_path": "kvm-box/shield-compute/README.md",
+      "sha256": "f132bc29f8604032d8dbee1757f5393ef7ce58d966197b57e30e36612717c674",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/boundary-check.py",
+      "source_path": "kvm-box/shield-compute/boundary-check.py",
+      "sha256": "b746cbbc77cfe89304bf9a50a4c8197d5b9cb4525178b81965be7e9a0bf7b783",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/build-core.py",
+      "source_path": "kvm-box/shield-compute/build-core.py",
+      "sha256": "c710671d6bbe47ce9d10627e998844043182dbb41a0556013df8d2d8e5f506e1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/channel.py",
+      "source_path": "kvm-box/shield-compute/channel.py",
+      "sha256": "a5d40c63c3fac33579ea132bef81a0237cb21ed502841d1b58427ab10e76c51b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/client.py",
+      "source_path": "kvm-box/shield-compute/client.py",
+      "sha256": "ae3fe6fe40f8faea19469dbad38300e3befc5dac52a823cb84cc6f395ce35ec8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/compiler.py",
+      "source_path": "kvm-box/shield-compute/compiler.py",
+      "sha256": "94c888597000c2827c81fe85e71dd6c26d234757b495fc8b27e5b149739037fb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/guest-firewall.nft",
+      "source_path": "kvm-box/shield-compute/guest-firewall.nft",
+      "sha256": "f1e05cf3120e86f8a1f184e2f79ad5283b6f6088ddcc660210f93a97f8c34798",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/guest-sandbox.c",
+      "source_path": "kvm-box/shield-compute/guest-sandbox.c",
+      "sha256": "9589131cd2b8b78f1dbf86354d73340a958d174fae1c3267f382e04227f287cf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/guest-start.sh",
+      "source_path": "kvm-box/shield-compute/guest-start.sh",
+      "sha256": "d8d6c10c0b3a2ac042d45ea563285796c060d8a0be8f96e96c458e8927b31b2a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/Dockerfile",
+      "source_path": "kvm-box/shield-compute/hip/Dockerfile",
+      "sha256": "1bd9927decd117e74ce03bfbb8c968db3b9448f1eda2c11507ec2a8bfa9a2100",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/README.md",
+      "source_path": "kvm-box/shield-compute/hip/README.md",
+      "sha256": "048acc419e49ac0685344c06db09dcff0ea084057e8c1a76b7ddb9b67f0f4299",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/build.sh",
+      "source_path": "kvm-box/shield-compute/hip/build.sh",
+      "sha256": "0b6b7f3337a4a4c6629d5624b320d4ab33b5ff58d24c4e6bde0b06a3e79e7ad5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/chipstar-glibc.patch",
+      "source_path": "kvm-box/shield-compute/hip/chipstar-glibc.patch",
+      "sha256": "2b1df1a3f085e6cbc709a1c410d99506f22b3943fa73dc0f01bbf5cd62d2141a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/desktop.Dockerfile",
+      "source_path": "kvm-box/shield-compute/hip/desktop.Dockerfile",
+      "sha256": "cffebe37b52f731ed937720344359c25d038c0cc68d3dcaf5727eac19fb0e2c7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/prepare-desktop.py",
+      "source_path": "kvm-box/shield-compute/hip/prepare-desktop.py",
+      "sha256": "0048bf41dc1ef5bb5fa1f8ffd169e2c790b376d28d84ba74fb2be3780c56c753",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/prepare-source.py",
+      "source_path": "kvm-box/shield-compute/hip/prepare-source.py",
+      "sha256": "e00ce1d2fadd647d0ade78d91d69dcc641849b61affd9cae6d1592d137371b75",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/test-host.sh",
+      "source_path": "kvm-box/shield-compute/hip/test-host.sh",
+      "sha256": "ecf127f0377996ac3829dcbb3390fbee45e003edf5b7cafa0452377ef847ba61",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/test_cuda.cu",
+      "source_path": "kvm-box/shield-compute/hip/test_cuda.cu",
+      "sha256": "103b53f9b5e64549953fdc2d19a21bd0b1c4e7cb4d7f8f099964534e300277b7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/hip/test_math.cpp",
+      "source_path": "kvm-box/shield-compute/hip/test_math.cpp",
+      "sha256": "ae019e12f0ec7e0cde837aabd3e8dc7e220bf3b2c2de0f3ebcf2c43857293730",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/Dockerfile",
+      "source_path": "kvm-box/shield-compute/monitor/Dockerfile",
+      "sha256": "ee6248ed4b3bdbdc38ef8c6bc6c16b12772659ba99d98a57af4080a6cf9d47db",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/README.md",
+      "source_path": "kvm-box/shield-compute/monitor/README.md",
+      "sha256": "a111bd094c9b12314f3153891e13f7740ff4b59386ad764eccaf222a87f9b58e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/build.py",
+      "source_path": "kvm-box/shield-compute/monitor/build.py",
+      "sha256": "ffa9925af2c2e8c834052ae695259d1e88c357bc38cac052be9541a745fc70fd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/extract_gpuinfo_shield.c",
+      "source_path": "kvm-box/shield-compute/monitor/extract_gpuinfo_shield.c",
+      "sha256": "26ed10521baab5c81be6266014ea26ae829aa15af1dc2822001dd055bb00d7a9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/nvtop.patch",
+      "source_path": "kvm-box/shield-compute/monitor/nvtop.patch",
+      "sha256": "0d9bddd38e2fe02f80ea49ee249ace5a58d48bae5c5bbe33d360f32ab0fae89b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/monitor/test_monitor.py",
+      "source_path": "kvm-box/shield-compute/monitor/test_monitor.py",
+      "sha256": "f8d3cc38518ede7d7f660e8b86a9e8e3f2ec97a5a1b68a9cdd0543f95ac54209",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/Dockerfile",
+      "source_path": "kvm-box/shield-compute/native/Dockerfile",
+      "sha256": "ebca29bb322c91ebaef0cb863433eff7606c12df8aaac6dafac3eaf1b65acdd1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/OPENCL_APPLICATION.md",
+      "source_path": "kvm-box/shield-compute/native/OPENCL_APPLICATION.md",
+      "sha256": "0eec87f5f5f940497d2200dc06113c9e99ea306ec865ab3820334a046290d13a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/README.md",
+      "source_path": "kvm-box/shield-compute/native/README.md",
+      "sha256": "7011b7a80cc9d1733a842769e4869dcf933547fbb295df1e1b68fa309f5a1414",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/STANDARD_NUMERICS.md",
+      "source_path": "kvm-box/shield-compute/native/STANDARD_NUMERICS.md",
+      "sha256": "ed6211902e508ad8792ad5d0626ff119b49431fee429bc799a06ffa5c19ca3da",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/STANDARD_PACKAGE.md",
+      "source_path": "kvm-box/shield-compute/native/STANDARD_PACKAGE.md",
+      "sha256": "46c53f8a133d788603f38330c9c0f45c2ddc1b215b6e2f32817e2e411d15df84",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/STANDARD_SD_MASKED.md",
+      "source_path": "kvm-box/shield-compute/native/STANDARD_SD_MASKED.md",
+      "sha256": "3a19afd4680e0912b63aae6f71e7e806769683cc770575ebd7b7696f8d18fb2c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/benchmark_sd.py",
+      "source_path": "kvm-box/shield-compute/native/benchmark_sd.py",
+      "sha256": "18d690e3123da1e5b2e779111702589b79689047f23812ac964a79979189610b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/bootstrap.cpp",
+      "source_path": "kvm-box/shield-compute/native/bootstrap.cpp",
+      "sha256": "39ab496e9fdfd67b3922f2c99897749f4354bf81ef15f1f5fe9fa2eba20fa7e8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/build-declines-frontend.py",
+      "source_path": "kvm-box/shield-compute/native/build-declines-frontend.py",
+      "sha256": "e6c705b3cee85fcaa48a84dcdfa0c26aadecbc4091c7463d1a9cb3c4094d0099",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/build-standard-image.py",
+      "source_path": "kvm-box/shield-compute/native/build-standard-image.py",
+      "sha256": "1cf6716eee9b5c42e251c8d4b89a89ab417c7169ba345b00896e20cdb7a7fc69",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/build.sh",
+      "source_path": "kvm-box/shield-compute/native/build.sh",
+      "sha256": "4f7fc1b446b858833d764c23bb35149f99c83224bb16ae09de9fdd92aff3b8ac",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/desktop.Dockerfile",
+      "source_path": "kvm-box/shield-compute/native/desktop.Dockerfile",
+      "sha256": "28df6e8dcb43a5b5a819510d5dede223f84fc13c0723217b641f099b89a13562",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_logits.cpp",
+      "source_path": "kvm-box/shield-compute/native/evaluate_logits.cpp",
+      "sha256": "84f4da31c3f4ed1348f1c3627d7382395d63725ed160a84ca0a6aa0c1f7927a2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_numerics.py",
+      "source_path": "kvm-box/shield-compute/native/evaluate_numerics.py",
+      "sha256": "84a2bccd4fa215abaed04c47c8785934f67ed8634f1f63c854f1e8f44ee2c452",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_standard_images.py",
+      "source_path": "kvm-box/shield-compute/native/evaluate_standard_images.py",
+      "sha256": "aadcdf2e7a478038798ba732d4b95dc76d55bf164f1ee65de99d2ed081b56c13",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_standard_logits.cpp",
+      "source_path": "kvm-box/shield-compute/native/evaluate_standard_logits.cpp",
+      "sha256": "4ddc9181084cb115394c94069141265fb840cb92c1409047ee954e4acd2b0f18",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_standard_logits.py",
+      "source_path": "kvm-box/shield-compute/native/evaluate_standard_logits.py",
+      "sha256": "af6881ce03a6aa6311cb3d566fb2fda5995bde84f9faa301dc69b21fceedd788",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/evaluate_weight_placement.py",
+      "source_path": "kvm-box/shield-compute/native/evaluate_weight_placement.py",
+      "sha256": "025fe0e92be251a9108f9ffdea56f70f3bfcd500c1a6f5b25d7e852eefb91802",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/finalize-standard.py",
+      "source_path": "kvm-box/shield-compute/native/finalize-standard.py",
+      "sha256": "390ed7a1ece1b08ec2d00df0695fc79e39b5cca35684f2fd7dc9fd8aec8990e6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-desktop-loopback.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-desktop-loopback.patch",
+      "sha256": "e84a89c7f9535ddfaabd8815d73d27e23b850acfb1198a57b9539ac55f7275f6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-literal-prompt.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-literal-prompt.patch",
+      "sha256": "6ad1ed00b721dafd1aced5506a920ca3d5ae1a2197103ce4952ca0f3923ea145",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-opencl-q8-views.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-opencl-q8-views.patch",
+      "sha256": "f56381b47b6b3811485bfb63a2edafb30cdaa88f8afc7d2ee380e1af9f7636ea",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-private-loopback.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-private-loopback.patch",
+      "sha256": "9afd61293f1a4fa646423f36ad969b2874c66af51d1ba2fc3ce58943811d7e8c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-shield-cpu-fallback.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-shield-cpu-fallback.patch",
+      "sha256": "1b6a561de20997aa2ae216dd64f61bb26dde677f11cfee374ae8d6338b5dab04",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-shield-opencl.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-shield-opencl.patch",
+      "sha256": "93533b16c5fae573eb149e74a2da92b04d3f6db4a98a4ab84881caaa0493f21f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/llama-shield-source-cache.patch",
+      "source_path": "kvm-box/shield-compute/native/llama-shield-source-cache.patch",
+      "sha256": "3c3e263ccbfd3dc786e9e32f88734305c3d339cf390dd9b96db1a06fb028f039",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/model-policy.py",
+      "source_path": "kvm-box/shield-compute/native/model-policy.py",
+      "sha256": "0c917beb27c5069d5960f95b41cc1200b877d62b766dfb50fccd55ffbf4b96e6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/package-standard.py",
+      "source_path": "kvm-box/shield-compute/native/package-standard.py",
+      "sha256": "b4d142513b82136b04726d7f6bb9c9144264fc3dc29d7dca9730524bb69163dc",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/prepare-desktop.py",
+      "source_path": "kvm-box/shield-compute/native/prepare-desktop.py",
+      "sha256": "c2d66613b54fe60cb0e53467e63a5a658306f9d5478bf17987d8dce6211cc905",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/prepare.py",
+      "source_path": "kvm-box/shield-compute/native/prepare.py",
+      "sha256": "cf4b04447cd20a77cab2b3b9b19026ea55b97efa1eea5089d27e929b561ed53e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/prepare_exhaustion_fixture.py",
+      "source_path": "kvm-box/shield-compute/native/prepare_exhaustion_fixture.py",
+      "sha256": "f1edd80228a7509c7a57f72186bac75d62ca5693cff14f950b9931cd2088dd6f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/probe_opencl_application.py",
+      "source_path": "kvm-box/shield-compute/native/probe_opencl_application.py",
+      "sha256": "0962569673db7b9f6fe31d9c96fc5b7d917b41d69c36f62c78ef1260f7432123",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/q8_executor.cpp",
+      "source_path": "kvm-box/shield-compute/native/q8_executor.cpp",
+      "sha256": "c7b8c81c07c845fcf5bde974abbacb9da326d041c430ff5d9bb9fa90c24e7e19",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-calib-unified.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-calib-unified.patch",
+      "sha256": "89bd78fa0c19a49f8a948afb3cd9b75579af8ac22db38a39fbf926cd66026ca9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-graph-diagnostic.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-graph-diagnostic.patch",
+      "sha256": "8ef1c000b5a2ca952fc2ef774c29656a777208ba4dc864e59f886b1ca340272f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-opencl-capabilities.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-opencl-capabilities.patch",
+      "sha256": "9bfb7db347830c18092c3b030b330d5a7dfbaa00d25f896fa4b8ed51a3c76de0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-opencl-fallback.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-opencl-fallback.patch",
+      "sha256": "439bbdef03d6f88ff2479609d77bc49cacd1f8774ed8cc7ba24812f16a793e0a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-opencl-graph-operations.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-opencl-graph-operations.patch",
+      "sha256": "f7d58fb0c215bac1700bfc75ae1e03be36c38d21947cfe6eabaaafd006e465d5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sd-opencl-upload.patch",
+      "source_path": "kvm-box/shield-compute/native/sd-opencl-upload.patch",
+      "sha256": "730f42826925ff52fbd3cffedfd0d5fd9432b88ad0cc048277b2d71df24fb029",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-core-unix-peer.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-core-unix-peer.patch",
+      "sha256": "834c54769a4b4c681ac4592b4bab5fecdb0076ded7d1509f08cc05f7586eb4e2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-start-negotiation.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-start-negotiation.patch",
+      "sha256": "006a26a029455fa5031022f89136a85488c7ade9bd8c4c8e47f02f31dc78bb3d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-strict-offload.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-strict-offload.patch",
+      "sha256": "3f770bac06e842fe6483764c26e6b1d808ca30bb33c8f65fd2e2a6d80da6d1d3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-unix-peer.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-unix-peer.patch",
+      "sha256": "2568b01c84713e324380202c0ec08489d48ec9f155cfb738798638802573742a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-verified-counters.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-verified-counters.patch",
+      "sha256": "cf8d785ce149e05b611db5afb122284752f5abc1cd80fdccdf9005b4e73852e8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/shield-wire-name.patch",
+      "source_path": "kvm-box/shield-compute/native/shield-wire-name.patch",
+      "sha256": "1c2df9cc978a50d0f1ccda65f6a49db794317ff8f58291b11d73a1031f36143e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/source_declines_package.py",
+      "source_path": "kvm-box/shield-compute/native/source_declines_package.py",
+      "sha256": "f84d6d09dbaa78ae322a0cb32355f7e37ad3cbb4152bc9ee3e4ca795ac79ff75",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/sources.lock.json",
+      "source_path": "kvm-box/shield-compute/native/sources.lock.json",
+      "sha256": "ee861037fa8c89327f6c3a915a850e3967c6ec6dc662bf63e3008e3cc5360067",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_allocator_exhaustion.py",
+      "source_path": "kvm-box/shield-compute/native/test_allocator_exhaustion.py",
+      "sha256": "09f0fcc05dc562fa77eb674ce1bbfd401fa3c2f441758636580b6a9e092eeca9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_arithmetic.py",
+      "source_path": "kvm-box/shield-compute/native/test_arithmetic.py",
+      "sha256": "06bd817949fe67755648cca4e0206d2185f799c69fb3ad6690e56d82aa3141d9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_exhaust_shim.c",
+      "source_path": "kvm-box/shield-compute/native/test_exhaust_shim.c",
+      "sha256": "09a5180c3d7972e91840233e913a105e1d80e089c54c0ad9c91ccfb99fd17abb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_file_limit.py",
+      "source_path": "kvm-box/shield-compute/native/test_file_limit.py",
+      "sha256": "48df842c266875a053c9fe771e11b252ceebe26b969afeaffcea320361630264",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_legacy_backend.py",
+      "source_path": "kvm-box/shield-compute/native/test_legacy_backend.py",
+      "sha256": "b59bb209a2383be2c7693a9df2aff33f2ee87994b04e7278389c51d3d11eb298",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_maskbank.c",
+      "source_path": "kvm-box/shield-compute/native/test_maskbank.c",
+      "sha256": "52b3190d7394ecb3cc9ca4b38d97af250a241ec94a19841ad5e5e03a7581cc61",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_negotiation.py",
+      "source_path": "kvm-box/shield-compute/native/test_negotiation.py",
+      "sha256": "eb9205c75e84f82c4bce1dbe5925106724c3bd52202a0bfc2e7e5efc8e1015fe",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_opencl_cpu_fallback.cpp",
+      "source_path": "kvm-box/shield-compute/native/test_opencl_cpu_fallback.cpp",
+      "sha256": "30b1efb4d14770024cefccd83d74f52d2e9d732eb3c93cba757c42be8c12a3e4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_positive_service.py",
+      "source_path": "kvm-box/shield-compute/native/test_positive_service.py",
+      "sha256": "c25f8f77a2a0b81941a7a4c1897a3e0a421a6e1c8cf86806a44a8f571409c926",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_private_loopback.py",
+      "source_path": "kvm-box/shield-compute/native/test_private_loopback.py",
+      "sha256": "27bba24061037c0dcda67409c922ecd073956067183b44fab28c535f067593cf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_prompt_boundary.py",
+      "source_path": "kvm-box/shield-compute/native/test_prompt_boundary.py",
+      "sha256": "36e39337117f4d79fa4a43291350783c0e51e8f673a453e4ed6f77361885ec95",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_prompt_guest.py",
+      "source_path": "kvm-box/shield-compute/native/test_prompt_guest.py",
+      "sha256": "7187ad7318d53f1144ab5bec3398b43c8d015c9bd2d1df523fc379a068802387",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_q8_views.cpp",
+      "source_path": "kvm-box/shield-compute/native/test_q8_views.cpp",
+      "sha256": "1f107632ff10892faa1cbaae8e94ccce14ca6e204a6b058297db9eeb939bfcec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_source_declines_package.py",
+      "source_path": "kvm-box/shield-compute/native/test_source_declines_package.py",
+      "sha256": "4641d6916c3ef0d5988aecddb386779addce87271eebe7ec947c7ed32e8f4e12",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_standard_package.py",
+      "source_path": "kvm-box/shield-compute/native/test_standard_package.py",
+      "sha256": "c15e7669c2d2cfdf03da23febb4cd3e4decc8af92aa745da7a81018f5279e0e0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_strict.py",
+      "source_path": "kvm-box/shield-compute/native/test_strict.py",
+      "sha256": "86d7581ade2ffd856b1121f3af8c70bf699c9f0a37b310fd90dead6cba117bc9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_wide.cpp",
+      "source_path": "kvm-box/shield-compute/native/test_wide.cpp",
+      "sha256": "c627914ac19db8fb0bd99477c860b5b8c3c58da7ee3d81313f22a2430ca43f13",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_wide.py",
+      "source_path": "kvm-box/shield-compute/native/test_wide.py",
+      "sha256": "bb09755642e98f9a49ff55a0edd04b9560602ff1221a2d74cc48c3781ad94907",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/native/test_wide_service.py",
+      "source_path": "kvm-box/shield-compute/native/test_wide_service.py",
+      "sha256": "d61a22ed801d6b0c781e798dd767f0e5cddaedf73c8f3b5db8cacc0faa946994",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/.gitignore",
+      "source_path": "kvm-box/shield-compute/opencl/.gitignore",
+      "sha256": "1b943d8990128f244496e3106fe8f2ad3fa9db2bc3247cf8af87a2d97bcf8c55",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/Dockerfile",
+      "source_path": "kvm-box/shield-compute/opencl/Dockerfile",
+      "sha256": "18ade2adce2c66b3ac9784e98a2bde737bbd3fe00b581c26a4c8cfcd3903460d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/Makefile",
+      "source_path": "kvm-box/shield-compute/opencl/Makefile",
+      "sha256": "465df10cc67559a4b755ba501a120fb3a4526fbc1408b7a5924c46fb22320f6c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/Q8_CAPTURE.md",
+      "source_path": "kvm-box/shield-compute/opencl/Q8_CAPTURE.md",
+      "sha256": "7b73b868487845d36146a160e1c8fd006a6539487c3d92d6c9cf500507c4add5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/Q8_LOWERING.md",
+      "source_path": "kvm-box/shield-compute/opencl/Q8_LOWERING.md",
+      "sha256": "360582dbc9473ba6b53bfff0df537aa408609d8614c4996d5237d63235ac5f79",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/Q8_MASKED.md",
+      "source_path": "kvm-box/shield-compute/opencl/Q8_MASKED.md",
+      "sha256": "147914491818ff0c473d8afde34855ae65f24e3076a1556986cf10a31005a3ed",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/README.md",
+      "source_path": "kvm-box/shield-compute/opencl/README.md",
+      "sha256": "06e7d618cd431c8c343c95bbb51a1ec3f5ffc868d95ec22b3e4e0e18bc8bf2be",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/SOURCE_DECLINES.md",
+      "source_path": "kvm-box/shield-compute/opencl/SOURCE_DECLINES.md",
+      "sha256": "cfd0a89d0385f1fc28c91e78dc99f3c9670ed9149d08c314868115b8355b995b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/approve-selftest.py",
+      "source_path": "kvm-box/shield-compute/opencl/approve-selftest.py",
+      "sha256": "2ff23de43ad452076e9fe8152a7616b10461227f86b60e7724c1d3a875a78de4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/build-ir-reference.sh",
+      "source_path": "kvm-box/shield-compute/opencl/build-ir-reference.sh",
+      "sha256": "364f46b526c3787b5d19a6186187596ca315f0d04cd8b9142afdd4296c7e39f1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/build-pocl.sh",
+      "source_path": "kvm-box/shield-compute/opencl/build-pocl.sh",
+      "sha256": "7554ad1e37291e16ca81d57535ffeed911bb8d1c20cabd838af2e17ca0c4aa1d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/build_source_declines.py",
+      "source_path": "kvm-box/shield-compute/opencl/build_source_declines.py",
+      "sha256": "3446386194cc30dfe3ec97eb4baaa514271d8e52f0252f4ab2b2b94a03f1518d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/desktop.Dockerfile",
+      "source_path": "kvm-box/shield-compute/opencl/desktop.Dockerfile",
+      "sha256": "0177ead4998ee73cf846e0971317bf9c132a9f8a2f935307a541e3b267a52a55",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/gemm_i8.cl",
+      "source_path": "kvm-box/shield-compute/opencl/gemm_i8.cl",
+      "sha256": "1679d5fd74c84c3241a2ada4e00393d902cf30855a78f09cedf9469848b1cc3b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/gemm_i8_cuda.cu",
+      "source_path": "kvm-box/shield-compute/opencl/gemm_i8_cuda.cu",
+      "sha256": "457de84b5379139eb9eaa67a70e35d3ab2c050869fa7dd61490fc7787317596f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/ir_compiler.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/ir_compiler.cpp",
+      "sha256": "3ba02d2259be9088d465ab7fe84d3c9be1b06bb12b2efb32ea1661412c033fed",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/kernel_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/kernel_compiler.py",
+      "sha256": "6e42bad41dffa95867bd329a57cabd1da65e20c8d7c6e3736efe9ab5c36911aa",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/opencl.map",
+      "source_path": "kvm-box/shield-compute/opencl/opencl.map",
+      "sha256": "4d79f0298320ffcb6050c123a5c47dce7d21f56ecec8e9ec1114a111e7834b59",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-build.Dockerfile",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-build.Dockerfile",
+      "sha256": "3b013a7f9f385a32130e915d77468ae1ca527a743f12126153d6a5918ae81af3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-callback-errors.patch",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-callback-errors.patch",
+      "sha256": "01a6ba7c1844ef1fd08f2041c75e53dcbe8bf800489b853ec35d8a43134b2656",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-half-convert.patch",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-half-convert.patch",
+      "sha256": "23348b65c05b4057cbeceebc20610c6fcb954c0a0ba969d0fff911a677dc8f2d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-half-images.patch",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-half-images.patch",
+      "sha256": "7d3884930dfe996fa5c527fde8e6ce192f975699872a613470b8454132b0424f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-half-tanh.patch",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-half-tanh.patch",
+      "sha256": "ee28c5e726359e571088aad58e636680da91754c0990ac57e436bc15cf672c8e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/pocl-vectorizer.patch",
+      "source_path": "kvm-box/shield-compute/opencl/pocl-vectorizer.patch",
+      "sha256": "ae6879ee590eb9b4a1442f2bbdfe85e051af549f34ee748553a1803b6c8f8640",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/prepare-desktop.py",
+      "source_path": "kvm-box/shield-compute/opencl/prepare-desktop.py",
+      "sha256": "97e33f8af809baf2f8a435b8bb487df18cf367120e0c0a726117ca8309b3c658",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/probe_q8_admission.py",
+      "source_path": "kvm-box/shield-compute/opencl/probe_q8_admission.py",
+      "sha256": "fa48c2230080ce84965521d89fe8833d92d14f12e8acbe1548b3faa24047fa9e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/probe_q8_kernels.py",
+      "source_path": "kvm-box/shield-compute/opencl/probe_q8_kernels.py",
+      "sha256": "1808313f7e6e0b06870b9cd6a84bb2c305976ef6808a7956ef70fbe3db6cb2ee",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8-reference/LICENSE",
+      "source_path": "kvm-box/shield-compute/opencl/q8-reference/LICENSE",
+      "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8-reference/README.md",
+      "source_path": "kvm-box/shield-compute/opencl/q8-reference/README.md",
+      "sha256": "37ca0075e8d61af3866d55b6658cf082d53f2fb34c7a5e4acbbda5d389d53a22",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8-reference/mul_mm_q8_0_f32_l4_lm.cl",
+      "source_path": "kvm-box/shield-compute/opencl/q8-reference/mul_mm_q8_0_f32_l4_lm.cl",
+      "sha256": "e9dee2e88bf65fc8645b048e84a0e6bead25f99878d83989dbb07474f76b5c30",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8-reference/mul_mv_q8_0_f32_flat.cl",
+      "source_path": "kvm-box/shield-compute/opencl/q8-reference/mul_mv_q8_0_f32_flat.cl",
+      "sha256": "6e67804f54c5df29988e25980b47d696a09fd05371068482729f191253ee2abb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8_admission.py",
+      "source_path": "kvm-box/shield-compute/opencl/q8_admission.py",
+      "sha256": "1fbe4e9a1f822a54713c56b05f5c7d98e0af13961569e702b1ccf64dc088adc0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8_capture.inc",
+      "source_path": "kvm-box/shield-compute/opencl/q8_capture.inc",
+      "sha256": "0bcb397c38667eb16be16aea19ad8b0786c33fa1868414f97af9e1a98d004c65",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8_capture_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/q8_capture_compiler.py",
+      "sha256": "e0ea7b7fa0b83f9804c17617b2bdf38f22d9d6817ce79afec111c893149fe74d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8_kernel_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/q8_kernel_compiler.py",
+      "sha256": "bf6efee3aaa8c9dbe83fffb00a9b2b04c1eeee79993d79120d9efad23097f190",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/q8_masked.inc",
+      "source_path": "kvm-box/shield-compute/opencl/q8_masked.inc",
+      "sha256": "1531f6e1eb04500984e973f3130f9751f3feec6ea32084e905b6775f060a920c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/shield_opencl.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/shield_opencl.cpp",
+      "sha256": "1752d290a7b764cf7a7f093792f2f455309bc1852b820aeaf5d4aa3e5d80eb3e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/source_declines.hpp",
+      "source_path": "kvm-box/shield-compute/opencl/source_declines.hpp",
+      "sha256": "0e03845fc4d964e21d148f3b249776497d9eec69dfacec6ef66649f8ce8ecad0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_compiler_limits.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_compiler_limits.py",
+      "sha256": "5cb3c39f06f5647ca63592615ba4c893f04d015b10c9b498271f5b20bcfeed37",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_conv2d.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_conv2d.cpp",
+      "sha256": "d2f21048f8044728eec4c2da90483932216a157545f9da6d6fa76844e7a3a4af",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_event_errors.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_event_errors.cpp",
+      "sha256": "9cdb29fcd8aa483aea32af0a5034b4b64451be495ce6fb68730f43a9fa34acba",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_half_convert.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_half_convert.cpp",
+      "sha256": "df04656289eb40aab81356484e4c0fb172b78316c085d84ec79a402c43fbadf4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_half_images.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_half_images.cpp",
+      "sha256": "4d64c042734fffcd4f47c605ed1a905bdd841d30479b7e9211916d14c744bc47",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_half_tanh.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_half_tanh.cpp",
+      "sha256": "ed46bfd6888e124ec8dd4c81c5c1fbb6ca3c66eff1c6e3a2c6f9dcef3c6f3e7d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_ir_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_ir_compiler.py",
+      "sha256": "3b6ddb86f913ced859487921ff804aa2a6384774ef370d420563cf6a5c706197",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_kernel_build.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_kernel_build.cpp",
+      "sha256": "d639afad9424588181fbcc3a322a2fcfbdc5ace934981aaa9df2859d399a96fe",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_kernel_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_kernel_compiler.py",
+      "sha256": "bfb68137c4e370723939cdced8a972851abb8f735d422fa086311203d3d5918e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_opencl.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_opencl.cpp",
+      "sha256": "74eb653d2e2e05f0ce126538f7190077b83dd23ba957645fab334e815995a914",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_program_lifetime.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_program_lifetime.cpp",
+      "sha256": "037910daaa4c9a4eed2bfe431b86885f9516815a431c845afeaf4c50cc81ae76",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_program_lifetime.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_program_lifetime.py",
+      "sha256": "5c0542e7e720fcbb5b47d18496c31ec74a524a00d2d8dce4d32363706739962a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_q8_admission.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_q8_admission.py",
+      "sha256": "acf209c0082005f23bd322a44600e8cfc2db2e9e2bc217b0d7197c9f0e717ad2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_q8_capture_failures.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_q8_capture_failures.cpp",
+      "sha256": "08b061da28de00ddb0342cb2ac0a9fe7b76ed1e3e88b8a99ff2f80ac924cd287",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_q8_kernel_compiler.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_q8_kernel_compiler.py",
+      "sha256": "e264f133a1ae9ada2f3126fceb2da1eacc50b462b63345ce47cf058c11b0a015",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_q8_kernels.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_q8_kernels.cpp",
+      "sha256": "9c41981d10b0f33f58873298fa7d65be77a1e048473f57a783594c3230853712",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_q8_masked.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_q8_masked.cpp",
+      "sha256": "21f38edd7eec30f67dcc7db58ce791830d19d2ac31b90f50b4ddb1a03821a1a3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_service_runner.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_service_runner.py",
+      "sha256": "e5269cd89f0d890a559d5153171085754db41a943514ba23e7b036606c3e8670",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_source_declines.py",
+      "source_path": "kvm-box/shield-compute/opencl/test_source_declines.py",
+      "sha256": "246fecedae99ee47a3f89b00b4efc62e2255777ea235ba1cddc954c701c44b55",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/opencl/test_svm.cpp",
+      "source_path": "kvm-box/shield-compute/opencl/test_svm.cpp",
+      "sha256": "86aec2da3ec9d7691c2c13bba0b6a5d1db54341edbb98ec21191656d3026cd2c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/q8_service.py",
+      "source_path": "kvm-box/shield-compute/q8_service.py",
+      "sha256": "c54f447aecc57ad6908dba5ec1014794316e01a61756bf6c0e483f6631ccc148",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/service.py",
+      "source_path": "kvm-box/shield-compute/service.py",
+      "sha256": "eee16950eb2e56167f59675fa6d613c58743a905c335c88896f374313f16e9b4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/smoke.py",
+      "source_path": "kvm-box/shield-compute/smoke.py",
+      "sha256": "fae3b1c1a949f30d7f619d28372c724277e41cdd4d5ada44b0a2e8fb4efaedb8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_compiler.py",
+      "source_path": "kvm-box/shield-compute/test_compiler.py",
+      "sha256": "951e2e38ef5f113cfddf8fe00d51613aea997284d223ddb4d06c25f4f85d9463",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_q8_finite.py",
+      "source_path": "kvm-box/shield-compute/test_q8_finite.py",
+      "sha256": "3ead2c6bed170ce1bc70f1a2d33b14119879162023a210a75184d762f456d88d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_q8_service.py",
+      "source_path": "kvm-box/shield-compute/test_q8_service.py",
+      "sha256": "9a80ba20e05e23059ac332ac24d28e96e2caea5e115bb1e29f0b79224fed002f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_service.py",
+      "source_path": "kvm-box/shield-compute/test_service.py",
+      "sha256": "230afc0f6fb2ec07937a4727a4a0bf09931e7d9076e446b0d320f09b0b0008a8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_service_admission.py",
+      "source_path": "kvm-box/shield-compute/test_service_admission.py",
+      "sha256": "6cc15763d6e7392473e2b7bfec9f0590ef643d316bb8307832c64ebc110b03b9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_transport.py",
+      "source_path": "kvm-box/shield-compute/test_transport.py",
+      "sha256": "a2cb4c25759e1a73697bf58f9e7ad4b70742f8f8b10f05fd5282ffe6760b2cc9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_vm_admission.py",
+      "source_path": "kvm-box/shield-compute/test_vm_admission.py",
+      "sha256": "5657fb81fc977012e2f6911f4e16158a6d67a3950948fd1833809221f29a40a7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_vm_arithmetic.py",
+      "source_path": "kvm-box/shield-compute/test_vm_arithmetic.py",
+      "sha256": "a82674bd4fd0b835d42091c29f9669c190fa03fe1012fc4cea9aa0e8711f007c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_vm_native_failure.py",
+      "source_path": "kvm-box/shield-compute/test_vm_native_failure.py",
+      "sha256": "7a745a8c29ca15cd827b22c8415a334798268640a986c8625aa387b5eeb5e0cd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-compute/test_worker_proxy.py",
+      "source_path": "kvm-box/shield-compute/test_worker_proxy.py",
+      "sha256": "cae43a034738e2efd4434e070dc4f22850b06e9a479363ada8cbb61d829265b1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/README.md",
+      "source_path": "kvm-box/shield-graphics/README.md",
+      "sha256": "6788580aee51430a80e30193f6cadc2a01ca1abc907178de4e8f5f05a9a39238",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/build-mesa.sh",
+      "source_path": "kvm-box/shield-graphics/build-mesa.sh",
+      "sha256": "fd0927c32b38e83b1d317ecc95b878f1d8308bcb09e1a1ecc3f7c3c0feddc73f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/capture-reference.py",
+      "source_path": "kvm-box/shield-graphics/capture-reference.py",
+      "sha256": "a77ccbcc0708b4be09947dd5a0c26f6d62667c1c193678e78ea78b04d89a76d4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/README.md",
+      "source_path": "kvm-box/shield-graphics/driver/README.md",
+      "sha256": "6e2338739f6dafd4ad6bf82fc9217ac96b4f879aa1444189751a1ececa4ebd6a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/mesa-prepass.patch",
+      "source_path": "kvm-box/shield-graphics/driver/mesa-prepass.patch",
+      "sha256": "50d721a634d67acd85c6450d508a94fb64d1f44536b00f72ee2659d0aa1c73d7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/prepass-module.json",
+      "source_path": "kvm-box/shield-graphics/driver/prepass-module.json",
+      "sha256": "ff3f0d2d79ea404811014ed28a35088cefb9eb11c8e0e08b9c5b1d660599a1a9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/probe_client.c",
+      "source_path": "kvm-box/shield-graphics/driver/probe_client.c",
+      "sha256": "7a9b997e119efa76a0fd4bd36bd2ab64796ec0ff819802d2b450995718b4fb29",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/shield_affine64.h",
+      "source_path": "kvm-box/shield-graphics/driver/shield_affine64.h",
+      "sha256": "4dc33f279c3ab24af7ee845451a7cc622943e48393e8de417004d35c15078d5e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/shield_prepass_client.c",
+      "source_path": "kvm-box/shield-graphics/driver/shield_prepass_client.c",
+      "sha256": "56c74c327b49ef79d1c0fb1cbf2fe3ba5aa666dbdae1a09a08e55a919539e256",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/shield_prepass_client.h",
+      "source_path": "kvm-box/shield-graphics/driver/shield_prepass_client.h",
+      "sha256": "aaf2cbad82efbdee97ee366715520b15dc4bda71946bfd3af31f9e746b10d1d0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/shield_prepass_nir.c",
+      "source_path": "kvm-box/shield-graphics/driver/shield_prepass_nir.c",
+      "sha256": "4a05c0190e762e1cdf7ea1bca7f8e2f13c4dbeac3a5333359e10ffb60dadfcb8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/shield_prepass_nir.h",
+      "source_path": "kvm-box/shield-graphics/driver/shield_prepass_nir.h",
+      "sha256": "a8f28ab65ecc5c0b95c59206e396da5bc6f63eba899da8a114b145f70c50c43c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/test_affine_client.c",
+      "source_path": "kvm-box/shield-graphics/driver/test_affine_client.c",
+      "sha256": "71003fc616e06fb167a848d170689c966b2d232c9453cea8ba509a49c8fed8b7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/test_grid_client.c",
+      "source_path": "kvm-box/shield-graphics/driver/test_grid_client.c",
+      "sha256": "6a75880ab6cdd945d19b977762b05e57c81ec57562b69a6ee8dc8cef50a2b0fb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/driver/test_prepass_client.c",
+      "source_path": "kvm-box/shield-graphics/driver/test_prepass_client.c",
+      "sha256": "7685546ec627c7e6d7cfc5d91ccb42c063f16e34e7bd3f6c5e9d142852036363",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/merge-native-root.py",
+      "source_path": "kvm-box/shield-graphics/merge-native-root.py",
+      "sha256": "c050d1ce5092193457d46677c5d2d559552a26589dda77270b6aa6d38d8c23c2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/mesa-source.json",
+      "source_path": "kvm-box/shield-graphics/mesa-source.json",
+      "sha256": "6d697317b01523af8d656475a88cfa01d1a8c6acf28d262c0c1d28f02ded29cf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/mesa-tools.Dockerfile",
+      "source_path": "kvm-box/shield-graphics/mesa-tools.Dockerfile",
+      "sha256": "ebc716cde86165024e531cbf84e0b18064418c7b35bf4706dbd5d1dd559fa33f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/probe-reference.sh",
+      "source_path": "kvm-box/shield-graphics/probe-reference.sh",
+      "sha256": "1d7eb06570c9f22da1df1ea0f0094235e99203bb7c8537ad8513bfc0acdc2c7b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/CTS.md",
+      "source_path": "kvm-box/shield-graphics/qualification/CTS.md",
+      "sha256": "ebb2fea82076d0f4927bc13a9713478646f53dc530024583b2b60e0535e0d06c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/README.md",
+      "source_path": "kvm-box/shield-graphics/qualification/README.md",
+      "sha256": "7909cb0dcbd94503ff5d4c90472f6cd31c53237849b6a18127b55287b875f2cf",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/affine-checkpoint.json",
+      "sha256": "c7ffa723e326146835f947f859cba2cb3ef583bfee56bf1f77c4aa0dae4b4fa4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/build-gl.sh",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/build-gl.sh",
+      "sha256": "581e7213d52ae72ebaf7d165f432e4a813b212a6307ede039530255a4eabae1d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/build.sh",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/build.sh",
+      "sha256": "59e26a203fc9a5b58dcdcf8f7b769c5455d79f7fbc7224b2962311fc1909baa1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/fixture.json",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/fixture.json",
+      "sha256": "0106a8f36ca02977a988b522ec4b4041b53ddfe187ee60a71727a74b12658417",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/linear-prepass.comp",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/linear-prepass.comp",
+      "sha256": "a1a255f00ac0cdfc0ed5b3adec3001064b8f4f17e8171e9d595d6da307ac99a0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepare.py",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepare.py",
+      "sha256": "12e8918651e6ed567a43dd93fa452c0e804bad44e27ed9e64c02367cc4401b01",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepass-gl.comp",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepass-gl.comp",
+      "sha256": "4d4adc6e69477bb2c0b482f4e1fa040d85f74763630d093bfc59ba94e1c09c19",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepass-gl.cpp",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepass-gl.cpp",
+      "sha256": "aa78b729b0eb23bdb07c066146ed6738e7497c24cf0af2cc20306aaddc38a273",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepass.cpp",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepass.cpp",
+      "sha256": "cf554bd59b66219f6edce890b0905a6058bb9fad7d87985b3387e2d490a36842",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepass.frag",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepass.frag",
+      "sha256": "e9d198d5d1986bcc9d99726e7a8532178ae866eb3f3c13f90c13fecb6690862c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/prepass.vert",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/prepass.vert",
+      "sha256": "af89c57c2fba5bbf8cb01730ba2d9cf5062e141537cfe6b5cae4107ff5a5c1de",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/run-driver.py",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/run-driver.py",
+      "sha256": "368f93cd4f5cd2c8574dbfc22f99e802242bef42704e98ce4ba6178ec597d04b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/affine/test-driver.py",
+      "source_path": "kvm-box/shield-graphics/qualification/affine/test-driver.py",
+      "sha256": "928cfd60bea630b57e288b4079beadba73715a6b21664203cdfb2a77788a2cb1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/browser-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/browser-checkpoint.json",
+      "sha256": "f9c95e4678e7512c5395a0323c0dd505a41f45a2f6e387a460a7434821460037",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/browser-webgl.html",
+      "source_path": "kvm-box/shield-graphics/qualification/browser-webgl.html",
+      "sha256": "05646af4c42909d10312351b3098fa89303c87bd0cbcc0a5ffd47e52942b4783",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/build-admission-fixtures.py",
+      "source_path": "kvm-box/shield-graphics/qualification/build-admission-fixtures.py",
+      "sha256": "2822166fd8da5c910fc36b389aaf7aab9cf61180676d7cfe095f836a55641eec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/build-cts.py",
+      "source_path": "kvm-box/shield-graphics/qualification/build-cts.py",
+      "sha256": "1a42bd3eac53550c3d2df1e6d545ada51861a0b8ebb7e2df82ae203569f8c9b2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/build-gl.sh",
+      "source_path": "kvm-box/shield-graphics/qualification/build-gl.sh",
+      "sha256": "b13fdc050636db1dd534155d95186fc90c104a7e66d3681150f2378024fe6714",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/build-variants.py",
+      "source_path": "kvm-box/shield-graphics/qualification/build-variants.py",
+      "sha256": "4dce383214f0b5336ce8d5c413fd8f4a677a1d5631a89a55d9009441730145d0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/build.sh",
+      "source_path": "kvm-box/shield-graphics/qualification/build.sh",
+      "sha256": "59e26a203fc9a5b58dcdcf8f7b769c5455d79f7fbc7224b2962311fc1909baa1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/checkpoint.json",
+      "sha256": "f50af1bd1457cca13069fea9c72276decef917786514ad3b4407295c654dd497",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-lock.json",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-lock.json",
+      "sha256": "8bd7eec78bbd5874e3d072e68883e2018f78c9ca5c9758093503b14dfb6aa179",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-native-role.c",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-native-role.c",
+      "sha256": "6004613bbaa863bdd3e3b20398e62597dd175cdbb0d48a056612c641edf7cfbb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-native.py",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-native.py",
+      "sha256": "49dfcda5b2f0d5e21b9d6e5ed50513498816d19a32c107f193c6296fea1cc046",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-plan.json",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-plan.json",
+      "sha256": "7c768ad2c7f3a254bd6b3d5b97e53abe78394a64ebc23154797546ee4c781db7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-probe.py",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-probe.py",
+      "sha256": "209b07b9410a0cf30114344e86bffd406b2e0ecd31584f6efcfd0de3c1a39e8f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/cts-results.py",
+      "source_path": "kvm-box/shield-graphics/qualification/cts-results.py",
+      "sha256": "51bbaaefd66252f55c7586f3d7ad152ef366afda2d9d56d8b99b557938e61951",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/fetch-cts.py",
+      "source_path": "kvm-box/shield-graphics/qualification/fetch-cts.py",
+      "sha256": "6f8e9e203e27907674dde78ebb363eab4668298b6f86a29da043327447aedd91",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/glx-robustness.cpp",
+      "source_path": "kvm-box/shield-graphics/qualification/glx-robustness.cpp",
+      "sha256": "bc4fc857325d375f6e9ed9644fc3b07ea450b23a4537a09ce258d75c0bdbe0e0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/grid-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/grid-checkpoint.json",
+      "sha256": "f57851938a5f3b5f3a9ff1fcd89e692ea679f4c8a29b3b7438acecddcf7af15f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/linear-prepass.comp",
+      "source_path": "kvm-box/shield-graphics/qualification/linear-prepass.comp",
+      "sha256": "7d2d13d9d8c323d91b5c56c2c1aaf711f3a8ce33162a76b088f4c20d121ac8d1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/moonlight-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/moonlight-checkpoint.json",
+      "sha256": "71504b75578f357fc24b0698525075090c801edaa4ec1c749686fdcfcfb54b5b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v5-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v5-checkpoint.json",
+      "sha256": "f9fe687dc4e6aa81112d64730741ea247920f78371f770c92df2380293f93ae3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v5-hardware-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v5-hardware-checkpoint.json",
+      "sha256": "62e7bd32ab5f18a20fb5a61c5fa7d326bb297660b9bf70896c8f460b066fd482",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v6-build-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v6-build-checkpoint.json",
+      "sha256": "abac0bc150b02a6225a963572343a96d4e09163bfcd9ac223cf297c2e73dd796",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v6-hardware-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v6-hardware-checkpoint.json",
+      "sha256": "9d23d18b799c252030c4307bb8c75e48053dcf707be3ef331fb8b2a278c0dd45",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v7-cli-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v7-cli-checkpoint.json",
+      "sha256": "e84ace5307aa3f134d3ab1aabeffbb83266b211e1a5bf4bc7140c2c5ed2a1b68",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v8-desktop-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v8-desktop-checkpoint.json",
+      "sha256": "ec60cfcffc09fbdf4a6fef530955e733ddea5a2567e602dab369258d7cb82565",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v9-cpu-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v9-cpu-checkpoint.json",
+      "sha256": "35f08fa075436d779907fb358c0910d119702ad56d82ca20046945d71a0a7d98",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v9-livepool-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v9-livepool-checkpoint.json",
+      "sha256": "b69bf5267c5b0dfe62be043413b6e7d35bf766ad0acd7c2c6130b9f053443ecd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/native-v9-manager-checkpoint.json",
+      "source_path": "kvm-box/shield-graphics/qualification/native-v9-manager-checkpoint.json",
+      "sha256": "59b4dc85d4bbb3d6b4be2bcacb96e50d15683a69ad2e0f0f271edc9cbebaef44",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/nir-proof-tool.patch",
+      "source_path": "kvm-box/shield-graphics/qualification/nir-proof-tool.patch",
+      "sha256": "f1b0852126964e392ebba521a938ce5b776aa759f1a7438c1e7839f9a74037f1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/prepass-gl.comp",
+      "source_path": "kvm-box/shield-graphics/qualification/prepass-gl.comp",
+      "sha256": "1f79e9144b438ce6585389c1ed4cac6396453e82ea8142d8d70a53d0fe590cde",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/prepass-gl.cpp",
+      "source_path": "kvm-box/shield-graphics/qualification/prepass-gl.cpp",
+      "sha256": "8933c082a3922011c066232d70f762e0683f4161e4839b4a7776b88e4089e630",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/prepass.cpp",
+      "source_path": "kvm-box/shield-graphics/qualification/prepass.cpp",
+      "sha256": "9b779c56985580ee04332a8431c246442695456c6446eeb9e5f73d27df6203cd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/prepass.frag",
+      "source_path": "kvm-box/shield-graphics/qualification/prepass.frag",
+      "sha256": "e9d198d5d1986bcc9d99726e7a8532178ae866eb3f3c13f90c13fecb6690862c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/prepass.vert",
+      "source_path": "kvm-box/shield-graphics/qualification/prepass.vert",
+      "sha256": "af89c57c2fba5bbf8cb01730ba2d9cf5062e141537cfe6b5cae4107ff5a5c1de",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/probe-browser.py",
+      "source_path": "kvm-box/shield-graphics/qualification/probe-browser.py",
+      "sha256": "981924991fed380061fb61e25b96c831be62f167d86741db506e1c1870b8d7d1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/run-cts.py",
+      "source_path": "kvm-box/shield-graphics/qualification/run-cts.py",
+      "sha256": "b55bfa8284193a35bfe6b1e7f34af27c931d628158b9b07625bb5edc044790cb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/run-driver.py",
+      "source_path": "kvm-box/shield-graphics/qualification/run-driver.py",
+      "sha256": "063a27cedf337851dbe6dfd405e96f239f5dcd62af730b32316b29aa47e4963f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/stream-scene.py",
+      "source_path": "kvm-box/shield-graphics/qualification/stream-scene.py",
+      "sha256": "7f473dc5eaec8fc50ced3f29cf40a6bd0de051e190c4d478e9f8d3fd050249eb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/test-affine-nir.py",
+      "source_path": "kvm-box/shield-graphics/qualification/test-affine-nir.py",
+      "sha256": "16e97f8cfe01174d185fded1f33313dcf852ececa711bd9a714901be0fdde35c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/test-cts-results.py",
+      "source_path": "kvm-box/shield-graphics/qualification/test-cts-results.py",
+      "sha256": "5d1571f953b816d9adcda5f2a6565563afae6d79dc533f1299a404446e3069ec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/test-driver.py",
+      "source_path": "kvm-box/shield-graphics/qualification/test-driver.py",
+      "sha256": "4a99855234cf314214a31fb6bbaa4b2d647faa17b9249c7dbddb8c5d29cb2476",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/test-grid-nir.py",
+      "source_path": "kvm-box/shield-graphics/qualification/test-grid-nir.py",
+      "sha256": "ed051a508d9c483939a1b65c2808b25440a669f45d8443622f05fa91774a6ca7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/qualification/test-nir.py",
+      "source_path": "kvm-box/shield-graphics/qualification/test-nir.py",
+      "sha256": "ee15623bf4e1515716c41a98bb143aa3da51259b69735fe32a4c51d135dc12da",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/reference.Dockerfile",
+      "source_path": "kvm-box/shield-graphics/reference.Dockerfile",
+      "sha256": "ce3eaf622e8cddb14c63d71cc6a894134d5d3f58fb9794362db8ef453e2a870c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/reference.py",
+      "source_path": "kvm-box/shield-graphics/reference.py",
+      "sha256": "a4dbfd9154d162868c287b47c83a438d0c99165b832f3f8469fc697c1f19d883",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/shield-graphics/test_merge_native.py",
+      "source_path": "kvm-box/shield-graphics/test_merge_native.py",
+      "sha256": "97cdbf4a526191979424c3644b72ad82cdf23494a43f63091a876f988e148862",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/README.md",
+      "source_path": "risc-box/guest/README.md",
+      "sha256": "6d3da46ee83c714a012fb7783380919596edf510eefd14e67ec249538606838f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/README.md",
+      "source_path": "risc-box/guest/alpine-desktop/README.md",
+      "sha256": "a03f0814946408c2106bb550deafe91f7c07a2f49057686d350543257caf81bd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/apply-overlay.sh",
+      "source_path": "risc-box/guest/alpine-desktop/apply-overlay.sh",
+      "sha256": "de66e14304fab3f7d542e8864d9a25ec29d16d52fbac5b32dd2de569f10b2152",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/root/.mozilla/firefox/2xnqbvgz.default-release/chrome/userContent.css",
+      "source_path": "risc-box/guest/alpine-desktop/files/root/.mozilla/firefox/2xnqbvgz.default-release/chrome/userContent.css",
+      "sha256": "889b2c24be607227b9737381df8b01932a130cd2bc02730a65c81c06ecbf595a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/root/.mozilla/firefox/2xnqbvgz.default-release/user.js",
+      "source_path": "risc-box/guest/alpine-desktop/files/root/.mozilla/firefox/2xnqbvgz.default-release/user.js",
+      "sha256": "d12bdce701897c1cc35d421723ad53df57e68fba2af44f41d0d4018f2f9d15d2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/root/.themes/RiscBox/gtk-3.0/gtk.css",
+      "source_path": "risc-box/guest/alpine-desktop/files/root/.themes/RiscBox/gtk-3.0/gtk.css",
+      "sha256": "438f0c9c110da82653613d0e67088c16962b63a99076172be9ac045fd33a38cb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/usr/bin/xdesktop.sh",
+      "source_path": "risc-box/guest/alpine-desktop/files/usr/bin/xdesktop.sh",
+      "sha256": "e7a81e8f662934dffb9d5c4f6b5b745cb0f8901e28872ba390e11fb56b07403c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/usr/lib/firefox-esr/distribution/policies.json",
+      "source_path": "risc-box/guest/alpine-desktop/files/usr/lib/firefox-esr/distribution/policies.json",
+      "sha256": "953bf98cad26b0390fe3143a90dfee3855d7de9ae785790b18bee4e794da3f5f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/usr/local/bin/risc-browser",
+      "source_path": "risc-box/guest/alpine-desktop/files/usr/local/bin/risc-browser",
+      "sha256": "656045ce4c8d4d234c8a3f6509a226368cc0adfe2ecfcc0d2e89adff435148c8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/usr/local/bin/risc-open",
+      "source_path": "risc-box/guest/alpine-desktop/files/usr/local/bin/risc-open",
+      "sha256": "c265b94b5204c3b9f3519641a7d7457c99a441e28364c92f3c3b4d1cf388fc98",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/alpine-desktop/files/usr/local/bin/risc-xwin",
+      "source_path": "risc-box/guest/alpine-desktop/files/usr/local/bin/risc-xwin",
+      "sha256": "4f86f4e8b2a389e194b89804ef9d878465db6e38cd721198324d2bd031bbb12a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/Config.in",
+      "source_path": "risc-box/guest/br2-external/Config.in",
+      "sha256": "388ec5b5edac0e2c43fa855340e8a7aa6477b5364a76fa5dd558ba8b7e29476e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/external.desc",
+      "source_path": "risc-box/guest/br2-external/external.desc",
+      "sha256": "d0f801b005b7ba19dd96cf251e590407b9a753fbbd48305bce45ef68fe739e9e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/external.mk",
+      "source_path": "risc-box/guest/br2-external/external.mk",
+      "sha256": "77773cf499143fa582e242b440db8201ea061ce026bc266538f6303bc7feaef1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/exo/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/exo/Config.in",
+      "sha256": "a76d8e6533308254c4ea221f0ae1e091ebe4d14e34a82b54420261221c9a39f7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/exo/exo.hash",
+      "source_path": "risc-box/guest/br2-external/package/exo/exo.hash",
+      "sha256": "36acbc3fdacc5f9c7caff24da2851b0e95fc40b5cd89d5c03ca4a434be3cd469",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/exo/exo.mk",
+      "source_path": "risc-box/guest/br2-external/package/exo/exo.mk",
+      "sha256": "923216721f8c57401876ce3163d43d2d645b3f8ead998139097153bf3c768ded",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/garcon/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/garcon/Config.in",
+      "sha256": "8ff8cb3b6f690922dc9c44c1974eff76e673c84ec34528092065c976c48f91ef",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/garcon/garcon.hash",
+      "source_path": "risc-box/guest/br2-external/package/garcon/garcon.hash",
+      "sha256": "3c75a3f843cc7b8e055e91b492a2187b4ec9e55da1f64461901e66117985cf39",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/garcon/garcon.mk",
+      "source_path": "risc-box/guest/br2-external/package/garcon/garcon.mk",
+      "sha256": "928e11153489efd1bc3da544553f83afb3b5bf38f98dd11404734e0877372266",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libwnck3/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/libwnck3/Config.in",
+      "sha256": "ae0b0e0b3fecc81d064914bdfdba9698112f01e8c483a6ac9b87291fadcc4370",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libwnck3/libwnck3.hash",
+      "source_path": "risc-box/guest/br2-external/package/libwnck3/libwnck3.hash",
+      "sha256": "ab95a36a7db44ec1059f8a410e03daa6551f87863a46d4844eb2836b98369ede",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libwnck3/libwnck3.mk",
+      "source_path": "risc-box/guest/br2-external/package/libwnck3/libwnck3.mk",
+      "sha256": "0a715c9137df554ce41e29421f42931c64b726e33b2e1173849adb176af7fd12",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4ui/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4ui/Config.in",
+      "sha256": "187e6562061936f37d6f00d05725d920930b2b1d01c70f057500d72a0e407668",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4ui/libxfce4ui.hash",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4ui/libxfce4ui.hash",
+      "sha256": "9a3b38637e23228fee50e925dcfd3419cd45f62c9100e7bc5f601674680cdaa9",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4ui/libxfce4ui.mk",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4ui/libxfce4ui.mk",
+      "sha256": "ea7c2bc0cdf85e32f51d3274b64ff47ff7459a67f85c36633f2fe380e04a7f79",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4util/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4util/Config.in",
+      "sha256": "97131b841d5061a3e659324502c1edc306585e940a6d4b957a15239d731c13dd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4util/libxfce4util.hash",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4util/libxfce4util.hash",
+      "sha256": "ec5005755a505a16637e3d61134cb844ac2925e27106f5d0eb61f943fee5047a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/libxfce4util/libxfce4util.mk",
+      "source_path": "risc-box/guest/br2-external/package/libxfce4util/libxfce4util.mk",
+      "sha256": "18db530f4f25d9c79de8dac5ba37ef6c383779a6555efefca1c37de9a9807161",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/thunar/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/thunar/Config.in",
+      "sha256": "d7be6358fb4f14f7db8fc8b0b68415853cade320ed46dee973f5b9e7abe940d1",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/thunar/thunar.hash",
+      "source_path": "risc-box/guest/br2-external/package/thunar/thunar.hash",
+      "sha256": "f8f9d424449d9eef0a2cf4acb296afab249a7ff7a1e358d8aade42e128201cc0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/thunar/thunar.mk",
+      "source_path": "risc-box/guest/br2-external/package/thunar/thunar.mk",
+      "sha256": "3e6764a551bdae9eb9e2678127ff090477a048f7d71f117121d781263748da18",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-panel/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-panel/Config.in",
+      "sha256": "0fcbfc0c1f00a5237239427404261f92f6bf917952a560b08f761efc83715f69",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-panel/xfce4-panel.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-panel/xfce4-panel.hash",
+      "sha256": "250a59f96adfea7f43f678418b066ffcd0c7d19a8f1a95337a4b29e6d5712e1b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-panel/xfce4-panel.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-panel/xfce4-panel.mk",
+      "sha256": "b468a6c43f7a835a4a112df4eef3481125a2e572b6f23d16be04e167aa2e77a4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-session/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-session/Config.in",
+      "sha256": "6ae143b36531baa87266f826bec95920825596dfafc7c614eaf8fe0d708678e4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-session/xfce4-session.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-session/xfce4-session.hash",
+      "sha256": "f3c5b7f6df068db9baf7be95fa881e9d050865abebb02a46cc2a0bc7ac979b8e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-session/xfce4-session.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-session/xfce4-session.mk",
+      "sha256": "b4bd5edcf52a046600d22699a47e5088b85932bcdd005aa0c5707984b3c2a15e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-settings/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-settings/Config.in",
+      "sha256": "64557639e3c26f735870d2a2e182024d2edbcb9496d3082dd316a19295815748",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-settings/xfce4-settings.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-settings/xfce4-settings.hash",
+      "sha256": "67910afe044d844a77cf04fb1ec6e1d9efeca1de9f0b648e50f08a405657c086",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfce4-settings/xfce4-settings.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfce4-settings/xfce4-settings.mk",
+      "sha256": "a3f80cd30481d835d99c054a2bef13ad7a1f67ac93523d1ee30170e2ab34f6f0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfconf/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfconf/Config.in",
+      "sha256": "9613c184b7a5335939e53c4b0b28f8c15fe22bd4ea3afdb6b7fe07af74337f04",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfconf/xfconf.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfconf/xfconf.hash",
+      "sha256": "929c14d8eb9a4a54bc4ed826f357e495c52a83b8991d91032c9dca54bbc32784",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfconf/xfconf.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfconf/xfconf.mk",
+      "sha256": "d96ba244def5002b1c6cc3e85d8cfe6fb6961b364746e70198c170860e548bd4",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfdesktop/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfdesktop/Config.in",
+      "sha256": "3dbaa82230c8ee2f42ef82dbb33829c73945d5f9d05f873ea660de5efa18b22a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfdesktop/xfdesktop.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfdesktop/xfdesktop.hash",
+      "sha256": "b71cbbadfb3597d4101d235e05d8c193e8f893237f1834f65d6df8b5aca1d72a",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfdesktop/xfdesktop.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfdesktop/xfdesktop.mk",
+      "sha256": "91efb002c67c43a88b233052b0c944fee2c80b38e3bd7fc4f8c24b01403165a0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfwm4/Config.in",
+      "source_path": "risc-box/guest/br2-external/package/xfwm4/Config.in",
+      "sha256": "28f380594619b0b76f6bfaa3cb3e67b8e9b5ecda70394156391cd8cf380d9eac",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfwm4/xfwm4.hash",
+      "source_path": "risc-box/guest/br2-external/package/xfwm4/xfwm4.hash",
+      "sha256": "1bc2b00f3ea4d0feaf6f091b7709a343ef9dc77cecce318d4e4ed461b4a2b006",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/br2-external/package/xfwm4/xfwm4.mk",
+      "source_path": "risc-box/guest/br2-external/package/xfwm4/xfwm4.mk",
+      "sha256": "bdb56ca6a2b4cb414f15a3d1790ebf51226a902fb14d5f9ee70b6ef1d37bd43f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/build-opensbi.sh",
+      "source_path": "risc-box/guest/build-opensbi.sh",
+      "sha256": "23aec4eb060170383497a35d42fe59cee943e1c7985b6fd3be09f10227fa66aa",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/build.sh",
+      "source_path": "risc-box/guest/build.sh",
+      "sha256": "5f1107a5a092e1bc1495e0a049a9d1ace5798f509d4b600d77d415a1dd28d8d7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/buildroot-fluxbox.config",
+      "source_path": "risc-box/guest/buildroot-fluxbox.config",
+      "sha256": "040ad3a69bb723b4a0478ccc3ac7e29a92cebc6d9d948d9bc801d945466dc857",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/buildroot-matchbox.config",
+      "source_path": "risc-box/guest/buildroot-matchbox.config",
+      "sha256": "7b3761a7fb42f83dcb2e1a835a90018daf6ba37b0285598572c5efdf118a0306",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/buildroot-xfce.config",
+      "source_path": "risc-box/guest/buildroot-xfce.config",
+      "sha256": "44c7f3c4211978fa7903aa9839571ab4412619748440108509140a11c2250212",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/buildroot.config",
+      "source_path": "risc-box/guest/buildroot.config",
+      "sha256": "ae66fadfad9ff043f560ac1872d0a152e3df24ef7f6407bc12c5bc170e5391bd",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/cube.c",
+      "source_path": "risc-box/guest/cube.c",
+      "sha256": "68fdd0951c437de90182215c42d7dd883355eb30bc26d6070b313eb3d4eef06d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/README.md",
+      "source_path": "risc-box/guest/fbdoom/README.md",
+      "sha256": "d02e77312c07b5be773c05e88ba7fda0c6beef6529eafd025bc3bdf427286ec5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/build-xdoom.sh",
+      "source_path": "risc-box/guest/fbdoom/build-xdoom.sh",
+      "sha256": "d114425e0c15ceda5df7b3e919fc2ff3114cd36463043617ca6d57a53a3dec7c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/doom-desktop.sh",
+      "source_path": "risc-box/guest/fbdoom/doom-desktop.sh",
+      "sha256": "a3f7c3e5cefad0a4a71c2560debe3194dfe01f88347f337bfdfdaae99f8c02f7",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/doom-fullscreen.sh",
+      "source_path": "risc-box/guest/fbdoom/doom-fullscreen.sh",
+      "sha256": "aa5062476d7c77c9190b7374ee4907c1c02208d213eae00ab7866a502c23840e",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/doom-run.sh",
+      "source_path": "risc-box/guest/fbdoom/doom-run.sh",
+      "sha256": "facd206285d6798f9a9dde16fcdef57a62d8dd9b2e62eae208e7334266dd4ca5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/i_sound_rbx.c",
+      "source_path": "risc-box/guest/fbdoom/i_sound_rbx.c",
+      "sha256": "3c5b06b45eca20d9e4837eee3a12b402f76f2a8370d2ba1021708cc2f071b8f5",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/i_video_rbfb.c",
+      "source_path": "risc-box/guest/fbdoom/i_video_rbfb.c",
+      "sha256": "a750a0f7a2e180c21f0d76be26904d4859a71921e4e2c27dfea151ee90d6730c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/i_video_x11raw.c",
+      "source_path": "risc-box/guest/fbdoom/i_video_x11raw.c",
+      "sha256": "036254b16d62ec99fa1170695cdbbd2ff8b0232172f2594d8c50872864c34d0f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/i_oplmusic.c",
+      "source_path": "risc-box/guest/fbdoom/music/i_oplmusic.c",
+      "sha256": "599a3513dbc7f71873f9e1ad2833c776f179d06591c5f6978dcec52ff8ae9ac6",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/memio.c",
+      "source_path": "risc-box/guest/fbdoom/music/memio.c",
+      "sha256": "1edbd3d198dd64afbb3c201555f7d8a6377193dc00880f1062b2845ef1d64432",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/memio.h",
+      "source_path": "risc-box/guest/fbdoom/music/memio.h",
+      "sha256": "3dff35a40b042f831d0b2505b6238c8ff96663ea527aae3614d23ee1870fcc92",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/midifile.c",
+      "source_path": "risc-box/guest/fbdoom/music/midifile.c",
+      "sha256": "17c83a9b306c919334dda009f966af0f2d6daeb5687419b3099c5cb821ac4609",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/midifile.h",
+      "source_path": "risc-box/guest/fbdoom/music/midifile.h",
+      "sha256": "6df63dc0eb22cdb4082caf342ab68bc24d1c8b3e21de22396d8cc806a6d7d13b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/mus2mid.c",
+      "source_path": "risc-box/guest/fbdoom/music/mus2mid.c",
+      "sha256": "c20f0550c5b29aee602c56844f6dfd65a8092b5fe82b3af7a2dadb99ece1ac4c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/mus2mid.h",
+      "source_path": "risc-box/guest/fbdoom/music/mus2mid.h",
+      "sha256": "a1eee41f5dd505882a5cbb6a5c57eb7885103e056f4dba15865b7a0014e9f9a3",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/music_compat.c",
+      "source_path": "risc-box/guest/fbdoom/music/music_compat.c",
+      "sha256": "fe42e3883049ba9f8044966700cb587779e181456fa5ad25af1bab371d246592",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/opl.h",
+      "source_path": "risc-box/guest/fbdoom/music/opl.h",
+      "sha256": "82133cff253a2fcce4feee87e0820bf962e7fced247d9920a2cda74196d68315",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/opl_internal.h",
+      "source_path": "risc-box/guest/fbdoom/music/opl_internal.h",
+      "sha256": "b13e3b8be9247c8b4d563d8d7fb791464e6d0668af1c2276789000a129ed0fe0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/opl_queue.c",
+      "source_path": "risc-box/guest/fbdoom/music/opl_queue.c",
+      "sha256": "6bad487968bec7cd66732cc3751071e57c228a558496c2c0d5d23221b3534664",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/opl_queue.h",
+      "source_path": "risc-box/guest/fbdoom/music/opl_queue.h",
+      "sha256": "1fdc0259467f6801457ba1adbd5943eb335ee6ba34a7944808deeaf24952ba49",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/music/opl_rbx.c",
+      "source_path": "risc-box/guest/fbdoom/music/opl_rbx.c",
+      "sha256": "873d550a1b7496e4b5d3c205660f947f3bfd9b37037914b66080a4fece447abb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/patch-palette-timer.py",
+      "source_path": "risc-box/guest/fbdoom/patch-palette-timer.py",
+      "sha256": "84f9a34e591cdf2db03cc8fd1905f321515b9b864250d0c0aca40f02fcbeba19",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/scale3.h",
+      "source_path": "risc-box/guest/fbdoom/scale3.h",
+      "sha256": "2191ac937cc5f434de5384b0e91c7b34a9d9fbc44aff5ba0b024bbb361393b93",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/test-palette-timer.py",
+      "source_path": "risc-box/guest/fbdoom/test-palette-timer.py",
+      "sha256": "175fc3df7ff408e6a32a6d5d3d2757882fc4ca52e6c1e39615c57fddc15f97fe",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/timer-wide.patch",
+      "source_path": "risc-box/guest/fbdoom/timer-wide.patch",
+      "sha256": "bad94264b8daf646cb8ce63d39788b58412c3ac30f77752d21e77b0ec5e9aa25",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/uncapped.patch",
+      "source_path": "risc-box/guest/fbdoom/uncapped.patch",
+      "sha256": "a358e82e6b2a0c5ba43caee4b7ef11307283d954ce5d6af4ea50b1d989cd0f05",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/fbdoom/xdesktop.sh",
+      "source_path": "risc-box/guest/fbdoom/xdesktop.sh",
+      "sha256": "2579b04a1939e78b62543f5563465c652688dac876408014f64cca5341de43ec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/kernel.fragment",
+      "source_path": "risc-box/guest/kernel.fragment",
+      "sha256": "3dbb049f9b22188770439c76001801e44fc722cb0b0770856f555e6428a1bac2",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/X11/xorg.conf",
+      "source_path": "risc-box/guest/overlay/etc/X11/xorg.conf",
+      "sha256": "933f11e0a1227dfd0b846f6d9e8a45831e5b3e214801fc4bc75688bd8c6e6376",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/fluxbox/menu",
+      "source_path": "risc-box/guest/overlay/etc/fluxbox/menu",
+      "sha256": "09969db637ad6fc07a402ce4af39e0e24874cdba9b8a7448cb7a7f56c80dc4ec",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/init.d/S90xdesktop",
+      "source_path": "risc-box/guest/overlay/etc/init.d/S90xdesktop",
+      "sha256": "0566018cac7898e84de3e44e774dfe447a26ecac405a4a45347d838412fb3adb",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/network/interfaces",
+      "source_path": "risc-box/guest/overlay/etc/network/interfaces",
+      "sha256": "a0b2b82668b9364952ed120ea95623b1e609f6c78d7f6f4bfd895ad779095cf0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/resolv.conf",
+      "source_path": "risc-box/guest/overlay/etc/resolv.conf",
+      "sha256": "bf97be69e0bd42930beaae379251d994c86ba6047caa26014638ac4613855193",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/xdg/gtk-3.0/settings.ini",
+      "source_path": "risc-box/guest/overlay/etc/xdg/gtk-3.0/settings.ini",
+      "sha256": "b6c30b2f7f374dea21afaed302024b3fd9d6bfd503c9597b9047a295910ce4ed",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml",
+      "source_path": "risc-box/guest/overlay/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml",
+      "sha256": "f8002ea6971329817c181ef5d279d0d2d355eaa430b872051be2131417812f53",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/root/.twmrc",
+      "source_path": "risc-box/guest/overlay/root/.twmrc",
+      "sha256": "a6e1ec0a1097927cdfa367bd71eb3e6a9004f8559d5c2ce1adae67aee986448d",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/usr/bin/xdesktop.sh",
+      "source_path": "risc-box/guest/overlay/usr/bin/xdesktop.sh",
+      "sha256": "035ea801ba5af26905206bbc9f92839e2bc248e6c5ddf25a25850afc256ee63c",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/overlay/usr/share/X11/xkb/precompiled.xkm",
+      "source_path": "risc-box/guest/overlay/usr/share/X11/xkb/precompiled.xkm",
+      "sha256": "09540d6c09e7ba19a534e9cf50ecb81668d699e458bdb8e77996bb053ce15fa0",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/patches/xserver_xorg-server/0001-xkb-install-precompiled-keymap-no-xkbcomp-fork.patch",
+      "source_path": "risc-box/guest/patches/xserver_xorg-server/0001-xkb-install-precompiled-keymap-no-xkbcomp-fork.patch",
+      "sha256": "622bf0b660c336d5bb69f072234e971023a4875209eff2d2bd20b53dd7b9ccc8",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/post-build.sh",
+      "source_path": "risc-box/guest/post-build.sh",
+      "sha256": "9274820d4231ef9b2fd4f169fb46388d0bd425c6d772c6fa1f419149c2f1436b",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/risc-box/guest/xkbcomp-wrapper.sh",
+      "source_path": "risc-box/guest/xkbcomp-wrapper.sh",
+      "sha256": "e45ce4f02898b8e706f11b97fcf354504b77333aef94f15798f2025ab24cbe4f",
+      "local_candidate": false
+    },
+    {
+      "path": "reference/kvm-box/guest/native/cursor/start.py",
+      "source_path": "kvm-box/guest/native/cursor/start.py",
+      "sha256": "3bf72f36538d55ecea24245fdc13fa78e317c1c33223be901f47c4ece6e7a6ed",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/cursor/README.md",
+      "source_path": "kvm-box/guest/native/cursor/README.md",
+      "sha256": "394f52765ea9586c3d72f50171195f5dbdb200dfa23539f945e2ee2efd8c174f",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/cursor/supervise.py",
+      "source_path": "kvm-box/guest/native/cursor/supervise.py",
+      "sha256": "d993a4192bc7916c75e8c66b73dc2f7b94065fb3c5c307bf11eb3225b6ec3030",
+      "local_candidate": true
+    },
+    {
+      "path": "reference/kvm-box/guest/native/cursor/cursor-owner.c",
+      "source_path": "kvm-box/guest/native/cursor/cursor-owner.c",
+      "sha256": "0b249e631995e33a61604e110529875c0cf6cd82af831a7c3ccc783887e48b9a",
+      "local_candidate": true
+    }
+  ]
+}

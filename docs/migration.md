@@ -1,0 +1,48 @@
+# Reconciliation and release gates
+
+The source import is pinned in `provenance/import.json`, including hashes and an explicit marker for uncommitted cursor candidates. Other dirty files in the source checkout were imported from the recorded Git commit, so unrelated work was not incorporated. The current deployed system was identified as Debian 13.7; its public game launchers are in `provenance/runtime-inventory.json`.
+
+| Component | Common implementation | Remaining qualification |
+| --- | --- | --- |
+| OS/libc/package manager | Alpine 3.24 / musl / APK for both CPUs | Boot on each real platform; syscall/kernel compatibility |
+| Desktop | Fluxbox, tiny theme, 960×600, outline dragging | Real input, clipboard, resize and accessibility checks |
+| Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
+| FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
+| Browser | Common lightweight profile; Alpine Firefox as development baseline | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
+| Sunshine/Moonlight | Alpine x86-64 upstream APK exists; source/client patches are migration inputs | Build/verify patched Sunshine on musl, RV64 capture/encoder feasibility; audio/input parity |
+| noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
+| Shield compute | Imported worker/protocol/SDK source | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
+| OpenGL/Vulkan | Imported patched Mesa/driver source | Musl toolchain, platform ISA, full qualification suite; never replace Shield routing with direct GPU access |
+| OpenArena | Custom ioquake3 input mode bridge | Recover final source diff, musl builds, menu/relative-mode/sensitivity tests |
+| LibreQuake | QuakeSpasm + pinned game content | Rebuild engine against musl; share libraries through APK dependencies |
+| Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
+| OpenHV | OpenRA/.NET 6 game + content | Supported musl runtime/architecture, shared runtime packaging, W^X and rendering tests |
+| Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
+| RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
+
+There is **one** shared OS definition; platform profiles only select architecture, display driver and boot boundary. Features unavailable on one architecture remain explicitly pending. They must not silently disappear from a release advertised as equivalent.
+
+## Security contract
+
+The desktop is unprivileged. Platform startup creates fresh session credentials and authenticated X sockets; no credential is baked into the rootfs. Only the masked Shield service may reach GPU compute; desktop software must not receive raw DRM/CUDA or host GPU passthrough. Unsupported work stays on the CPU.
+
+W^X enforcement belongs in the platform boundary, with forbidden allocation requests rejected rather than killing the entire VM. The existing native seccomp code is **x86-64-specific** and must not be reused on RV64 without a separately tested syscall-ABI implementation. Browser preferences are defense in depth, not a substitute for that enforcement.
+
+ASLR, TLS/certificate validation, Safe Browsing and site isolation remain enabled. Xorg SECURITY must remain enabled. The new desktop session refuses to start without a readable authority file and inherits the adapter's display/authority rather than assuming Debian paths.
+
+## Deployment gate
+
+1. Both architecture APK builds and signed install tests pass.
+2. Both full userlands boot on the actual RISC Box and KVM Box launch paths.
+3. The native isolation boundary and the RV64 boundary pass their respective security tests.
+4. The retained app matrix passes input/cursor, graphics, sound, browser video and agent tests; unsupported features are reported honestly.
+5. Produce immutable roots, package/SBOM inventories, verified provenance and new platform measurements.
+6. Publish signed releases and catalog updates through the normal deployment path. Never overwrite the known-good deployed Debian image while migration gates are open.
+
+## Source references
+
+- [Alpine release policy](https://alpinelinux.org/releases/)
+- [Alpine x86-64 release manifests](https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/)
+- [Alpine RISC-V release manifests](https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/riscv64/)
+- [Sunshine release with Alpine packages](https://github.com/LizardByte/Sunshine/releases/tag/v2026.914.233613)
+- [Alpine package creation](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
