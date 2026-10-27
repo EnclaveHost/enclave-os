@@ -67,5 +67,8 @@
     "librequake",
     "visual-pinball-x",
     "openhv"
+  ],
+  "exclude_packages": [
+    "py3-numpy-tests"
   ]
 }

@@ -4,7 +4,7 @@ The repository already has real APKBUILD recipes, native builds and signed insta
 
 ## Package boundaries
 
-Use a single copy of each shared library/runtime. Put applications, engines and content into separate packages where upgrades or footprint warrant it. Keep compilers, headers, tests, source archives and build caches out of installed images. Do not ship a glibc compatibility distribution just to reuse Debian binaries. Rebuild custom components for musl instead.
+Use a single copy of each shared library/runtime. Put applications, engines and content into separate packages where upgrades or footprint warrant it. Keep compilers, headers, tests, source archives and build caches out of installed images. The profile excludes the automatically installed NumPy test suite while retaining NumPy and its accelerated runtime. Do not ship a glibc compatibility distribution just to reuse Debian binaries. Rebuild custom components for musl instead.
 
 Images have a small common core and a full desktop preset. Package selection is explicit, identical across architectures except display drivers, and recorded with the final dependency inventory. Do not remove fonts, codecs, certificates, locales or accessibility support blindly to improve a headline size number. Measure the benefit and preserve needed functionality.
 

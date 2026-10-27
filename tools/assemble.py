@@ -29,14 +29,22 @@ def main():
     repos=out.parent/(out.name+'.build-repositories')
     upstream=[f'https://dl-cdn.alpinelinux.org/alpine/{lock["alpine_branch"]}/{c}' for c in ('main','community')]
     repos.write_text('\n'.join([str(a.repository.resolve()),*upstream])+'\n')
-    run('apk','--root',str(out),'--arch',a.arch,'--keys-dir',str(out/'etc/apk/keys'),'--repositories-file',str(repos),'--no-cache','add',*packages)
+    run('apk','--root',str(out),'--arch',a.arch,'--keys-dir',str(out/'etc/apk/keys'),'--repositories-file',str(repos),'--no-cache','add',*packages,*('!'+name for name in profile['exclude_packages']))
     repos.unlink();(out/'etc/apk/repositories').write_text('\n'.join(upstream)+'\n')
     # CI keys authorize this test artifact only, never a production feed.
     (out/'etc/apk/keys'/a.key.name).unlink()
     if a.preset=='desktop':
         target=out/'etc/X11/xorg.conf';target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'platforms'/platform['platform']/'xorg.conf',target)
-    report={'architecture':a.arch,'preset':a.preset,'platform':platform['platform'],'production_qualified':False,
+    installed=(out/'lib/apk/db/installed').read_text()
+    sizes=[]
+    for block in installed.split('\n\n'):
+        fields=dict(line.split(':',1) for line in block.splitlines() if ':' in line)
+        if 'P' in fields:
+            assert fields['P'] not in profile['exclude_packages']
+            sizes.append({'package':fields['P'],'bytes':int(fields.get('I','0'))})
+    sizes.sort(key=lambda item:item['bytes'],reverse=True)
+    report={'largest_packages':sizes[:20],'excluded_test_packages':profile['exclude_packages'],'architecture':a.arch,'preset':a.preset,'platform':platform['platform'],'production_qualified':False,
             'requested_packages':packages,'bytes':sum(f.stat().st_size for f in out.rglob('*') if f.is_file() and not f.is_symlink())}
     # Installed database records dependency versions, sizes and origin for the entire image.
     shutil.copyfile(out/'lib/apk/db/installed',out.parent/(out.name+'.apk-installed'))

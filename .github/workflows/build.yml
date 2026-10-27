@@ -31,7 +31,7 @@ jobs:
       - name: Compile, sign, install and smoke test APKs; assemble both profiles
         run: |
           mkdir -p out
-          docker run --rm --platform linux/${{ matrix.platform }} \
+          docker run --rm --cap-add SYS_ADMIN --security-opt apparmor=unconfined --platform linux/${{ matrix.platform }} \
             -e ENCLAVE_ARCH=${{ matrix.arch }} -v "$PWD:/src:ro" -v "$PWD/out:/out" \
             alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
             /bin/sh /src/tools/ci-build.sh

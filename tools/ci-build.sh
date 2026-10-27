@@ -33,7 +33,12 @@ for preset in minimal desktop; do
     chroot "/out/root-$preset" /bin/sh -c 'test "$(cat /etc/alpine-release)" = 3.24.3'
     if [ "$preset" = desktop ]; then
         chroot /out/root-desktop /usr/bin/python3 --version
+        # Firefox resolves its executable through procfs, as in a booted OS.
+        mount -t proc proc /out/root-desktop/proc
+        trap 'umount /out/root-desktop/proc || true' EXIT
         chroot /out/root-desktop /usr/bin/firefox-esr --version
+        umount /out/root-desktop/proc
+        trap - EXIT
     fi
     if [ "$preset" = minimal ]; then
         /src/tools/boot-payload.sh "/out/root-$preset" "$ENCLAVE_ARCH"
