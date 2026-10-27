@@ -31,7 +31,7 @@ cmake --build ${BUILD_ROOT}/sd --target sd-cli -j "$JOBS"
 make -C "$SHIELD" -j "$JOBS" libggml-shielded.so shielded-run shielded-probe sd-calib \
     GGML_SRC="$LLAMA" GGML_LIB=${BUILD_ROOT}/llama/bin \
     SD_SRC="$SD" SD_LIB=${BUILD_ROOT}/sd/bin "LDLIBS=-lm -lpthread -L${BUILD_ROOT}/llama/bin" \
-    'CFLAGS=-O2 -std=gnu11 -Wall -Wextra -fPIC -fno-math-errno' \
+    "CFLAGS=${CFLAGS:--O2} -std=gnu11 -Wall -Wextra -fPIC -fno-math-errno -ffp-contract=off" \
     'CXXFLAGS=-O2 -std=c++17 -Wall -Wextra -fPIC -fno-math-errno -DGGML_MAX_NAME=128'
 cp -a ${BUILD_ROOT}/llama/bin/lib*.so* ${BUILD_ROOT}/sd/bin/libstable-diffusion.so* ${BUILD_ROOT}/out/lib/
 mv ${BUILD_ROOT}/out/lib/libggml-cpu.so ${BUILD_ROOT}/out/lib/backends/
