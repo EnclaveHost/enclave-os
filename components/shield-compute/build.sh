@@ -25,12 +25,12 @@ cmake -S "$SD" -B ${BUILD_ROOT}/sd -G Ninja -DCMAKE_BUILD_TYPE=Release \
     -DSD_BUILD_SHARED_LIBS=ON -DSD_USE_SYSTEM_GGML=ON -DSD_BUILD_EXAMPLES=ON \
     -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_CUDA=OFF -DSD_VULKAN=OFF \
     -DCMAKE_PREFIX_PATH=${BUILD_ROOT}/prefix \
-    '-DCMAKE_C_FLAGS=-DGGML_MAX_NAME=128 -I${BUILD_ROOT}/prefix/include' \
-    '-DCMAKE_CXX_FLAGS=-DGGML_MAX_NAME=128 -I${BUILD_ROOT}/prefix/include'
+    "-DCMAKE_C_FLAGS=-DGGML_MAX_NAME=128 -I${BUILD_ROOT}/prefix/include" \
+    "-DCMAKE_CXX_FLAGS=-DGGML_MAX_NAME=128 -I${BUILD_ROOT}/prefix/include"
 cmake --build ${BUILD_ROOT}/sd --target sd-cli -j "$JOBS"
 make -C "$SHIELD" -j "$JOBS" libggml-shielded.so shielded-run shielded-probe sd-calib \
     GGML_SRC="$LLAMA" GGML_LIB=${BUILD_ROOT}/llama/bin \
-    SD_SRC="$SD" SD_LIB=${BUILD_ROOT}/sd/bin 'LDLIBS=-lm -lpthread -L${BUILD_ROOT}/llama/bin' \
+    SD_SRC="$SD" SD_LIB=${BUILD_ROOT}/sd/bin "LDLIBS=-lm -lpthread -L${BUILD_ROOT}/llama/bin" \
     'CXXFLAGS=-O2 -std=c++17 -Wall -Wextra -fPIC -fno-math-errno -DGGML_MAX_NAME=128'
 cp -a ${BUILD_ROOT}/llama/bin/lib*.so* ${BUILD_ROOT}/sd/bin/libstable-diffusion.so* ${BUILD_ROOT}/out/lib/
 mv ${BUILD_ROOT}/out/lib/libggml-cpu.so ${BUILD_ROOT}/out/lib/backends/

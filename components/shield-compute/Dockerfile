@@ -1,6 +1,4 @@
-FROM debian@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential cmake ninja-build git ca-certificates python3 libssl-dev patchelf \
-    && rm -rf /var/lib/apt/lists/*
+FROM alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+RUN apk add --no-cache build-base cmake samurai git ca-certificates python3 openssl-dev patchelf
 WORKDIR /build
 ENTRYPOINT ["/bin/sh", "/input/build.sh"]
