@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eux
-apk add --no-cache alpine-sdk sudo linux-headers libx11-dev python3 go novnc nodejs
+apk add --no-cache alpine-sdk sudo linux-headers libx11-dev python3 go novnc=1.6.0-r1 nodejs
 mkdir -p /build /out/bin
 cp -a /src/components/native-platform/. /build/
 cd /build
@@ -56,6 +56,13 @@ cp /out/bin/* /build/native-platform/bin/
 cp -a /build/ui /build/native-platform/ui
 python3 /src/tests/native-policy.py /build/shield
 cp -a /build/shield /build/native-platform/shield
+python3 - <<'PY'
+import pathlib,json,hashlib
+root=pathlib.Path('/build/licenses/novnc')
+for name,digest in json.loads((root/'provenance.json').read_text())['files'].items():
+    assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
+PY
+cp -a /build/licenses /build/native-platform/licenses
 cp readiness.py network_policy.py 70-kvm-box-input.rules sunshine.conf sunshine-apps.json /build/native-platform/
 cp /src/platforms/kvm-box/xorg.conf /build/native-platform/xorg.conf
 cp /src/LICENSE /build/native-platform/LICENSE
