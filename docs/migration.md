@@ -15,14 +15,14 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
 | Sunshine/Moonlight | Pinned source-based X11/software-encoder APK in progress for both CPUs; client audio/input patch preserved in `integrations/moonlight` | Finish musl builds, RV64 capture/encoder feasibility; authenticated service integration and audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK and trusted-core/service dual-ISA builds pass; x86 CPU OpenCL arithmetic passes; finish frontend/HIP and masked worker conformance |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend/HIP and masked worker conformance remain |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
-| Visual Pinball X | Imported runtime inventory | Scripting/spatial audio pass on both CPUs; image codec passes both CPUs; x86 core and two rendered tables pass; RV64 core/plugins and streamed qualification remain |
-| OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup passed; RV64 runtime port, W^X and full rendering tests remain |
+| Visual Pinball X | Pinned engine, retained default table and installed launcher | Scripting/spatial audio and image codec pass both CPUs; x86 installed launcher/tables pass; RV64 core/plugins and streamed qualification remain |
+| OpenHV | Pinned OpenHV/OpenRA shared CIL with native musl libraries | x86 .NET 10 and RV64 pinned .NET 12 development runtime startup pass; RV64 text-relocation fix, signed install, kernel W^X and streamed tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
-| RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
+| RISC boot | Pinned actual emulator, OpenSBI and kernel fixture | Native and Wasm emulator boot Alpine; full desktop/device tests and supported production kernel/admission remain |
 
 There is **one** shared OS definition; platform profiles only select architecture, display driver and boot boundary. Features unavailable on one architecture remain explicitly pending. They must not silently disappear from a release advertised as equivalent.
 
@@ -131,3 +131,45 @@ also pass role UID/GID/capability boundaries and confined input-daemon socket an
 syscall rules, including inheritance across exec. The exact production kernel
 checks remain intact. Complete service startup, input mediation and measured
 platform admission are still open.
+
+## Preview and additional qualification, 2026-10-28
+
+The explicit `preview` preset retains every `full` feature and requires all its
+packages, including Enclave Browser. It records unfinished qualification rather
+than clearing the default full-image release gate. Its separate workflow merges
+verified signed package inputs and builds a measured, corruption-tested root.
+The result is still not a boot/admission or production deployment claim.
+
+The [actual RISC emulator boot](https://github.com/EnclaveHost/enclave-os/actions/runs/40618669421)
+and [Wasm boot](https://github.com/EnclaveHost/enclave-os/actions/runs/40619197984)
+reach the pinned Alpine musl userland using the recovered production emulator
+implementation. The fixture uses Linux 5.15.164 for compatibility, not an approved
+production kernel. It does not yet qualify the full desktop or RV64 isolation.
+
+The [retained Moonlight client](https://github.com/EnclaveHost/enclave-os/actions/runs/40616779298)
+builds from its pinned source and recovered patch, and passes audio backlog
+boundary tests. Actual encrypted streaming and cursor transitions remain separate
+tests. No local Moonlight installation or pairing state was changed.
+
+The [standard llama.cpp/sd.cpp package](https://github.com/EnclaveHost/enclave-os/actions/runs/40616339429)
+passes Q8 tensor-view round trips, a mixed CPU/OpenCL graph with 4,096 checked
+outputs, and actual device enumeration. The [installed frontend](https://github.com/EnclaveHost/enclave-os/actions/runs/40617930209)
+includes the missing Q8 compiler reference files and passes positive/mutated
+compiler fixtures. [CUDA/HIP source compatibility](https://github.com/EnclaveHost/enclave-os/actions/runs/40619200767)
+passes transpose, vector addition, floating and integer matrix multiplication,
+asynchronous calls and pi-scaled math on musl. These executions use CPU fallback.
+The [installed audited IR reference](https://github.com/EnclaveHost/enclave-os/actions/runs/40619795731)
+passes all nine structural checks, including the actual chipStar wrapper, changed
+arithmetic, unknown builtins, global side effects and malformed/specialized SPIR-V.
+Recognition alone never grants model/public-weight approval or proves GPU offload.
+
+The [installed Pinball launcher](https://github.com/EnclaveHost/enclave-os/actions/runs/40617171096)
+passes both rendered tables and checks the retained writable default-table copy
+and 960×600 preferences. Plugins and streamed play remain unqualified.
+
+[RV64 OpenHV startup](https://github.com/EnclaveHost/enclave-os/actions/runs/40617746581)
+passes managed arithmetic/threading, SHA-256 and file I/O, then opens the game
+through private Mesa. This uses a pinned .NET 12 development runtime, not a
+released RV64 .NET 10 runtime. Subsequent APK validation rejected its TEXTREL
+markers; the source now requires `-z text` for RV64 and is rebuilding. That fix
+and actual kernel W^X tests must pass before the package is qualified.
