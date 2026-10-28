@@ -192,8 +192,17 @@ installs all 293 non-browser dependencies in a clean root and starts the install
 llama.cpp, sd.cpp and HIP command lines. The test includes private proc/sys mounts
 and safe character devices; omitting these had prevented musl/hwloc startup in an
 earlier harness. This check produces no preview image and does not substitute for
-the custom browser build. Subsequent desktop/native-package updates must be
-rechecked in this composition before image assembly.
+the custom browser build. The [updated composition](https://github.com/EnclaveHost/enclave-os/actions/runs/40625672606)
+also passes with the current native and desktop APKs. It exercises native root
+preparation, keeps the single input rule set, starts with empty session mounts,
+retains the browser extension and merges the fixed SOCKS policy, then verifies
+the recovered model-policy/calibration bindings.
+
+The [updated shared desktop](https://github.com/EnclaveHost/enclave-os/actions/runs/40625428557)
+passes authenticated X, visible cursor, singleton and crash/hang recovery tests
+on both CPUs. It retains the signed uBlock Origin 1.75.0 XPI from the recovered
+image; actual extension loading in the new browser remains part of browser
+integration qualification.
 
 The [clean-source KVM kernel fixture](https://github.com/EnclaveHost/enclave-os/actions/runs/40621991327)
 retains the exact `6.6.87.2-enclave-kvm-box` ABI and recovered OpenHCL TPM driver.
