@@ -7,6 +7,7 @@ apk --root /out/boot-root --initdb --no-cache --keys-dir /etc/apk/keys \
 cc -static -O2 -Wall -Wextra -Werror -I/src/components/platform-policy \
     /src/tests/managed-policy-exec.c -o /out/boot-root/policy-exec
 cp /src/tests/preview-root-check.py /out/boot-root/root-check.py
+cp /src/tests/ffi-policy.py /out/boot-root/ffi-policy.py
 python3 - <<'PY'
 import json,pathlib,re
 p=json.loads(pathlib.Path('/out/kvm-profile.json').read_text())
@@ -46,7 +47,7 @@ mkdir -p /sysroot/home/desktop /sysroot/dev/shm
 chown 1000:1000 /sysroot/home/desktop
 chmod 700 /sysroot/home/desktop
 mount -t tmpfs -o size=128m,mode=1777 tmpfs /sysroot/dev/shm
-cp /policy-exec /root-check.py /sysroot/run/
+cp /policy-exec /root-check.py /ffi-policy.py /sysroot/run/
 export HOME=/home/desktop TMPDIR=/tmp POCL_MAX_PTHREAD_COUNT=2 LP_NUM_THREADS=2
 chroot /sysroot /run/policy-exec /usr/bin/python3 -I /run/root-check.py
 echo ENCLAVE_PREVIEW_ROOT_BOOT_OK

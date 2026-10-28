@@ -19,6 +19,6 @@ if code or 'ENCLAVE_PREVIEW_ROOT_BOOT_OK' not in log or 'ENCLAVE_PREVIEW_ROOT_BO
 reports = [line.split('=', 1)[1] for line in log.splitlines() if line.startswith('ENCLAVE_PREVIEW_ROOT_RESULT=')]
 assert len(reports) == 1
 report = json.loads(reports[0])
-assert len(report['checks']) == 5 and all(item['passed'] for item in report['checks'])
+assert len(report['checks']) == 6 and all(item['passed'] for item in report['checks'])
 (out/'preview-boot.json').write_text(json.dumps(report, indent=2)+'\n')
 print('PASS: measured preview root, kernel verity scan, policy refusal and installed command lines')

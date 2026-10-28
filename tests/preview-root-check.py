@@ -12,6 +12,7 @@ libc.mmap.restype = ctypes.c_void_p
 mapping = libc.mmap(None, 4096, 7, 0x22, -1, 0)
 assert mapping == ctypes.c_void_p(-1).value and ctypes.get_errno() in (errno.EPERM, errno.ENOMEM)
 commands = [
+    ['/usr/bin/python3', '-I', '/run/ffi-policy.py'],
     ['/usr/bin/enclave-firefox', '--version'],
     ['/usr/bin/node', '--jitless', '-e', 'if (6*7 !== 42) process.exit(1)'],
     ['/usr/bin/llama-cli', '--list-devices'],

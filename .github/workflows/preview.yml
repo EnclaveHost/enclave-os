@@ -55,6 +55,15 @@ jobs:
       - name: Wrap verified root and hash payloads for native optical attachment
         run: python3 tools/kvm_media.py out
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: unqualified-preview-root-debug
+          path: |
+            out/rootfs.squashfs
+            out/rootfs.verity
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: enclave-os-x86-preview
