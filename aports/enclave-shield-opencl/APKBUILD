@@ -1,6 +1,6 @@
 pkgname=enclave-shield-opencl
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Shield OpenCL frontend with typed source recognition and CPU fallback"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"

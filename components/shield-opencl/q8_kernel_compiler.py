@@ -17,7 +17,9 @@ REFERENCES = {'mm': 'mul_mm_q8_0_f32_l4_lm.cl', 'mv': 'mul_mv_q8_0_f32_flat.cl'}
 STRICT = ('-cl-std=CL3.0',)
 FAST = STRICT + ('-cl-mad-enable', '-cl-unsafe-math-optimizations',
                  '-cl-finite-math-only', '-cl-fast-relaxed-math')
-CAPABILITIES = ('-Dcl_intel_subgroups=1', '-Dcl_intel_required_subgroup_size=1')
+# Analyze the device language independently of the compiler host's ISA.
+CAPABILITIES = ('--target=spir64', '-Dcl_intel_subgroups=1',
+                '-Dcl_intel_required_subgroup_size=1')
 BUILTINS = {'get_global_id', 'get_group_id', 'get_local_id', 'get_local_size',
             'get_sub_group_id', 'get_sub_group_local_id', 'sub_group_reduce_add',
             'convert_float4', 'convert_float8', 'vload8', 'barrier', 'mad'}
