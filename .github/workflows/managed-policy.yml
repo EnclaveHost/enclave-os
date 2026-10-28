@@ -1,0 +1,63 @@
+name: Managed runtime under actual kernel W^X policy
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  managed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64, riscv64]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Fetch qualified runtime and real policy kernel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          mkdir packages managed out
+          if [ "$PLATFORM" = riscv64 ]; then
+            test "$(gh run view 40622790860 --json conclusion --jq .conclusion)" = success
+            gh run download 40622790860 --name openhv-riscv64-runtime --dir packages
+            gh run download 40615018707 --name native-policy-riscv64 --dir policy
+            cp policy/smoke-kernel out/smoke-kernel
+          else
+            gh run download 40621991327 --name native-kernel-fixture-amd64 --dir kernel
+            printf '%s\n' 'd1b2313a6775853305be0cfb2df2f0911c0428170cc7b12b5015a8a613cd61a4  kernel/bzImage' | sha256sum -c -
+            cp kernel/bzImage out/smoke-kernel
+          fi
+      - name: Compile shared managed test
+        run: |
+          docker run --rm --memory=2g --memory-swap=2g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/managed:/managed" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh -ec 'apk add --no-cache dotnet10-sdk; cp -a /src/tests/managed-runtime /tmp/test; dotnet build /tmp/test -c Release -o /managed -m:2'
+      - name: Build isolated target userland with policy exec
+        run: |
+          docker run --rm --memory=2g --memory-swap=2g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -e ENCLAVE_ARCH=${{ matrix.platform == 'amd64' && 'x86_64' || 'riscv64' }} \
+            -v "$PWD:/src:ro" -v "$PWD/managed:/managed:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-managed-policy-build.sh
+      - name: Run managed JIT and refusal checks under the target kernel
+        run: |
+          docker run --rm --memory=2g --memory-swap=2g --cpus=2 -w /src \
+            -e ENCLAVE_ARCH=${{ matrix.platform == 'amd64' && 'x86_64' || 'riscv64' }} -e ENCLAVE_MANAGED_POLICY_TEST=1 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/src/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-boot.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: managed-policy-${{ matrix.platform }}
+          path: out/boot.log
+          retention-days: 7

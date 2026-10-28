@@ -1,8 +1,13 @@
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 
-if (RuntimeInformation.ProcessArchitecture != Architecture.RiscV64)
-    throw new Exception("Not an RV64 managed runtime");
+var expectedArchitecture = args.Length == 0 ? Architecture.RiscV64 : args[0] switch {
+    "riscv64" => Architecture.RiscV64,
+    "x86_64" => Architecture.X64,
+    _ => throw new Exception("Unknown target architecture")
+};
+if (RuntimeInformation.ProcessArchitecture != expectedArchitecture)
+    throw new Exception("Wrong managed runtime architecture");
 var expected = Enumerable.Range(0, 10000).Select(i => (long)i * i).Sum();
 long parallel = 0;
 Parallel.For(0, 10000, new ParallelOptions { MaxDegreeOfParallelism = 2 },
@@ -17,4 +22,29 @@ try {
     if (!(await File.ReadAllBytesAsync(file)).SequenceEqual(bytes))
         throw new Exception("Async file mismatch");
 } finally { File.Delete(file); }
-Console.WriteLine($"PASS: RV64 managed arithmetic, threads, SHA256 and async I/O; {RuntimeInformation.FrameworkDescription}");
+if (Environment.GetEnvironmentVariable("ENCLAVE_EXPECT_POLICY") == "1") {
+    if (Native.geteuid() != 1000) throw new Exception("Wrong desktop UID");
+    foreach (var task in Directory.GetDirectories("/proc/self/task")) {
+        var fields = File.ReadAllLines(task + "/status")
+            .Select(line => line.Split(':', 2)).Where(pair => pair.Length == 2)
+            .ToDictionary(pair => pair[0], pair => pair[1].Trim());
+        if (fields["NoNewPrivs"] != "1" || fields["Seccomp"] != "2")
+            throw new Exception("Managed thread did not inherit policy");
+    }
+    var memory = Native.mmap(IntPtr.Zero, 4096, 7, 0x22, -1, 0);
+    var error = Marshal.GetLastPInvokeError();
+    if (memory != new IntPtr(-1) || (error != 1 && error != 12))
+        throw new Exception("Explicit RWX mapping was not rejected");
+    if (File.ReadAllLines("/proc/self/maps").Any(line =>
+        line.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1].StartsWith("rwx")))
+        throw new Exception("Managed process has an RWX mapping");
+    Console.WriteLine("ENCLAVE_MANAGED_POLICY_OK");
+}
+Console.WriteLine($"PASS: {expectedArchitecture} managed arithmetic, threads, SHA256 and async I/O; {RuntimeInformation.FrameworkDescription}");
+
+static class Native {
+    [DllImport("libc", SetLastError = true)]
+    public static extern IntPtr mmap(IntPtr address, nuint length, int prot, int flags, int fd, long offset);
+    [DllImport("libc")]
+    public static extern uint geteuid();
+}

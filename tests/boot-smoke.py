@@ -9,15 +9,18 @@ elif arch=='riscv64':
     if kernel.read_bytes()[:2]==b'\x1f\x8b':
         raw=out/'smoke-kernel.raw';raw.write_bytes(gzip.decompress(kernel.read_bytes()));kernel=raw
 else:raise SystemExit('unsupported architecture')
-cmd+=['-m','512M','-smp','2','-nographic','-no-reboot','-nic','none',
+managed=os.environ.get('ENCLAVE_MANAGED_POLICY_TEST')=='1'
+cmd+=['-m','1024M' if managed else '512M','-smp','2','-nographic','-no-reboot','-nic','none',
       '-kernel',str(kernel),'-initrd',str(out/'smoke-initramfs.cpio.gz'),
       '-append','console=ttyS0 rdinit=/init panic=-1']
 try:
-    result=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=120)
+    result=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=300 if managed else 120)
     log=result.stdout.decode(errors='replace');code=result.returncode
 except subprocess.TimeoutExpired as e:
     log=(e.stdout or b'').decode(errors='replace');code=124
 (out/'boot.log').write_text(log)
+if managed and 'ENCLAVE_MANAGED_POLICY_OK' not in log:
+    print(log[-16000:]);raise SystemExit('Managed runtime policy checks did not pass')
 if os.environ.get('ENCLAVE_POLICY_TEST') == '1' and arch == 'x86_64' and 'ENCLAVE_NATIVE_ROLES_OK' not in log:
     print(log[-16000:]);raise SystemExit('Native role/udev confinement tests did not pass')
 if code or f'ENCLAVE_BOOT_OK {arch}' not in log or (os.environ.get('ENCLAVE_POLICY_TEST') == '1' and 'ENCLAVE_POLICY_OK' not in log):
