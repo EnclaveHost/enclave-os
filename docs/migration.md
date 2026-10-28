@@ -351,3 +351,16 @@ The preview requires that exact signed package and repeats the callback test
 inside the pinned kernel. This change is pending qualification. RISC-V static
 trampoline support needs the upstream architecture backport and its own test;
 no dual-architecture completion is claimed.
+
+
+[40663969840](https://github.com/EnclaveHost/enclave-os/actions/runs/40663969840)
+passes all six combined-image kernel checks and exports optical media. The
+matching native startup archive in
+[40665997563](https://github.com/EnclaveHost/enclave-os/actions/runs/40665997563)
+also passes its independent archive checks. These establish image integrity,
+command-line compatibility and archive construction, not full service admission.
+Before interactive use, the profile is being updated from the older startup
+fixture controller `07711469…` to the retained deployed v11-v13 controller
+`104468ce…`. Its component bytes and recorded CID match freshly on 2026-10-28.
+The model payload is unchanged. The earlier successful artifacts remain
+qualification evidence, not the controller binding selected for deployment.
