@@ -1,0 +1,12 @@
+diff --git a/src/coreclr/CMakeLists.txt b/src/coreclr/CMakeLists.txt
+--- a/src/coreclr/CMakeLists.txt
++++ b/src/coreclr/CMakeLists.txt
+@@ -133,3 +133,7 @@
+-    if(CLR_CMAKE_TARGET_LINUX AND (CLR_CMAKE_TARGET_ARCH_I386 OR CLR_CMAKE_TARGET_ARCH_RISCV64))
++    if(CLR_CMAKE_TARGET_LINUX AND CLR_CMAKE_TARGET_ARCH_I386)
+       add_linker_flag(-Wl,-z,notext)
++    elseif(CLR_CMAKE_TARGET_LINUX AND CLR_CMAKE_TARGET_ARCH_RISCV64)
++      # Enclave's musl loader cannot make executable mappings writable.
++      # Reject actual text relocations at link time, including in new code.
++      add_linker_flag(-Wl,-z,text)
+     endif()

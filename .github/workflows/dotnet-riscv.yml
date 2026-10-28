@@ -50,15 +50,18 @@ jobs:
         run: |
           export ROOTFS_DIR="$PWD/sysroot"
           cd runtime
+          git apply --check ../components/dotnet-riscv/require-textrel-free.patch
+          git apply ../components/dotnet-riscv/require-textrel-free.patch
           ./build.sh --subset clr+libs+host+packs --configuration Release --cross --arch riscv64 \
             --os linux-musl --clang19 --bootstrap /p:BuildInParallel=false /p:ObjCopyName=/usr/bin/llvm-objcopy-19 \
             >../out/build.log 2>&1
           python3 - <<'PYCODE'
-          import json,pathlib,subprocess
+          import hashlib,json,pathlib,subprocess
           pathlib.Path('../out/provenance.json').write_text(json.dumps({
               'repository':'dotnet/runtime',
               'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'target':'linux-musl-riscv64', 'releaseQualified':False,
+              'patches':{'require-textrel-free.patch':hashlib.sha256(pathlib.Path('../components/dotnet-riscv/require-textrel-free.patch').read_bytes()).hexdigest()},
               'purpose':'OpenHV RV64 managed runtime port candidate'
           },indent=2)+'\n')
           PYCODE
