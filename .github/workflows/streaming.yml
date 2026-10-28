@@ -1,6 +1,15 @@
 name: Actual encrypted Sunshine Moonlight preview stream
 on:
   workflow_dispatch:
+    inputs:
+      server_run_id:
+        required: true
+        default: '40589225530'
+      platform:
+        required: true
+        default: amd64
+        type: choice
+        options: [amd64, riscv64]
 permissions:
   contents: read
   actions: read
@@ -10,11 +19,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: inputs.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
       - name: Fetch the qualified server and retained client
         env:
           GH_TOKEN: ${{ github.token }}
+          SERVER_RUN: ${{ inputs.server_run_id }}
+          SERVER_PLATFORM: ${{ inputs.platform }}
         run: |
-          gh run download 40589225530 --name sunshine-amd64 --dir server
+          [[ "$SERVER_RUN" =~ ^[0-9]+$ ]]
+          gh run download "$SERVER_RUN" --name "sunshine-$SERVER_PLATFORM" --dir server
           gh run download 40616779298 --name moonlight-client-amd64 --dir client
           chmod 755 client/moonlight
           sudo apt-get update
@@ -23,6 +40,8 @@ jobs:
             qml6-module-qtquick-window qml6-module-qtquick libsdl2-ttf-2.0-0 libopus0 \
             libavcodec60 libavutil58 libswscale7 xvfb xauth python3-pil xdotool
       - name: Pair and decode an actual encrypted synthetic desktop stream
+        env:
+          SERVER_PLATFORM: ${{ inputs.platform }}
         run: |
           mkdir fixture out
           python3 - <<'PY'
@@ -34,9 +53,10 @@ jobs:
             -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' \
             -keyout fixture/key.pem -out fixture/cert.pem 2>/dev/null
           docker run --name stream-server -d --network host --memory=2g --memory-swap=2g --cpus=2 \
+            --platform "linux/$SERVER_PLATFORM" \
             -e TEST_UID="$(id -u)" -v "$PWD:/src:ro" -v "$PWD/server:/server:ro" \
             -v "$PWD/fixture:/fixture" -v "$PWD/out:/out" \
-            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
             /bin/sh -ec 'apk add --no-cache python3 xvfb xauth xdpyinfo xsetroot pulseaudio pulseaudio-utils;
               cp /server/*.pub /etc/apk/keys/; printf "\n/server/repository\n" >>/etc/apk/repositories;
               apk add --no-cache enclave-sunshine; adduser -D -u "$TEST_UID" player;

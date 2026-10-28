@@ -70,6 +70,7 @@ with (out/'stream.log').open('w') as log:
             time.sleep(1)
         assert seen=={'magenta','cyan'},counts
         (out/'stream-results.json').write_text(json.dumps({'authenticatedPairing':True,
+            'serverPlatform':os.environ.get('SERVER_PLATFORM','amd64'),
             'sunshineRequiresEncryptedStream':True,'decodedChangingDesktop':True,
             'resolution':[960,600],'colorsObserved':sorted(seen),'sampleCounts':counts,
             'audioContinuityQualified':False,'nativeAdapterQualified':False},indent=2)+'\n')
