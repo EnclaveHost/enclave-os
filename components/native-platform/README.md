@@ -41,7 +41,7 @@ the launcher's canonical `enclave-native-desktop-profile/1` descriptor with the
 new kernel/root measurements. `profiles/preview-kvm-retained.json` preserves the
 recovered controller and public model-volume pins from the native startup
 fixture. The controller pin was rechecked against the retained Wasm binary;
-model bytes are not recopied or declared freshly verified. Neither payload is
+the retained model payload and its 64 KiB optical wrapper were rehashed on 2026-10-28 and match the recovered pins. This byte check does not replace kernel verity or live model-service verification. Neither payload is
 included in this OS artifact. `kvm-preview-status.json` explicitly leaves platform
 archive construction, runtime admission and production qualification unfinished.
 
@@ -52,3 +52,11 @@ unprivileged memory policy is applied. Its 2 GiB guest is a userland compatibili
 fixture; it does not invoke the native supervisor or reduce its 8 GiB minimum.
 Full service startup, model/worker integration and platform admission remain
 required before a usable KVM Box instance can be offered.
+
+After the kernel fixture passes, `tools/kvm_media.py` creates `root.iso` and
+`hashes.iso` using the retained native optical builder. Each container puts its
+SHA256-checked payload at byte 65536, as required by the boot boundary. The
+preview artifact carries these containers instead of duplicate raw payloads;
+`kvm-media.json` records container and payload hashes and extents. They are
+resource media, not bootable installers. The platform archive, controller/model
+attachment and runtime admission are still required.

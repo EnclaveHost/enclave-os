@@ -52,6 +52,8 @@ jobs:
             -v "$PWD:/src:ro" -v "$PWD/out:/out" \
             alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
             /bin/sh -ec 'apk add --no-cache python3 qemu-system-x86_64; python3 /src/tests/preview-boot.py'
+      - name: Wrap verified root and hash payloads for native optical attachment
+        run: python3 tools/kvm_media.py out
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -60,8 +62,7 @@ jobs:
             out/*.json
             out/*.apk-installed
             out/*.log
-            out/*.squashfs
-            out/*.verity
+            out/*.iso
             out/SHA256SUMS
             out/kvm-boot/
           retention-days: 7

@@ -296,3 +296,17 @@ wrapper and refusal of changed arithmetic, unknown builtins/metadata, additional
 side effects, malformed and specialized SPIR-V. This completes the installed
 IR fixture on both CPUs; model admission and real masked worker execution remain
 independent requirements.
+
+The separate KVM preview pipeline now emits the native launcher's fixed-offset
+optical root/hash containers after its kernel fixture succeeds. Six retained
+optical-format tests and a payload round-trip check pass locally. The retained
+controller and 2.4 GiB model payload/container also match their SHA256 pins on
+2026-10-28. This preparation does not establish full native startup or admission.
+
+RV64 standard llama.cpp/sd.cpp packages built in run
+[40638350066](https://github.com/EnclaveHost/enclave-os/actions/runs/40638350066),
+but the first Q8 fixture exceeded five minutes while compiling OpenCL kernels
+under emulation. Run
+[40650944319](https://github.com/EnclaveHost/enclave-os/actions/runs/40650944319)
+retests those signed packages with a bounded 30-minute RV64 fixture timeout;
+it does not skip numerical checks or rebuild the applications.
