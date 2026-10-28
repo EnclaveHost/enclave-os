@@ -27,19 +27,7 @@ mkdir out/root
 sudo tar -xf out/rootfs.tar.gz -C out/root
 sudo mkdir -p out/root/proc out/root/sys out/root/dev
 sudo mknod -m600 out/root/dev/console c 5 1
-sudo tee out/root/enclave-smoke >/dev/null <<'INIT'
-#!/bin/sh
-set -eu
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev
-test "$(uname -m)" = riscv64
-test -x /lib/ld-musl-riscv64.so.1
-/bin/busybox sha256sum /etc/alpine-release
-/lib/ld-musl-riscv64.so.1 --list /bin/busybox
-echo ENCLAVE_RISC_ALPINE_BOOT_OK
-while :; do sleep 100; done
-INIT
+sudo cp components/risc-platform/boot-test-init out/root/enclave-smoke
 sudo chmod 755 out/root/enclave-smoke
 printf '%s\n' '::sysinit:/enclave-smoke' | sudo tee out/root/etc/inittab >/dev/null
 truncate -s 96M out/rootfs.ext2

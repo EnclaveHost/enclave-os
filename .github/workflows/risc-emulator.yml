@@ -42,6 +42,12 @@ jobs:
           [[ "$RUN" =~ ^[0-9]+$ ]]
           gh run download "$RUN" --name risc-alpine-boot --dir out
           sha256sum out/fw_payload.elf out/rootfs.ext2 >out/reused-inputs.log
+          debugfs -w -R 'rm /enclave-smoke' out/rootfs.ext2
+          debugfs -w -R 'write components/risc-platform/boot-test-init /enclave-smoke' out/rootfs.ext2
+          debugfs -w -R 'set_inode_field /enclave-smoke mode 0100755' out/rootfs.ext2
+          debugfs -R 'dump /enclave-smoke out/verified-init' out/rootfs.ext2
+          cmp components/risc-platform/boot-test-init out/verified-init
+          sha256sum out/fw_payload.elf out/rootfs.ext2 out/verified-init >out/final-inputs.log
       - name: Build native and Wasm versions of the same instruction/device implementation
         run: |
           cd components/risc-platform/runner

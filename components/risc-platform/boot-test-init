@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+grep -q ' /dev devtmpfs ' /proc/mounts || mount -t devtmpfs devtmpfs /dev
+test "$(uname -m)" = riscv64
+test -x /lib/ld-musl-riscv64.so.1
+/bin/busybox sha256sum /etc/alpine-release
+/lib/ld-musl-riscv64.so.1 --list /bin/busybox
+echo ENCLAVE_RISC_ALPINE_BOOT_OK
+while :; do sleep 100; done

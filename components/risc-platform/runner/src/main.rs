@@ -33,7 +33,7 @@ fn main() {
         emu.run_n(100_000);
         instructions += 100_000;
         if output.borrow().windows(marker.len()).any(|w| w == marker) {
-            println!("PASS: real RISC Box emulator booted Alpine after {instructions} instructions in {:?}", start.elapsed());
+            println!("PASS: real RISC Box emulator booted Alpine after {instructions} scheduled ticks in {:?}", start.elapsed());
             break;
         }
         assert!(instructions < 5_000_000_000 && start.elapsed().as_secs() < 600,
