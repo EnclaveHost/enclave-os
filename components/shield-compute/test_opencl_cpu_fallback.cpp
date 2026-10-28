@@ -17,6 +17,8 @@
 #include <ucontext.h>
 #include <unistd.h>
 static void diagnostic_fault(int signal, siginfo_t * info, void * context) {
+    static const char marker[] = "fault: diagnostic handler entered\n";
+    (void)!write(STDERR_FILENO, marker, sizeof(marker) - 1);
     const auto pc = static_cast<ucontext_t *>(context)->uc_mcontext.__gregs[0];
     Dl_info module{};
     if (dladdr(reinterpret_cast<void *>(pc), &module)) {
@@ -135,6 +137,14 @@ int main(int argc, char ** argv) {
         ggml_backend_tensor_set(bias, &bias_value, 0, sizeof(bias_value));
         int32_t selected[m] = {1, 5};
         ggml_backend_tensor_set(ids, selected, 0, sizeof(selected));
+#if defined(SHIELD_DIAGNOSTIC_SIGNAL) && defined(__riscv)
+        // LLVM/OpenCL initialization may replace process signal handlers.
+        struct sigaction current{};
+        if (sigaction(SIGSEGV, nullptr, &current)) std::abort();
+        std::fprintf(stderr, "stage: diagnostic handler retained=%d\n",
+                     current.sa_sigaction == diagnostic_fault);
+        install_diagnostic_signal();
+#endif
         std::fprintf(stderr, "stage: computing mixed graph\n");
         require(ggml_backend_sched_graph_compute(sched, graph) == GGML_STATUS_SUCCESS, "compute graph");
         ggml_backend_sched_synchronize(sched);
