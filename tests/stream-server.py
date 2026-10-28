@@ -2,6 +2,7 @@
 """Private synthetic desktop for the real Sunshine/Moonlight wire test."""
 import json,os,pathlib,signal,subprocess,time
 fixture=pathlib.Path('/fixture');out=pathlib.Path('/out')
+print('stream fixture: authenticated X is ready',flush=True)
 home=fixture/'server-home';home.mkdir(exist_ok=True)
 runtime=home/'runtime';runtime.mkdir(mode=0o700,exist_ok=True)
 env={**os.environ,'HOME':str(home),'XDG_RUNTIME_DIR':str(runtime)}
@@ -29,8 +30,12 @@ cert = /fixture/cert.pem
 password=(fixture/'password').read_text()
 children=[]
 try:
-    with open('/tmp/credentials.log','w') as log:
-        subprocess.run(['/usr/bin/enclave-sunshine',str(config),'--creds','ci',password],check=True,env=env,stdout=log,stderr=log)
+    try:
+        with open('/tmp/credentials.log','w') as log:
+            subprocess.run(['/usr/bin/enclave-sunshine',str(config),'--creds','ci',password],check=True,env=env,stdout=log,stderr=log,timeout=20)
+    finally:
+        (out/'credentials-setup.log').write_text(pathlib.Path('/tmp/credentials.log').read_text().replace(password,'[redacted]'))
+    print('stream fixture: fresh credentials created',flush=True)
     pulse_log=(out/'pulse-server.log').open('w')
     children.append(subprocess.Popen(['pulseaudio','--daemonize=no','--exit-idle-time=-1'],env=env,stdout=pulse_log,stderr=pulse_log))
     for _ in range(100):
