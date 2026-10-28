@@ -51,7 +51,7 @@ jobs:
           export ROOTFS_DIR="$PWD/sysroot"
           cd runtime
           ./build.sh --subset clr+libs+host+packs --configuration Release --cross --arch riscv64 \
-            --os linux-musl --clang19 --bootstrap /p:BuildInParallel=false \
+            --os linux-musl --clang19 --bootstrap /p:BuildInParallel=false /p:ObjCopyName=/usr/bin/llvm-objcopy-19 \
             >../out/build.log 2>&1
           python3 - <<'PYCODE'
           import json,pathlib,subprocess
