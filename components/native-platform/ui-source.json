@@ -1,0 +1,26 @@
+{
+  "build_ui_assets.py": {
+    "source": "reference/kvm-box/guest/native/build_ui_assets.py",
+    "sha256": "63c4400dbd2c64e71dac79a6db999603b7179edf761d6c6880d90748c937a7ef"
+  },
+  "desktop-pacing.mjs": {
+    "source": "reference/kvm-box/guest/native/desktop-pacing.mjs",
+    "sha256": "5086e9eba4938bb4978c11dd2aa8de0941dc62ed6fdfd694b1644a5585a39074"
+  },
+  "desktop-pacing.test.mjs": {
+    "source": "reference/kvm-box/guest/native/desktop-pacing.test.mjs",
+    "sha256": "99a7065b6c2a38a29a8bcd6c711812ea9732de4fdc305d50a2416e8be9115b7f"
+  },
+  "native.html": {
+    "source": "reference/kvm-box/guest/native.html",
+    "sha256": "9a1c18bd4cf29f8f9ab10db168ab2c0207e0ee76c5977b409708178258659a1d"
+  },
+  "sunshine.conf": {
+    "source": "reference/kvm-box/guest/sunshine.conf",
+    "sha256": "e5fa33039e874bdcc0ea0aa3e9565de16e58a6f861a9b9ceb3f91d5837055b4c"
+  },
+  "sunshine-apps.json": {
+    "source": "reference/kvm-box/guest/sunshine-apps.json",
+    "sha256": "4641adb5f1d835617953d72a46e3335188209d50ee9183ea180bcbd126002078"
+  }
+}

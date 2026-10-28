@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+# Reserved role identities; never overwrite an existing account or group.
+for entry in desktop:1000 shield:1001 gateway:1002 native-ui:1003; do
+    name=${entry%:*}
+    number=${entry#*:}
+    existing=$(awk -F: -v name="$name" '$1==name {print $3}' /etc/group)
+    if [ -n "$existing" ]; then
+        [ "$existing" = "$number" ] || exit 1
+    else
+        addgroup -g "$number" "$name"
+    fi
+    if id -u "$name" >/dev/null 2>&1; then
+        [ "$(id -u "$name")" = "$number" ] || exit 1
+    else
+        home=/nonexistent
+        shell=/sbin/nologin
+        if [ "$name" = desktop ]; then home=/home/desktop; shell=/bin/sh; fi
+        adduser -D -H -u "$number" -G "$name" -s "$shell" -h "$home" "$name"
+    fi
+done

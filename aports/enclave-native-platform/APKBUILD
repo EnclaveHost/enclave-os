@@ -1,0 +1,31 @@
+pkgname=enclave-native-platform
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Measured KVM desktop service boundary and authenticated web assets"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64"
+license="LicenseRef-Enclave-Source-Available AND MPL-2.0"
+depends="python3 eudev xorg-server xf86-video-dummy dbus pulseaudio pulseaudio-utils x11vnc websockify xauth xdpyinfo"
+install="$pkgname.pre-install"
+options="!check !strip" # Binaries and protocols are built/tested in this same CI job.
+source="native-platform.tar"
+builddir="$srcdir/native-platform"
+package() {
+    local dest="$pkgdir/usr/libexec/enclave-os/native"
+    mkdir -p "$dest" "$pkgdir/usr/share/enclave-os" "$pkgdir/models" "$pkgdir/shield" "$pkgdir/home/desktop"
+    chmod 700 "$pkgdir/home/desktop"
+    for name in nsinit supervisor gateway inner automation capture udev-launch; do
+        install -m555 "bin/$name" "$dest/"
+    done
+    install -m444 readiness.py network_policy.py "$dest/"
+    install -Dm444 70-kvm-box-input.rules "$pkgdir/usr/lib/udev/rules.d/70-kvm-box-input.rules"
+    cp -a ui "$pkgdir/usr/share/enclave-os/native-ui"
+    install -m444 sunshine.conf sunshine-apps.json xorg.conf "$pkgdir/"
+    install -Dm644 provenance.json "$pkgdir/usr/share/enclave-os/native-platform-source.json"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    printf 'KVM-BOX-MASKED/1\n' >"$pkgdir/desktop.profile"
+    chmod 444 "$pkgdir/desktop.profile"
+    mkdir -p "$pkgdir/etc/pulse"
+    printf 'autospawn = no\n' >"$pkgdir/etc/pulse/client.conf"
+}
+sha512sums=""

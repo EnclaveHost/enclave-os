@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eux
-apk add --no-cache build-base linux-headers libx11-dev python3 go
+apk add --no-cache alpine-sdk sudo linux-headers libx11-dev python3 go novnc nodejs
 mkdir -p /build /out/bin
 cp -a /src/components/native-platform/. /build/
 cd /build
@@ -46,3 +46,34 @@ pathlib.Path('/out/provenance.json').write_text(json.dumps({'sourceFiles':files,
     'releaseQualified':False,'target':'x86_64-alpine-linux-musl'},indent=2)+'\n')
 PY
 cp home-defaults-manifest.json /out/
+node --test desktop-pacing.test.mjs >/out/desktop-pacing-tests.log 2>&1
+python3 build_ui_assets.py --novnc /usr/share/novnc --native-page native.html --output /build/ui
+mkdir -p /build/native-platform/bin
+cp /out/bin/* /build/native-platform/bin/
+cp -a /build/ui /build/native-platform/ui
+cp readiness.py network_policy.py 70-kvm-box-input.rules sunshine.conf sunshine-apps.json /build/native-platform/
+cp /src/platforms/kvm-box/xorg.conf /build/native-platform/xorg.conf
+cp /src/LICENSE /build/native-platform/LICENSE
+cp /out/provenance.json /build/native-platform/
+adduser -D -u 2000 builder
+addgroup builder abuild
+printf 'builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/builder
+mkdir -p /home/builder/aports/enclave
+cp -a /src/aports/enclave-native-platform /home/builder/aports/enclave/
+tar -cf /home/builder/aports/enclave/enclave-native-platform/native-platform.tar -C /build native-platform
+chown -R builder:builder /home/builder
+su builder -c 'abuild-keygen -a -n'
+cp /home/builder/.abuild/*.pub /etc/apk/keys/
+apk update
+su builder -c 'cd /home/builder/aports/enclave/enclave-native-platform && abuild checksum && abuild -r' >/out/package-build.log 2>&1
+cp -a /home/builder/packages/enclave /out/repository
+cp /home/builder/.abuild/*.pub /out/
+printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
+apk add --no-cache enclave-native-platform
+test "$(id -u desktop)" = 1000
+test "$(id -u shield)" = 1001
+test -x /usr/libexec/Xorg
+test -x /sbin/udevd
+test -f /usr/share/enclave-os/native-ui/novnc/vnc.html
+test -f /usr/share/enclave-os/native-ui/novnc/app/native-pacing.mjs
+stat -c '%a %u %g %n' /desktop.profile /usr/libexec/enclave-os/native/* >/out/installed-boundary.log
