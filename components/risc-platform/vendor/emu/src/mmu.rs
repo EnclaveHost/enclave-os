@@ -1,0 +1,2293 @@
+/// DRAM base address. Offset from this base address
+/// is the address in main memory.
+pub const DRAM_BASE: u64 = 0x80000000;
+
+const DTB_SIZE: usize = 0xfe0;
+
+// risc-box patch: an access to an address no device backs is open-bus, not a
+// host panic (a guest must never be able to crash the enclave app). The first
+// few are logged so a genuinely misconfigured machine is still diagnosable.
+fn note_unmapped(addr: u64, write: bool) {
+	use std::sync::atomic::{AtomicU32, Ordering};
+	static N: AtomicU32 = AtomicU32::new(0);
+	if N.fetch_add(1, Ordering::Relaxed) < 24 {
+		eprintln!("[emu] unmapped {} at {:#x} ({})",
+			if write { "store" } else { "load" }, addr,
+			if write { "dropped" } else { "reads 0" });
+	}
+}
+
+extern crate fnv;
+
+use self::fnv::FnvHashMap;
+
+use memory::{Memory, RamImage};
+use cpu::{PrivilegeMode, Trap, TrapType, Xlen, get_privilege_mode};
+use device::virtio_block_disk::VirtioBlockDisk;
+use device::virtio_input::VirtioInput; // risc-box patch
+use device::opl::Opl; // risc-box patch
+use device::overlay::{Overlay, State as OverlayState};
+use device::virtio_gpu::VirtioGpu; // risc-box patch
+use device::virtio_snd::VirtioSnd; // risc-box patch
+use device::virtio_net::VirtioNet; // risc-box patch
+use device::plic::Plic;
+use device::clint::Clint;
+use device::uart::Uart;
+use terminal::Terminal;
+
+/// Emulates Memory Management Unit. It holds the Main memory and peripheral
+/// devices, maps address to them, and accesses them depending on address.
+/// It also manages virtual-physical address translation and memoty protection.
+/// It may also be said Bus.
+/// @TODO: Memory protection is not implemented yet. We should support.
+pub struct Mmu {
+	clock: u64,
+	xlen: Xlen,
+	ppn: u64,
+	addressing_mode: AddressingMode,
+	privilege_mode: PrivilegeMode,
+	// risc-box patch (SMP): RAM and every device live on the bus, which all harts' MMUs share
+	bus: BusRef,
+	// which hart this MMU translates for (its index into the CLINT/PLIC/raised arrays)
+	hart: usize,
+
+	/// Address translation can be affected `mstatus` (MPRV, MPP in machine mode)
+	/// then `Mmu` has copy of it.
+	mstatus: u64,
+
+	/// Address translation page cache. Experimental feature.
+	/// The cache is cleared when translation mapping can be changed;
+	/// xlen, ppn, privilege_mode, or addressing_mode is updated.
+	/// Precisely it isn't good enough because page table entries
+	/// can be updated anytime with store instructions, of course
+	/// very depending on how pages are mapped tho.
+	/// But observing all page table entries is high cost so
+	/// ignoring so far. Then this cache optimization can cause a bug
+	/// due to unexpected (meaning not in page fault handler)
+	/// page table entry update. So this is experimental feature and
+	/// disabled by default. If you want to enable, use `enable_page_cache()`.
+	page_cache_enabled: bool,
+	fetch_page_cache: FnvHashMap<u64, u64>,
+	load_page_cache: FnvHashMap<u64, u64>,
+	store_page_cache: FnvHashMap<u64, u64>,
+
+	// risc-box patch: direct-mapped software TLB (always on; supersedes the
+	// experimental page cache above). One direct-mapped array per access
+	// type. Tags fold in a generation counter plus the translation-relevant
+	// CPU state (privilege mode, mstatus.MPRV/MPP as this emulator reads
+	// them), so privilege transitions need no flush; satp/xlen/mode changes
+	// and SFENCE.VMA invalidate everything with an O(1) generation bump.
+	// Entries are written only after a successful walk, which has already
+	// set the PTE A (and, for stores, D) bit — so a hit never needs to
+	// touch the PTE again. Skipping the re-walk on later accesses is sound
+	// because the ISA requires an OS to SFENCE.VMA after changing a live
+	// PTE (upstream's page cache ignores that contract; this doesn't).
+	tlb_gen: u32,
+	tlb_tags: [[u64; TLB_SETS]; 3],
+	tlb_metas: [[u32; TLB_SETS]; 3],
+	tlb_ppns: [[u64; TLB_SETS]; 3],
+
+	// risc-box patch: tlb_meta() used to be recomputed on every translation
+	// AND every predecode-cache probe (once per retired instruction); it only
+	// changes when the generation, privilege mode or mstatus does, so it is
+	// materialized here at those points instead.
+	tlb_meta_cache: u32
+}
+
+/// risc-box patch (SMP): what every hart shares - RAM and the devices. One hart's `Mmu` was the whole machine;
+/// with several harts each keeps its own translation state (TLB, satp, privilege, mstatus copy) and reaches
+/// these through a `BusRef`.
+pub struct Bus {
+	memory: MemoryWrapper,
+	// configured RAM size (bytes); mirrored into the DTB memory node.
+	ram_capacity: u64,
+	dtb: Vec<u8>,
+	disk: VirtioBlockDisk,
+	net: VirtioNet,
+	input: VirtioInput,
+	snd: VirtioSnd,
+	gpu: VirtioGpu,
+	opl: Opl,
+	overlay: Overlay,
+	plic: Plic,
+	clint: Clint,
+	uart: Uart,
+	// interrupt-pending bits devices raised for harts other than 0 (hart 0's go straight into its mip, as they
+	// always have); each hart folds its own word into mip at its next device-service boundary
+	raised: Vec<std::sync::atomic::AtomicU64>,
+	dev: DevLock
+}
+
+/// risc-box patch (SMP): mutual exclusion for the devices. Every device register access and hart 0's device
+/// service take it, so harts on other threads see each register access whole. A plain spin lock that yields:
+/// critical sections are a register access or one service pass.
+pub struct DevLock {
+	held: std::sync::atomic::AtomicBool
+}
+
+impl DevLock {
+	fn new() -> Self {
+		DevLock { held: std::sync::atomic::AtomicBool::new(false) }
+	}
+
+	#[inline(always)]
+	pub fn lock(&self) {
+		use std::sync::atomic::Ordering::{Acquire, Relaxed};
+		if self.held.compare_exchange(false, true, Acquire, Relaxed).is_ok() {
+			return;
+		}
+		let mut spins = 0u32;
+		while self.held.compare_exchange_weak(false, true, Acquire, Relaxed).is_err() {
+			spins += 1;
+			match spins < 64 {
+				true => std::hint::spin_loop(),
+				false => std::thread::yield_now()
+			}
+		}
+	}
+
+	#[inline(always)]
+	pub fn unlock(&self) {
+		self.held.store(false, std::sync::atomic::Ordering::Release);
+	}
+}
+
+/// A hart's handle on the shared `Bus`. Harts run one at a time on a thread (interleaved SMP), so handing out
+/// `&mut Bus` from a shared cell is never two live mutable borrows; parallel harts guard the devices themselves.
+#[derive(Clone)]
+pub struct BusRef(std::sync::Arc<BusCell>);
+pub struct BusCell(std::cell::UnsafeCell<Bus>);
+unsafe impl Send for BusCell {}
+unsafe impl Sync for BusCell {}
+
+impl BusRef {
+	fn new(bus: Bus) -> Self {
+		BusRef(std::sync::Arc::new(BusCell(std::cell::UnsafeCell::new(bus))))
+	}
+}
+
+impl std::ops::Deref for BusRef {
+	type Target = Bus;
+	#[inline(always)]
+	fn deref(&self) -> &Bus {
+		unsafe { &*self.0 .0.get() }
+	}
+}
+
+impl std::ops::DerefMut for BusRef {
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Bus {
+		unsafe { &mut *self.0 .0.get() }
+	}
+}
+
+// risc-box patch: TLB geometry/type indices
+const TLB_SETS: usize = 512;
+const TLB_EXECUTE: usize = 0;
+const TLB_READ: usize = 1;
+const TLB_WRITE: usize = 2;
+
+pub enum AddressingMode {
+	None,
+	SV32,
+	SV39,
+	SV48 // @TODO: Implement
+}
+
+enum MemoryAccessType {
+	Execute,
+	Read,
+	Write,
+	DontCare
+}
+
+fn _get_addressing_mode_name(mode: &AddressingMode) -> &'static str {
+	match mode {
+		AddressingMode::None => "None",
+		AddressingMode::SV32 => "SV32",
+		AddressingMode::SV39 => "SV39",
+		AddressingMode::SV48 => "SV48"
+	}
+}
+
+impl Mmu {
+	/// Creates a new `Mmu`.
+	///
+	/// # Arguments
+	/// * `xlen`
+	/// * `terminal`
+	pub fn new(xlen: Xlen, terminal: Box<dyn Terminal>) -> Self {
+		let mut dtb = vec![0; DTB_SIZE];
+
+		// Load default device tree binary content
+		let content = include_bytes!("./device/dtb.dtb");
+		for i in 0..content.len() {
+			dtb[i] = content[i];
+		}
+
+		let mut mmu = Mmu {
+			clock: 0,
+			xlen: xlen,
+			ppn: 0,
+			addressing_mode: AddressingMode::None,
+			privilege_mode: PrivilegeMode::Machine,
+			bus: BusRef::new(Bus {
+				memory: MemoryWrapper::new(),
+				ram_capacity: 0,
+				dtb: dtb,
+				disk: VirtioBlockDisk::new(),
+				net: VirtioNet::new(),
+				input: VirtioInput::new(),
+				snd: VirtioSnd::new(),
+				gpu: VirtioGpu::new(1024, 768),
+				opl: Opl::new(),
+				overlay: Overlay::new(),
+				plic: Plic::new(),
+				clint: Clint::new(),
+				uart: Uart::new(terminal),
+				raised: vec![std::sync::atomic::AtomicU64::new(0)],
+				dev: DevLock::new()
+			}),
+			hart: 0,
+			mstatus: 0,
+			page_cache_enabled: false,
+			fetch_page_cache: FnvHashMap::default(),
+			load_page_cache: FnvHashMap::default(),
+			store_page_cache: FnvHashMap::default(),
+			// risc-box patch: TLB starts empty at generation 1 (tag 0 = invalid)
+			tlb_gen: 1,
+			tlb_tags: [[0; TLB_SETS]; 3],
+			tlb_metas: [[0; TLB_SETS]; 3],
+			tlb_ppns: [[0; TLB_SETS]; 3],
+			tlb_meta_cache: 0
+		};
+		mmu.refresh_tlb_meta();
+		mmu
+	}
+
+	/// risc-box patch (SMP): size the per-hart device state for `n` harts. Call before boot.
+	pub fn set_harts(&mut self, n: usize) {
+		let n = n.max(1);
+		let bus = &mut *self.bus;
+		bus.clint.set_harts(n);
+		bus.plic.set_harts(n);
+		bus.raised = (0..n).map(|_| std::sync::atomic::AtomicU64::new(0)).collect();
+	}
+
+	pub fn harts(&self) -> usize {
+		self.bus.raised.len()
+	}
+
+	/// risc-box patch (SMP): replace the embedded one-hart DTB with the embedded `n`-hart one
+	/// (device/mkdtb-smp.py). False when there is none for `n`.
+	pub fn use_smp_dtb(&mut self, n: usize) -> bool {
+		let content: &[u8] = match n {
+			2 => include_bytes!("./device/dtb-smp2.dtb"),
+			4 => include_bytes!("./device/dtb-smp4.dtb"),
+			_ => return false
+		};
+		self.init_dtb(content.to_vec());
+		true
+	}
+
+	pub fn hart(&self) -> usize {
+		self.hart
+	}
+
+	/// risc-box patch (SMP): an MMU for hart `hart` on the same bus - its own translation state, starting the
+	/// way a fresh one does (bare addressing, machine mode).
+	pub fn new_hart(&self, hart: usize) -> Self {
+		let mut mmu = Mmu {
+			clock: 0,
+			xlen: self.xlen.clone(),
+			ppn: 0,
+			addressing_mode: AddressingMode::None,
+			privilege_mode: PrivilegeMode::Machine,
+			bus: self.bus.clone(),
+			hart: hart,
+			mstatus: 0,
+			page_cache_enabled: false,
+			fetch_page_cache: FnvHashMap::default(),
+			load_page_cache: FnvHashMap::default(),
+			store_page_cache: FnvHashMap::default(),
+			tlb_gen: 1,
+			tlb_tags: [[0; TLB_SETS]; 3],
+			tlb_metas: [[0; TLB_SETS]; 3],
+			tlb_ppns: [[0; TLB_SETS]; 3],
+			tlb_meta_cache: 0
+		};
+		mmu.refresh_tlb_meta();
+		mmu
+	}
+
+	/// risc-box patch (SMP): host address of guest word `v_address` (`width` 4 or 8, naturally aligned) for an
+	/// atomic read-modify-write, translated as a store. Ok(None) = not RAM (a device): the caller falls back to
+	/// an ordinary load and store.
+	pub fn atomic_ptr(&mut self, v_address: u64, width: u64) -> Result<Option<*mut u8>, Trap> {
+		if v_address & (width - 1) != 0 {
+			return Err(Trap { trap_type: TrapType::StoreAddressMisaligned, value: v_address });
+		}
+		let p_address = match self.translate_address(v_address, &MemoryAccessType::Write) {
+			Ok(p) => self.get_effective_address(p),
+			Err(()) => return Err(Trap { trap_type: TrapType::StorePageFault, value: v_address })
+		};
+		Ok(self.bus.memory.rmw_ptr(p_address, width))
+	}
+
+	/// risc-box patch (SMP): the pending bits devices raised for this hart since the last call.
+	#[inline(always)]
+	pub fn take_raised(&self) -> u64 {
+		match self.bus.raised.get(self.hart) {
+			Some(w) if w.load(std::sync::atomic::Ordering::Relaxed) != 0 =>
+				w.swap(0, std::sync::atomic::Ordering::AcqRel),
+			_ => 0
+		}
+	}
+
+	/// Updates XLEN, 32-bit or 64-bit
+	///
+	/// # Arguments
+	/// * `xlen`
+	pub fn update_xlen(&mut self, xlen: Xlen) {
+		self.xlen = xlen;
+		self.clear_page_cache();
+		self.tlb_flush(); // risc-box patch
+	}
+
+	/// Initializes Main memory. This method is expected to be called only once.
+	///
+	/// # Arguments
+	/// * `capacity`
+	pub fn init_memory(&mut self, capacity: u64) {
+		self.bus.memory.init(capacity);
+		// risc-box patch: keep the DTB's memory@80000000 size in step with the
+		// actual allocation, so a configured RAM size needs no hand-edited DTB.
+		self.bus.ram_capacity = capacity;
+		self.sync_dtb_memory_size();
+	}
+
+	/// risc-box patch: rewrites the size cells of the DTB's memory@80000000 reg
+	/// (<0x0 0x80000000 SIZE-HI SIZE-LO>, big-endian cells) to `ram_capacity`. Works on
+	/// the embedded DTB and any init_dtb() override; called from both paths.
+	/// A DTB without exactly one such reg is left alone (with a log line) —
+	/// better an honest mismatch than a corrupted tree.
+	fn sync_dtb_memory_size(&mut self) {
+		if self.bus.ram_capacity == 0 {
+			return; // unset
+		}
+		// (a wasm64 host hands out 4 GiB and more: both size cells are written
+		// below, so there is no ceiling here any more)
+		let pat: [u8; 12] = [0, 0, 0, 0, 0x80, 0, 0, 0, 0, 0, 0, 0]; // base-hi, base-lo=0x80000000, size-hi=0
+		let hits: Vec<usize> = (0..self.bus.dtb.len().saturating_sub(16))
+			.filter(|&i| self.bus.dtb[i..i + 12] == pat)
+			.collect();
+		if hits.len() != 1 {
+			eprintln!("[emu] dtb: expected exactly one memory@80000000 reg, found {}; leaving DTB as is", hits.len());
+			return;
+		}
+		let at = hits[0] + 12;
+		// both size cells: a wasm64 host can give the guest 4 GiB and more,
+		// and a size-lo-only write would hand a 5 GiB guest 1 GiB
+		let bus = &mut *self.bus;
+		bus.dtb[at - 4..at].copy_from_slice(&((bus.ram_capacity >> 32) as u32).to_be_bytes());
+		bus.dtb[at..at + 4].copy_from_slice(&(bus.ram_capacity as u32).to_be_bytes());
+	}
+
+	/// risc-box patch: replace the built-in device tree's `rng-seed` with
+	/// `seed` (64 bytes). The shipped blob carries one fixed seed — fine for a
+	/// deterministic benchmark, wrong for a fleet where every cold boot would
+	/// otherwise start the kernel's random pool from the same bytes. The
+	/// property is found by its first 16 bytes; returns false (blob untouched)
+	/// when a custom DTB without it has been installed.
+	pub fn seed_dtb_rng(&mut self, seed: &[u8; 64]) -> bool {
+		const HEAD: [u8; 16] = [
+			0x7a, 0xf3, 0x1c, 0x88, 0x4b, 0xe0, 0x92, 0xd5, 0x61, 0xac, 0x3f, 0x70, 0xc9, 0x12, 0x5e, 0xbb,
+		];
+		let hits: Vec<usize> = (0..self.bus.dtb.len().saturating_sub(64))
+			.filter(|&i| self.bus.dtb[i..i + 16] == HEAD)
+			.collect();
+		if hits.len() != 1 {
+			return false;
+		}
+		let at = hits[0];
+		self.bus.dtb[at..at + 64].copy_from_slice(seed);
+		true
+	}
+
+	/// risc-box patch: rewrites the simple-framebuffer node's width/height/
+	/// stride so the display size is a deployment knob rather than a rebuild.
+	///
+	/// Every pixel of the screen is paid for three times over — the guest draws
+	/// it, the host scans it out, and the encoder ships it — so a machine whose
+	/// job is a 320x200 game should not be made to run a 1024x768 desktop's
+	/// worth of framebuffer. The node's `reg` window is left alone: it is the
+	/// 8 MiB the reserved-memory node keeps the allocator off, and every size
+	/// this accepts fits inside it.
+	///
+	/// Returns false (leaving the DTB untouched) if the size does not fit or
+	/// the node is not the one this emulator ships.
+	pub fn set_dtb_framebuffer(&mut self, width: u32, height: u32) -> bool {
+		const FB_WINDOW: u64 = 0x80_0000;
+		if width == 0 || height == 0 || (width as u64) * (height as u64) * 4 > FB_WINDOW {
+			eprintln!("[emu] dtb: framebuffer {}x{} does not fit the 8 MiB window; keeping the default", width, height);
+			return false;
+		}
+		// width/height/stride sit consecutively in the struct block, each one
+		// an FDT_PROP token + length + name offset (12 bytes) followed by its
+		// 4-byte value, so consecutive values are 16 bytes apart. Matching all
+		// three defaults at once, on 4-byte alignment, identifies the node
+		// without a full FDT walk and refuses to guess if the tree changes
+		// shape (verified unique against the shipped blob).
+		let (w0, h0, s0) = (1024u32.to_be_bytes(), 768u32.to_be_bytes(), 4096u32.to_be_bytes());
+		let hits: Vec<usize> = (0..self.bus.dtb.len().saturating_sub(36))
+			.step_by(4)
+			.filter(|&i| self.bus.dtb[i..i + 4] == w0
+				&& self.bus.dtb[i + 16..i + 20] == h0
+				&& self.bus.dtb[i + 32..i + 36] == s0)
+			.collect();
+		if hits.len() != 1 {
+			eprintln!("[emu] dtb: expected exactly one simple-framebuffer size triple, found {}; leaving DTB as is", hits.len());
+			return false;
+		}
+		let at = hits[0];
+		self.bus.dtb[at..at + 4].copy_from_slice(&width.to_be_bytes());
+		self.bus.dtb[at + 16..at + 20].copy_from_slice(&height.to_be_bytes());
+		self.bus.dtb[at + 32..at + 36].copy_from_slice(&(width * 4).to_be_bytes());
+		true
+	}
+
+	// risc-box patch: bulk read of PHYSICAL DRAM (no translation, no device
+	// dispatch, no side effects) — the host's framebuffer scanout. The caller
+	// owns the address contract: the range must sit inside main memory.
+	pub fn read_physical_range(&self, p_address: u64, out: &mut [u8]) {
+		self.bus.memory.read_range(p_address, out);
+	}
+
+	// risc-box patch (debug aid): see MemoryWrapper::fb_writes.
+	pub fn fb_writes(&self) -> u64 {
+		self.bus.memory.fb_writes()
+	}
+
+	// risc-box patch (measurement): see MemoryWrapper::fb_bytes.
+	pub fn fb_bytes(&self) -> u64 {
+		self.bus.memory.fb_bytes()
+	}
+
+	// risc-box patch (host-side game overlay): see MemoryWrapper::fb_take_rect.
+	pub fn fb_take_rect(&self) -> Option<(u32, u32, u32, u32)> {
+		self.bus.memory.fb_take_rect()
+	}
+
+	pub fn overlay_state(&self) -> OverlayState {
+		self.bus.overlay.state()
+	}
+
+	pub fn overlay_frame(&self) -> Option<(u32, u32, u32, u32, &[u8])> {
+		self.bus.overlay.frame()
+	}
+
+	pub fn overlay_frame_id(&self) -> Option<u64> {
+		self.bus.overlay.frame_id()
+	}
+
+	// A frame copy must not be inlined into the CPU's ordinary store path.
+	#[cold]
+	#[inline(never)]
+	fn overlay_store(&mut self, address: u64, value: u8) {
+		let bus = &mut *self.bus;
+		if bus.overlay.store(address, value) {
+			let memory = &bus.memory;
+			bus.overlay.capture(memory.fb_stride, |offset, out|
+				memory.read_range(0x87e0_0000 + offset, out));
+		}
+	}
+
+	pub fn set_fb_stride(&mut self, stride: u64) {
+		self.bus.memory.set_fb_stride(stride);
+	}
+	
+	/// Initializes Virtio block disk. This method is expected to be called only once.
+	///
+	/// # Arguments
+	/// * `data` Filesystem binary content
+	pub fn init_disk(&mut self, data: Vec<u8>) {
+		self.bus.disk.init(data);
+	}
+
+	/// risc-box patch: attach a base disk image shared with other machines.
+	pub fn init_disk_shared(&mut self, base: std::sync::Arc<::disk_image::DiskImage>) {
+		self.bus.disk.init_shared(base);
+	}
+
+	/// risc-box patch (fork): take a shared RAM image as this machine's
+	/// memory (copy-on-write from here on) and drop every derived cache.
+	pub fn adopt_ram(&mut self, image: &RamImage) {
+		self.bus.memory.ram_mut().adopt(image);
+		self.bus.memory.bump_code_gen();
+		self.clear_page_cache();
+		self.tlb_flush();
+	}
+
+	/// risc-box patch (fork): publish this machine's RAM as an image.
+	pub fn share_ram(&mut self) -> RamImage {
+		self.bus.memory.ram_mut().share()
+	}
+
+	/// risc-box patch: (RAM owned, RAM shared, disk overlay) bytes.
+	pub fn footprint(&self) -> (usize, usize, usize) {
+		let (o, sh) = self.bus.memory.ram().footprint();
+		(o, sh, self.bus.disk.footprint())
+	}
+
+	/// Overrides defalut Device tree configuration.
+	///
+	/// # Arguments
+	/// * `data` DTB binary content
+	pub fn init_dtb(&mut self, data: Vec<u8>) {
+		for i in 0..data.len() {
+			self.bus.dtb[i] = data[i];
+		}
+		for i in data.len()..self.bus.dtb.len() {
+			self.bus.dtb[i] = 0;
+		}
+		// risc-box patch: a custom DTB gets the same memory-node sync
+		self.sync_dtb_memory_size();
+	}
+
+	/// Enables or disables page cache optimization.
+	///
+	/// # Arguments
+	/// * `enabled`
+	pub fn enable_page_cache(&mut self, enabled: bool) {
+		self.page_cache_enabled = enabled;
+		self.clear_page_cache();
+	}
+
+	/// Clears page cache entries
+	fn clear_page_cache(&mut self) {
+		self.fetch_page_cache.clear();
+		self.load_page_cache.clear();
+		self.store_page_cache.clear();
+	}
+
+	// risc-box patch: O(1) whole-TLB invalidation via generation bump; a real
+	// wipe only happens when the 24-bit generation wraps.
+	fn tlb_flush(&mut self) {
+		self.tlb_gen = (self.tlb_gen + 1) & 0xffffff;
+		if self.tlb_gen == 0 {
+			self.tlb_tags = [[0; TLB_SETS]; 3];
+			self.tlb_gen = 1;
+			// generation reuse must not revive stale predecoded instructions
+			self.bus.memory.bump_code_gen();
+		}
+		self.refresh_tlb_meta(); // risc-box patch: meta embeds the generation
+	}
+
+	// risc-box patch: public fetch translation for the CPU's predecode fill.
+	pub fn translate_fetch(&mut self, v_address: u64) -> Result<u64, ()> {
+		self.translate_address(v_address, &MemoryAccessType::Execute)
+	}
+
+	// risc-box patch: the superblock probe's fetch translation, specialized
+	// by hand. It runs once per BLOCK dispatch, and the generic
+	// translate_address path (access-type match through a reference) is
+	// exactly the kind of dispatch wasm backends fail to fold; this is the
+	// TLB hit written out flat, falling back to the ordinary translation
+	// (which walks and fills the TLB) only on a miss.
+	#[inline(always)]
+	pub fn translate_fetch_probe(&mut self, v_address: u64) -> Result<u64, ()> {
+		if matches!(self.addressing_mode, AddressingMode::None) {
+			return Ok(self.get_effective_address(v_address));
+		}
+		let address = self.get_effective_address(v_address);
+		let set = ((address >> 12) as usize) & (TLB_SETS - 1);
+		let tag = (address & !0xfff) | 1;
+		if self.tlb_tags[TLB_EXECUTE][set] == tag
+			&& self.tlb_metas[TLB_EXECUTE][set] == self.tlb_meta_cache {
+			return Ok(self.tlb_ppns[TLB_EXECUTE][set] | (address & 0xfff));
+		}
+		self.translate_address(v_address, &MemoryAccessType::Execute)
+	}
+
+	// risc-box patch: everything a cached predecoded instruction depends on —
+	// the TLB meta (all translation inputs) plus the code generation
+	// (bumped when any marked executable page is written).
+	pub fn exec_meta(&self) -> u64 {
+		(self.tlb_meta() as u64) | ((self.bus.memory.code_gen() as u64) << 32)
+	}
+
+	// risc-box patch: see MemoryWrapper::mark_exec_page.
+	pub fn mark_exec_page(&mut self, p_address: u64) -> bool {
+		self.bus.memory.mark_exec_page(p_address)
+	}
+
+	// risc-box patch: the write-snoop generation alone — what a superblock's
+	// content validity depends on (a store can invalidate code pages but can
+	// never change what physical page a block was decoded from; the probe
+	// re-checks the mapping through the TLB separately).
+	#[inline(always)]
+	/// risc-box patch (aot): the address-space generation — satp writes and
+	/// SFENCE.VMA bump it (via clear_page_cache), so "same tlb_gen" means
+	/// no mapping has changed since a compiled region's members were
+	/// verified against their install-time physical pages.
+	pub fn tlb_gen(&self) -> u32 {
+		self.tlb_gen
+	}
+
+	pub fn code_gen(&self) -> u32 {
+		self.bus.memory.code_gen()
+	}
+
+	// risc-box patch: per-page code generation of the page holding p_address (see MemoryWrapper::page_gen)
+	#[inline(always)]
+	pub fn page_gen(&self, p_address: u64) -> u32 {
+		self.bus.memory.page_gen(p_address)
+	}
+
+	// risc-box patch: the whole-memory invalidation generation (see MemoryWrapper::glob_gen)
+	#[inline(always)]
+	pub fn glob_gen(&self) -> u32 {
+		self.bus.memory.glob_gen()
+	}
+
+	#[cfg(any(feature = "codegen", all(test, feature = "jit")))]
+	/// risc-box patch (codegen JIT): the current translation meta — every
+	/// input a TLB hit depends on (generation, privilege, MPRV/MPP).
+	#[inline(always)]
+	pub(crate) fn tlb_meta_value(&self) -> u32 {
+		self.tlb_meta_cache
+	}
+
+	#[cfg(any(feature = "codegen", all(test, feature = "jit")))]
+	/// risc-box patch (codegen JIT): addresses of the software TLB's READ and
+	/// WRITE ways and of the meta cache cell, in the order jit::TlbLayout
+	/// names them (tags, metas, ppns for read, then write, then meta).
+	pub(crate) fn jit_tlb(&self) -> ([u64; 7], u32) {
+		let a = |p: *const u8| p as usize as u64;
+		([
+			a(self.tlb_tags[TLB_READ].as_ptr() as *const u8),
+			a(self.tlb_metas[TLB_READ].as_ptr() as *const u8),
+			a(self.tlb_ppns[TLB_READ].as_ptr() as *const u8),
+			a(self.tlb_tags[TLB_WRITE].as_ptr() as *const u8),
+			a(self.tlb_metas[TLB_WRITE].as_ptr() as *const u8),
+			a(self.tlb_ppns[TLB_WRITE].as_ptr() as *const u8),
+			a(&self.tlb_meta_cache as *const u32 as *const u8),
+		], TLB_SETS as u32)
+	}
+
+	#[cfg(any(feature = "codegen", all(test, feature = "jit")))]
+	/// risc-box patch (codegen JIT): (read table, write table, exec-page
+	/// marks, DRAM length) — what the chunked-RAM tier reads. The tables move
+	/// only when the memory is re-initialized.
+	pub(crate) fn jit_ram(&self) -> (u64, u64, u64, u64) {
+		let (rd, wr) = self.bus.memory.memory.jit_tables();
+		(
+			rd as usize as u64,
+			wr as usize as u64,
+			self.bus.memory.exec_page_marks.as_ptr() as usize as u64,
+			self.bus.memory.memory.len() as u64,
+		)
+	}
+
+	/// Tests: physical doubleword access with the real side effects.
+	#[cfg(test)]
+	pub(crate) fn load_doubleword_phys(&mut self, p_address: u64) -> u64 {
+		self.load_doubleword_raw(p_address)
+	}
+
+	#[cfg(test)]
+	pub(crate) fn store_doubleword_phys(&mut self, p_address: u64, value: u64) {
+		self.store_doubleword_raw(p_address, value)
+	}
+
+	// risc-box patch: SFENCE.VMA entry point (cpu.rs calls this; upstream
+	// treated the instruction as a no-op).
+	pub fn sfence_vma(&mut self) {
+		self.tlb_flush();
+		self.clear_page_cache();
+	}
+
+	// risc-box patch: the CPU state a translation depends on, packed for the
+	// TLB tag: generation | privilege | mstatus.MPRV | mstatus."MPP"
+	// (bits 17 and 9..10, exactly as translate_address_walk reads them).
+	// Materialized in tlb_meta_cache whenever one of those inputs changes;
+	// the hot paths read the field.
+	#[inline(always)]
+	fn tlb_meta(&self) -> u32 {
+		self.tlb_meta_cache
+	}
+
+	fn refresh_tlb_meta(&mut self) {
+		let priv_enc = match self.privilege_mode {
+			PrivilegeMode::User => 0u32,
+			PrivilegeMode::Supervisor => 1,
+			PrivilegeMode::Reserved => 2,
+			PrivilegeMode::Machine => 3
+		};
+		self.tlb_meta_cache = (self.tlb_gen << 8)
+			| (priv_enc << 6)
+			| ((((self.mstatus >> 17) & 1) as u32) << 5)
+			| ((((self.mstatus >> 9) & 3) as u32) << 3)
+	}
+
+	/// Runs one cycle of MMU and peripheral devices.
+	// risc-box patch: `n` is how many instructions have retired since the last
+	// service (see Cpu::tick). Devices that keep a clock advance it by that
+	// much rather than by one, so guest time runs at the same rate it always
+	// did; devices that only poll queues simply get polled less often.
+	pub fn tick(&mut self, n: u64, mip: &mut u64) {
+		self.bus.dev.lock();
+		let bus = &mut *self.bus;
+		bus.clint.tick(n, mip, &bus.raised);
+		bus.disk.tick(n, &mut bus.memory);
+		bus.net.tick(&mut bus.memory); // risc-box patch
+		bus.input.tick(&mut bus.memory); // risc-box patch
+		let mtime = bus.clint.mtime(); // risc-box patch
+		bus.snd.tick(mtime, &mut bus.memory); // risc-box patch
+		bus.gpu.tick(&mut bus.memory); // risc-box patch
+		bus.uart.tick(n);
+		bus.plic.tick(n, bus.disk.is_interrupting(), bus.net.is_interrupting(),
+			bus.input.is_interrupting(), bus.snd.is_interrupting(),
+			bus.gpu.is_interrupting(), bus.uart.is_interrupting(), mip, &bus.raised);
+		self.bus.dev.unlock();
+		self.clock = self.clock.wrapping_add(n);
+	}
+
+	/// Updates addressing mode
+	///
+	/// # Arguments
+	/// * `new_addressing_mode`
+	pub fn update_addressing_mode(&mut self, new_addressing_mode: AddressingMode) {
+		self.addressing_mode = new_addressing_mode;
+		self.clear_page_cache();
+		self.tlb_flush(); // risc-box patch
+	}
+
+	/// Updates privilege mode
+	///
+	/// # Arguments
+	/// * `mode`
+	pub fn update_privilege_mode(&mut self, mode: PrivilegeMode) {
+		self.privilege_mode = mode;
+		self.clear_page_cache();
+		self.refresh_tlb_meta(); // risc-box patch
+	}
+
+	/// Updates mstatus copy. `CPU` needs to call this method whenever
+	/// `mstatus` is updated.
+	///
+	/// # Arguments
+	/// * `mstatus`
+	pub fn update_mstatus(&mut self, mstatus: u64) {
+		self.mstatus = mstatus;
+		self.refresh_tlb_meta(); // risc-box patch
+	}
+
+	/// Updates PPN used for address translation
+	///
+	/// # Arguments
+	/// * `ppn`
+	pub fn update_ppn(&mut self, ppn: u64) {
+		self.ppn = ppn;
+		self.clear_page_cache();
+		self.tlb_flush(); // risc-box patch
+	}
+
+	fn get_effective_address(&self, address: u64) -> u64 {
+		match self.xlen {
+			Xlen::Bit32 => address & 0xffffffff,
+			Xlen::Bit64 => address
+		}
+	}
+
+	/// Fetches an instruction byte. This method takes virtual address
+	/// and translates into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	fn fetch(&mut self, v_address: u64) -> Result<u8, Trap> {
+		match self.translate_address(v_address, &MemoryAccessType::Execute) {
+			Ok(p_address) => Ok(self.load_raw(p_address)),
+			Err(()) => return Err(Trap {
+				trap_type: TrapType::InstructionPageFault,
+				value: v_address
+			})
+		}
+	}
+
+	/// Fetches instruction four bytes. This method takes virtual address
+	/// and translates into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	pub fn fetch_word(&mut self, v_address: u64) -> Result<u32, Trap> {
+		let width = 4;
+		match (v_address & 0xfff) <= (0x1000 - width) {
+			true => {
+				// Fast path. All bytes fetched are in the same page so
+				// translating an address only once.
+				let effective_address = self.get_effective_address(v_address);
+				match self.translate_address(effective_address, &MemoryAccessType::Execute) {
+					Ok(p_address) => Ok(self.load_word_raw(p_address)),
+					Err(()) => Err(Trap {
+						trap_type: TrapType::InstructionPageFault,
+						value: effective_address
+					})
+				}
+			},
+			false => {
+				let mut data = 0 as u32;
+				for i in 0..width {
+					match self.fetch(v_address.wrapping_add(i)) {
+						Ok(byte) => {
+							data |= (byte as u32) << (i * 8)
+						},
+						Err(e) => return Err(e)
+					};
+				}
+				Ok(data)
+			}
+		}
+	}
+
+	/// Loads an byte. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	#[inline(always)]
+	pub fn load(&mut self, v_address: u64) -> Result<u8, Trap> {
+		let effective_address = self.get_effective_address(v_address);
+		match self.translate_address(effective_address, &MemoryAccessType::Read) {
+			Ok(p_address) => Ok(self.load_raw(p_address)),
+			Err(()) => Err(Trap {
+				trap_type: TrapType::LoadPageFault,
+				value: v_address
+			})
+		}
+	}
+
+	/// Loads multiple bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `width` Must be 1, 2, 4, or 8
+	// risc-box patch: #[inline(always)] with the cross-page tail split out —
+	// every load from the interpreter's hot set lands here with a constant
+	// `width`, so inlining folds the width match away and the TLB probe in
+	// translate_address specializes per call site.
+	#[inline(always)]
+	fn load_bytes(&mut self, v_address: u64, width: u64) -> Result<u64, Trap> {
+		debug_assert!(width == 1 || width == 2 || width == 4 || width == 8,
+			"Width must be 1, 2, 4, or 8. {:X}", width);
+		match (v_address & 0xfff) <= (0x1000 - width) {
+			true => match self.translate_address(v_address, &MemoryAccessType::Read) {
+				Ok(p_address) => {
+					// Fast path. All bytes fetched are in the same page so
+					// translating an address only once.
+					match width {
+						1 => Ok(self.load_raw(p_address) as u64),
+						2 => Ok(self.load_halfword_raw(p_address) as u64),
+						4 => Ok(self.load_word_raw(p_address) as u64),
+						8 => Ok(self.load_doubleword_raw(p_address)),
+						_ => panic!("Width must be 1, 2, 4, or 8. {:X}", width)
+					}
+				},
+				Err(()) => Err(Trap {
+					trap_type: TrapType::LoadPageFault,
+					value: v_address
+				})
+			},
+			false => self.load_bytes_cross_page(v_address, width)
+		}
+	}
+
+	#[cold]
+	fn load_bytes_cross_page(&mut self, v_address: u64, width: u64) -> Result<u64, Trap> {
+		let mut data = 0 as u64;
+		for i in 0..width {
+			match self.load(v_address.wrapping_add(i)) {
+				Ok(byte) => {
+					data |= (byte as u64) << (i * 8)
+				},
+				Err(e) => return Err(e)
+			};
+		}
+		Ok(data)
+	}
+
+	/// Loads two bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	#[inline(always)]
+	pub fn load_halfword(&mut self, v_address: u64) -> Result<u16, Trap> {
+		match self.load_bytes(v_address, 2) {
+			Ok(data) => Ok(data as u16),
+			Err(e) => Err(e)
+		}
+	}
+
+	/// Loads four bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	#[inline(always)]
+	pub fn load_word(&mut self, v_address: u64) -> Result<u32, Trap> {
+		match self.load_bytes(v_address, 4) {
+			Ok(data) => Ok(data as u32),
+			Err(e) => Err(e)
+		}
+	}
+
+	/// Loads eight bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	#[inline(always)]
+	pub fn load_doubleword(&mut self, v_address: u64) -> Result<u64, Trap> {
+		match self.load_bytes(v_address, 8) {
+			Ok(data) => Ok(data as u64),
+			Err(e) => Err(e)
+		}
+	}
+
+	/// Store an byte. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `value`
+	#[inline(always)]
+	pub fn store(&mut self, v_address: u64, value: u8) -> Result<(), Trap> {
+		match self.translate_address(v_address, &MemoryAccessType::Write) {
+			Ok(p_address) => {
+				self.store_raw(p_address, value);
+				Ok(())
+			},
+			Err(()) => Err(Trap {
+				trap_type: TrapType::StorePageFault,
+				value: v_address
+			})
+		}
+	}
+
+	/// Stores multiple bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `value` data written
+	/// * `width` Must be 1, 2, 4, or 8
+	// risc-box patch: same shape as load_bytes — constant-width call sites,
+	// cold cross-page tail.
+	#[inline(always)]
+	fn store_bytes(&mut self, v_address: u64, value: u64, width: u64) -> Result<(), Trap> {
+		debug_assert!(width == 1 || width == 2 || width == 4 || width == 8,
+			"Width must be 1, 2, 4, or 8. {:X}", width);
+		match (v_address & 0xfff) <= (0x1000 - width) {
+			true => match self.translate_address(v_address, &MemoryAccessType::Write) {
+				Ok(p_address) => {
+					// Fast path. All bytes fetched are in the same page so
+					// translating an address only once.
+					match width {
+						1 => self.store_raw(p_address, value as u8),
+						2 => self.store_halfword_raw(p_address, value as u16),
+						4 => self.store_word_raw(p_address, value as u32),
+						8 => self.store_doubleword_raw(p_address, value),
+						_ => panic!("Width must be 1, 2, 4, or 8. {:X}", width)
+					}
+					Ok(())
+				},
+				Err(()) => Err(Trap {
+					trap_type: TrapType::StorePageFault,
+					value: v_address
+				})
+			},
+			false => self.store_bytes_cross_page(v_address, value, width)
+		}
+	}
+
+	#[cold]
+	fn store_bytes_cross_page(&mut self, v_address: u64, value: u64, width: u64) -> Result<(), Trap> {
+		for i in 0..width {
+			match self.store(v_address.wrapping_add(i), ((value >> (i * 8)) & 0xff) as u8) {
+				Ok(()) => {},
+				Err(e) => return Err(e)
+			}
+		}
+		Ok(())
+	}
+
+	/// Stores two bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `value` data written
+	#[inline(always)]
+	pub fn store_halfword(&mut self, v_address: u64, value: u16) -> Result<(), Trap> {
+		self.store_bytes(v_address, value as u64, 2)
+	}
+
+	/// Stores four bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `value` data written
+	#[inline(always)]
+	pub fn store_word(&mut self, v_address: u64, value: u32) -> Result<(), Trap> {
+		self.store_bytes(v_address, value as u64, 4)
+	}
+
+	/// Stores eight bytes. This method takes virtual address and translates
+	/// into physical address inside.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	/// * `value` data written
+	#[inline(always)]
+	pub fn store_doubleword(&mut self, v_address: u64, value: u64) -> Result<(), Trap> {
+		self.store_bytes(v_address, value as u64, 8)
+	}
+
+	/// Loads a byte from main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	#[inline(always)]
+	fn load_raw(&mut self, p_address: u64) -> u8 {
+		let effective_address = self.get_effective_address(p_address);
+		// @TODO: Mapping should be configurable with dtb
+		match effective_address >= DRAM_BASE {
+			true => self.bus.memory.read_byte(effective_address),
+			false => {
+				self.dev_lock();
+				let v = self.load_dev(effective_address);
+				self.dev_unlock();
+				v
+			}
+		}
+	}
+
+	/// risc-box patch (SMP): the device lock (see DevLock).
+	#[inline(always)]
+	pub fn dev_lock(&self) {
+		self.bus.dev.lock();
+	}
+
+	#[inline(always)]
+	pub fn dev_unlock(&self) {
+		self.bus.dev.unlock();
+	}
+
+	/// A byte of a multi-byte access that is not all RAM (it may straddle DRAM_BASE); device lock held.
+	fn load_dev_or_ram(&mut self, a: u64) -> u8 {
+		match a >= DRAM_BASE {
+			true => self.bus.memory.read_byte(a),
+			false => self.load_dev(a)
+		}
+	}
+
+	fn store_dev_or_ram(&mut self, a: u64, value: u8) {
+		match a >= DRAM_BASE {
+			true => self.bus.memory.write_byte(a, value),
+			false => self.store_dev(a, value)
+		}
+	}
+
+	/// risc-box patch (SMP): a device (non-RAM) byte; the caller holds the device lock.
+	fn load_dev(&mut self, effective_address: u64) -> u8 {
+		{
+			match effective_address {
+				// I don't know why but dtb data seems to be stored from 0x1020 on Linux.
+				// It might be from self.x[0xb] initialization?
+				// And DTB size is arbitray.
+				0x00001020..=0x00001fff => self.bus.dtb[effective_address as usize - 0x1020],
+				0x02000000..=0x0200ffff => self.bus.clint.load(effective_address),
+				0x0C000000..=0x0fffffff => self.bus.plic.load(effective_address),
+				0x10000000..=0x100000ff => self.bus.uart.load(effective_address),
+				0x10001000..=0x10001FFF => self.bus.disk.load(effective_address),
+				0x10002000..=0x10002FFF => self.bus.net.load(effective_address), // risc-box patch
+				0x10003000..=0x10003FFF => self.bus.input.load(effective_address), // risc-box patch
+				0x10004000..=0x10004FFF => self.bus.snd.load(effective_address), // risc-box patch
+				0x10005000..=0x10005FFF => self.bus.gpu.load(effective_address), // risc-box patch
+				0x10006000..=0x10006FFF => self.bus.opl.load(effective_address), // risc-box patch
+				0x10007000..=0x10007FFF => self.bus.overlay.load(effective_address),
+				// risc-box patch: an access to an address no device backs must
+				// never panic the HOST process — a tenant guest could otherwise
+				// crash the whole enclave app. Read as zero, like an open bus.
+				_ => { note_unmapped(effective_address, false); 0 }
+			}
+		}
+	}
+
+	/// Loads two bytes from main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	#[inline(always)]
+	fn load_halfword_raw(&mut self, p_address: u64) -> u16 {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(1) > effective_address {
+			// Fast path. Directly load main memory at a time.
+			true => self.bus.memory.read_halfword(effective_address),
+			false => {
+				let mut data = 0 as u16;
+				self.dev_lock();
+				for i in 0..2 {
+					data |= (self.load_dev_or_ram(effective_address.wrapping_add(i)) as u16) << (i * 8)
+				}
+				self.dev_unlock();
+				data
+			}
+		}
+	}
+
+	/// Loads four bytes from main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	#[inline(always)]
+	pub fn load_word_raw(&mut self, p_address: u64) -> u32 {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(3) > effective_address {
+			// Fast path. Directly load main memory at a time.
+			true => self.bus.memory.read_word(effective_address),
+			false => {
+				let mut data = 0 as u32;
+				self.dev_lock();
+				for i in 0..4 {
+					data |= (self.load_dev_or_ram(effective_address.wrapping_add(i)) as u32) << (i * 8)
+				}
+				self.dev_unlock();
+				data
+			}
+		}
+	}
+
+	/// Loads eight bytes from main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	#[inline(always)]
+	fn load_doubleword_raw(&mut self, p_address: u64) -> u64 {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(7) > effective_address {
+			// Fast path. Directly load main memory at a time.
+			true => self.bus.memory.read_doubleword(effective_address),
+			false => {
+				let mut data = 0 as u64;
+				self.dev_lock();
+				for i in 0..8 {
+					data |= (self.load_dev_or_ram(effective_address.wrapping_add(i)) as u64) << (i * 8)
+				}
+				self.dev_unlock();
+				data
+			}
+		}
+	}
+
+	/// Stores a byte to main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	/// * `value` data written
+	#[inline(always)]
+	pub fn store_raw(&mut self, p_address: u64, value: u8) {
+		let effective_address = self.get_effective_address(p_address);
+		// @TODO: Mapping should be configurable with dtb
+		match effective_address >= DRAM_BASE {
+			true => self.bus.memory.write_byte(effective_address, value),
+			false => {
+				self.dev_lock();
+				self.store_dev(effective_address, value);
+				self.dev_unlock();
+			}
+		}
+	}
+
+	/// risc-box patch (SMP): a device (non-RAM) byte store; the caller holds the device lock.
+	fn store_dev(&mut self, effective_address: u64, value: u8) {
+		{
+			match effective_address {
+				0x02000000..=0x0200ffff => self.bus.clint.store(effective_address, value),
+				0x0c000000..=0x0fffffff => self.bus.plic.store(effective_address, value),
+				0x10000000..=0x100000ff => self.bus.uart.store(effective_address, value),
+				0x10001000..=0x10001FFF => self.bus.disk.store(effective_address, value),
+				0x10002000..=0x10002FFF => self.bus.net.store(effective_address, value), // risc-box patch
+				0x10003000..=0x10003FFF => self.bus.input.store(effective_address, value), // risc-box patch
+				0x10004000..=0x10004FFF => self.bus.snd.store(effective_address, value), // risc-box patch
+				0x10005000..=0x10005FFF => self.bus.gpu.store(effective_address, value), // risc-box patch
+				0x10006000..=0x10006FFF => self.bus.opl.store(effective_address, value), // risc-box patch
+				0x10007000..=0x10007FFF => self.overlay_store(effective_address, value),
+				// risc-box patch: drop writes to unbacked addresses (open bus)
+				// rather than panic the host — see load_raw.
+				_ => note_unmapped(effective_address, true)
+			}
+		};
+	}
+
+	/// Stores two bytes to main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	/// * `value` data written
+	#[inline(always)]
+	fn store_halfword_raw(&mut self, p_address: u64, value: u16) {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(1) > effective_address {
+			// Fast path. Directly store to main memory at a time.
+			true => self.bus.memory.write_halfword(effective_address, value),
+			false => {
+				self.dev_lock();
+				for i in 0..2 {
+					self.store_dev_or_ram(effective_address.wrapping_add(i), ((value >> (i * 8)) & 0xff) as u8);
+				}
+				self.dev_unlock();
+			}
+		}
+	}
+
+	/// Stores four bytes to main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	/// * `value` data written
+	#[inline(always)]
+	fn store_word_raw(&mut self, p_address: u64, value: u32) {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(3) > effective_address {
+			// Fast path. Directly store to main memory at a time.
+			true => self.bus.memory.write_word(effective_address, value),
+			false => {
+				self.dev_lock();
+				for i in 0..4 {
+					self.store_dev_or_ram(effective_address.wrapping_add(i), ((value >> (i * 8)) & 0xff) as u8);
+				}
+				self.dev_unlock();
+			}
+		}
+	}
+
+	/// Stores eight bytes to main memory or peripheral devices depending on
+	/// physical address.
+	///
+	/// # Arguments
+	/// * `p_address` Physical address
+	/// * `value` data written
+	#[inline(always)]
+	fn store_doubleword_raw(&mut self, p_address: u64, value: u64) {
+		let effective_address = self.get_effective_address(p_address);
+		match effective_address >= DRAM_BASE && effective_address.wrapping_add(7) > effective_address {
+			// Fast path. Directly store to main memory at a time.
+			true => self.bus.memory.write_doubleword(effective_address, value),
+			false => {
+				self.dev_lock();
+				for i in 0..8 {
+					self.store_dev_or_ram(effective_address.wrapping_add(i), ((value >> (i * 8)) & 0xff) as u8);
+				}
+				self.dev_unlock();
+			}
+		}
+	}
+
+	/// Checks if passed virtual address is valid (pointing a certain device) or not.
+	/// This method can return page fault trap.
+	///
+	/// # Arguments
+	/// * `v_address` Virtual address
+	pub fn validate_address(&mut self, v_address: u64) -> Result<bool, ()> {
+		// @TODO: Support other access types?
+		let p_address = match self.translate_address(v_address, &MemoryAccessType::DontCare) {
+			Ok(address) => address,
+			Err(()) => return Err(())
+		};
+		let effective_address = self.get_effective_address(p_address);
+		let valid = match effective_address >= DRAM_BASE {
+			true => self.bus.memory.validate_address(effective_address),
+			false => match effective_address {
+				0x00001020..=0x00001fff => true,
+				0x02000000..=0x0200ffff => true,
+				0x0C000000..=0x0fffffff => true,
+				0x10000000..=0x100000ff => true,
+				0x10001000..=0x10001FFF => true,
+				0x10002000..=0x10002FFF => true, // risc-box patch
+				0x10003000..=0x10003FFF => true, // risc-box patch
+				0x10004000..=0x10004FFF => true, // risc-box patch
+				_ => false
+			}
+		};
+		Ok(valid)
+	}
+
+	// risc-box patch: TLB fast path in front of the original walk (renamed to
+	// translate_address_walk below, body untouched). A hit is one array
+	// compare; a successful miss fills the entry for next time. DontCare
+	// accesses and bare (no-translation) mode bypass the TLB.
+	#[inline(always)]
+	fn translate_address(&mut self, v_address: u64, access_type: &MemoryAccessType) -> Result<u64, ()> {
+		let ti = match access_type {
+			MemoryAccessType::Execute => TLB_EXECUTE,
+			MemoryAccessType::Read => TLB_READ,
+			MemoryAccessType::Write => TLB_WRITE,
+			MemoryAccessType::DontCare => usize::MAX
+		};
+		if ti == usize::MAX || matches!(self.addressing_mode, AddressingMode::None) {
+			return self.translate_address_walk(v_address, access_type);
+		}
+		let address = self.get_effective_address(v_address);
+		let set = ((address >> 12) as usize) & (TLB_SETS - 1);
+		let tag = (address & !0xfff) | 1; // bit 0 marks a valid entry
+		let meta = self.tlb_meta();
+		if self.tlb_tags[ti][set] == tag && self.tlb_metas[ti][set] == meta {
+			return Ok(self.tlb_ppns[ti][set] | (address & 0xfff));
+		}
+		let result = self.translate_address_walk(v_address, access_type);
+		if let Ok(p_address) = result {
+			self.tlb_tags[ti][set] = tag;
+			self.tlb_metas[ti][set] = meta;
+			self.tlb_ppns[ti][set] = p_address & !0xfff;
+		}
+		result
+	}
+
+	#[cold]
+	fn translate_address_walk(&mut self, v_address: u64, access_type: &MemoryAccessType) -> Result<u64, ()> {
+		let address = self.get_effective_address(v_address);
+		let v_page = address & !0xfff;
+		let cache = match self.page_cache_enabled {
+			true => match access_type {
+				MemoryAccessType::Execute => self.fetch_page_cache.get(&v_page),
+				MemoryAccessType::Read => self.load_page_cache.get(&v_page),
+				MemoryAccessType::Write => self.store_page_cache.get(&v_page),
+				MemoryAccessType::DontCare => None,
+			},
+			false => None
+		};
+		match cache {
+			Some(p_page) => Ok(p_page | (address & 0xfff)),
+			None => {
+				let p_address = match self.addressing_mode {
+					AddressingMode::None => Ok(address),
+					AddressingMode::SV32 => match self.privilege_mode {
+						// @TODO: Optimize
+						PrivilegeMode::Machine => match access_type {
+							MemoryAccessType::Execute => Ok(address),
+							// @TODO: Remove magic number
+							_ => match (self.mstatus >> 17) & 1 {
+								0 => Ok(address),
+								_ => {
+									let privilege_mode = get_privilege_mode((self.mstatus >> 9) & 3);
+									match privilege_mode {
+										PrivilegeMode::Machine => Ok(address),
+										_ => {
+											let current_privilege_mode = self.privilege_mode.clone();
+											self.update_privilege_mode(privilege_mode);
+											let result = self.translate_address(v_address, access_type);
+											self.update_privilege_mode(current_privilege_mode);
+											result
+										}
+									}
+								}
+							}
+						},
+						PrivilegeMode::User | PrivilegeMode::Supervisor => {
+							let vpns = [(address >> 12) & 0x3ff, (address >> 22) & 0x3ff];
+							self.traverse_page(address, 2 - 1, self.ppn, &vpns, &access_type)
+						},
+						_ => Ok(address)
+					},
+					AddressingMode::SV39 => match self.privilege_mode {
+						// @TODO: Optimize
+						// @TODO: Remove duplicated code with SV32
+						PrivilegeMode::Machine => match access_type {
+							MemoryAccessType::Execute => Ok(address),
+							// @TODO: Remove magic number
+							_ => match (self.mstatus >> 17) & 1 {
+								0 => Ok(address),
+								_ => {
+									let privilege_mode = get_privilege_mode((self.mstatus >> 9) & 3);
+									match privilege_mode {
+										PrivilegeMode::Machine => Ok(address),
+										_ => {
+											let current_privilege_mode = self.privilege_mode.clone();
+											self.update_privilege_mode(privilege_mode);
+											let result = self.translate_address(v_address, access_type);
+											self.update_privilege_mode(current_privilege_mode);
+											result
+										}
+									}
+								}
+							}
+						},
+						PrivilegeMode::User | PrivilegeMode::Supervisor => {
+							let vpns = [(address >> 12) & 0x1ff, (address >> 21) & 0x1ff, (address >> 30) & 0x1ff];
+							self.traverse_page(address, 3 - 1, self.ppn, &vpns, &access_type)
+						},
+						_ => Ok(address)
+					},
+					AddressingMode::SV48 => {
+						panic!("AddressingMode SV48 is not supported yet.");
+					}
+				};
+				match self.page_cache_enabled {
+					true => match p_address {
+						Ok(p_address) => {
+							let p_page = p_address & !0xfff;
+							match access_type {
+								MemoryAccessType::Execute => self.fetch_page_cache.insert(v_page, p_page),
+								MemoryAccessType::Read => self.load_page_cache.insert(v_page, p_page),
+								MemoryAccessType::Write => self.store_page_cache.insert(v_page, p_page),
+								MemoryAccessType::DontCare => None,
+							};
+							Ok(p_address)
+						},
+						Err(()) => Err(())
+					},
+					false => p_address
+				}
+			}
+		}
+	}
+
+	fn traverse_page(&mut self, v_address: u64, level: u8, parent_ppn: u64,
+		vpns: &[u64], access_type: &MemoryAccessType) -> Result<u64, ()> {
+		let pagesize = 4096;
+		let ptesize = match self.addressing_mode {
+			AddressingMode::SV32 => 4,
+			_ => 8
+		};
+		let pte_address = parent_ppn * pagesize + vpns[level as usize] * ptesize;
+		let pte = match self.addressing_mode {
+			AddressingMode::SV32 => self.load_word_raw(pte_address) as u64,
+			_ => self.load_doubleword_raw(pte_address)
+		};
+		let ppn = match self.addressing_mode {
+			AddressingMode::SV32 => (pte >> 10) & 0x3fffff,
+			_ => (pte >> 10) & 0xfffffffffff
+		};
+		let ppns = match self.addressing_mode {
+			AddressingMode::SV32 => [(pte >> 10) & 0x3ff, (pte >> 20) & 0xfff, 0 /*dummy*/],
+			AddressingMode::SV39 => [(pte >> 10) & 0x1ff, (pte >> 19) & 0x1ff, (pte >> 28) & 0x3ffffff],
+			_ => panic!() // Shouldn't happen
+		};
+		let _rsw = (pte >> 8) & 0x3;
+		let d = (pte >> 7) & 1;
+		let a = (pte >> 6) & 1;
+		let _g = (pte >> 5) & 1;
+		let _u = (pte >> 4) & 1;
+		let x = (pte >> 3) & 1;
+		let w = (pte >> 2) & 1;
+		let r = (pte >> 1) & 1;
+		let v = pte & 1;
+
+		// println!("VA:{:X} Level:{:X} PTE_AD:{:X} PTE:{:X} PPPN:{:X} PPN:{:X} PPN1:{:X} PPN0:{:X}", v_address, level, pte_address, pte, parent_ppn, ppn, ppns[1], ppns[0]);
+
+		if v == 0 || (r == 0 && w == 1) {
+			return Err(());
+		}
+
+		if r == 0 && x == 0 {
+			return match level {
+				0 => Err(()),
+				_ => self.traverse_page(v_address, level - 1, ppn, vpns, access_type)
+			};
+		}
+
+		// Leaf page found
+
+		if a == 0 || (match access_type { MemoryAccessType::Write => d == 0, _ => false }) {
+			let new_pte = pte | (1 << 6) | (match access_type {
+				MemoryAccessType::Write => 1 << 7,
+				_ => 0
+			});
+			match self.addressing_mode {
+				AddressingMode::SV32 => self.store_word_raw(pte_address, new_pte as u32),
+				_ => self.store_doubleword_raw(pte_address, new_pte)
+			};
+		}
+
+		match access_type {
+			MemoryAccessType::Execute => {
+				if x == 0 {
+					return Err(());
+				}
+			},
+			MemoryAccessType::Read => {
+				if r == 0 {
+					return Err(());
+				}
+			},
+			MemoryAccessType::Write => {
+				if w == 0 {
+					return Err(());
+				}
+			},
+			_ => {}
+		};
+
+		let offset = v_address & 0xfff; // [11:0]
+		// @TODO: Optimize
+		let p_address = match self.addressing_mode {
+			AddressingMode::SV32 => match level {
+				1 => {
+					if ppns[0] != 0 {
+						return Err(());
+					}
+					(ppns[1] << 22) | (vpns[0] << 12) | offset
+				},
+				0 => (ppn << 12) | offset,
+				_ => panic!() // Shouldn't happen
+			},
+			_ => match level {
+				2 => {
+					if ppns[1] != 0 || ppns[0] != 0 {
+						return Err(());
+					}
+					(ppns[2] << 30) | (vpns[1] << 21) | (vpns[0] << 12) | offset
+				},
+				1 => {
+					if ppns[0] != 0 {
+						return Err(());
+					}
+					(ppns[2] << 30) | (ppns[1] << 21) | (vpns[0] << 12) | offset
+				},
+				0 => (ppn << 12) | offset,
+				_ => panic!() // Shouldn't happen
+			},
+		};
+
+		// println!("PA:{:X}", p_address);
+		Ok(p_address)
+	}
+
+	/// Returns immutable reference to `Clint`.
+	pub fn get_clint(&self) -> &Clint {
+		&self.bus.clint
+	}
+
+	/// Returns mutable reference to `Clint`.
+	pub fn get_mut_clint(&mut self) -> &mut Clint {
+		&mut self.bus.clint
+	}
+
+	/// Returns mutable reference to `Uart`.
+	pub fn get_mut_uart(&mut self) -> &mut Uart {
+		&mut self.bus.uart
+	}
+
+	/// risc-box patch: immutable access to the virtio disk, so the app can
+	/// dump the (guest-modified) image for persisting.
+	/// risc-box patch: mutable access to the virtio-net device so the
+	/// embedding application can attach a backend and exchange frames.
+	pub fn get_mut_net(&mut self) -> &mut VirtioNet {
+		&mut self.bus.net
+	}
+
+	/// risc-box patch: read-only view of the input device (its queue depth)
+	pub fn get_input(&self) -> &VirtioInput {
+		&self.bus.input
+	}
+
+	/// risc-box patch: mutable access to the virtio-input device so the
+	/// embedding application can inject pointer/keyboard events.
+	pub fn get_mut_input(&mut self) -> &mut VirtioInput {
+		&mut self.bus.input
+	}
+
+	/// risc-box patch: mutable access to the virtio-snd device so the host can
+	/// take played audio out of it.
+	/// risc-box patch: the OPL register mailbox (music; synthesis is the
+	/// host's job, see device/opl.rs).
+	pub fn get_mut_opl(&mut self) -> &mut Opl {
+		&mut self.bus.opl
+	}
+
+	pub fn get_mut_gpu(&mut self) -> &mut VirtioGpu {
+		&mut self.bus.gpu
+	}
+
+	/// risc-box patch: read-only view of the display controller, for the
+	/// scanout path.
+	pub fn get_gpu(&self) -> &VirtioGpu {
+		&self.bus.gpu
+	}
+
+	pub fn get_mut_snd(&mut self) -> &mut VirtioSnd {
+		&mut self.bus.snd
+	}
+
+	pub fn get_disk(&self) -> &VirtioBlockDisk {
+		&self.bus.disk
+	}
+}
+
+/// risc-box patch: the physical window whose stores feed the framebuffer
+/// counters and overlay rectangle (snoop_exec). The codegen JIT bails on
+/// stores here so the interpreter keeps that bookkeeping.
+pub const FB_STORE_WINDOW: (u64, u64) = (0x87e0_0000, 0x8860_0000);
+
+/// [`Memory`](../memory/struct.Memory.html) wrapper. Converts physical address to the one in memory
+/// using [`DRAM_BASE`](constant.DRAM_BASE.html) and accesses [`Memory`](../memory/struct.Memory.html).
+pub struct MemoryWrapper {
+	memory: Memory,
+	// risc-box patch: self-modifying-code snoop for the CPU's predecoded
+	// instruction cache. Pages holding cached instructions get marked; any
+	// write that can touch a marked page (CPU store or virtio DMA — every
+	// DRAM write funnels through this wrapper) bumps code_gen, which every
+	// cached entry's meta embeds, killing them all at once.
+	exec_page_marks: Vec<u8>,
+	code_gen: u32,
+	// risc-box patch (per-page code generations, 2026-10-09): a store into a marked page bumps THAT page's
+	// generation and the epoch (`code_gen`) only. Caches keep `code_gen` as the cheap "nothing changed" test and,
+	// when the epoch moved, revalidate against their own pages' generations instead of dropping everything. A
+	// guest JIT (SpiderMonkey) patches code all the time; the old whole-memory bump threw away every decoded
+	// block and compiled region, and cleared ~458k page marks, on each of those stores.
+	page_gens: Vec<u32>,
+	// bumped by whole-memory invalidations (snapshot restore, TLB-generation wrap, fork): no page generation
+	// recorded before one of those may ever validate after it
+	glob_gen: u32,
+	fb_writes: u64,
+	fb_bytes: u64,
+	// risc-box patch (host-side game overlay): byte-offset extent of stores
+	// into the fb window since the last take. On the virtio-gpu image the
+	// simple-framebuffer is invisible dead memory — a game writing it via
+	// the old -overlay path costs ONE blit, and the app composites this
+	// rectangle over the GPU scanout at capture time, natively. The rect is
+	// exact for rectangular row-segment blits (min = first row's left edge,
+	// max = last row's right edge).
+	fb_off_min: std::sync::atomic::AtomicU64,
+	fb_off_max: std::sync::atomic::AtomicU64,
+	fb_stride: u64
+}
+
+impl MemoryWrapper {
+	fn new() -> Self {
+		MemoryWrapper {
+			memory: Memory::new(),
+			exec_page_marks: vec![],
+			code_gen: 1,
+			page_gens: vec![],
+			glob_gen: 1,
+			fb_writes: 0,
+			fb_bytes: 0,
+			fb_off_min: std::sync::atomic::AtomicU64::new(u64::MAX),
+			fb_off_max: std::sync::atomic::AtomicU64::new(0),
+			fb_stride: 4096
+		}
+	}
+
+	fn init(&mut self, capacity: u64) {
+		self.memory.init(capacity);
+		self.exec_page_marks = vec![0; ((capacity + 0xfff) >> 12) as usize]; // risc-box patch
+		self.page_gens = vec![1; ((capacity + 0xfff) >> 12) as usize]; // risc-box patch
+	}
+
+	// risc-box patch (debug aid): count stores landing in the framebuffer's
+	// physical window; boot-bench polls the delta to tell "guest stopped
+	// writing the fb" apart from "writes are being diverted elsewhere".
+	pub fn fb_writes(&self) -> u64 {
+		self.fb_writes
+	}
+
+	// risc-box patch (measurement): BYTES stored into the framebuffer window.
+	// Frame rate is the honest question for a game, and a presented frame is
+	// exactly w*h*4 bytes of blit, so bytes/frame-bytes counts frames without
+	// the guest having to cooperate — stores alone cannot, since the width of
+	// a store varies with how the blitter was compiled.
+	pub fn fb_bytes(&self) -> u64 {
+		self.fb_bytes
+	}
+
+	/// risc-box patch (host-side game overlay): the (x, y, w, h) pixel rect
+	/// covering every fb-window store since the last call, then reset. The
+	/// x-range degrades to full width when the offsets straddle rows in a
+	/// non-rectangular way — over-compositing is correct, just more copied.
+	pub fn fb_take_rect(&self) -> Option<(u32, u32, u32, u32)> {
+		use std::sync::atomic::Ordering;
+		let min = self.fb_off_min.swap(u64::MAX, Ordering::Relaxed);
+		let max = self.fb_off_max.swap(0, Ordering::Relaxed);
+		if min > max {
+			return None;
+		}
+		let stride = self.fb_stride.max(4);
+		let y0 = (min / stride) as u32;
+		let y1 = (max / stride) as u32;
+		let mut x0 = ((min % stride) / 4) as u32;
+		let mut x1 = ((max % stride) / 4) as u32;
+		if x1 < x0 {
+			x0 = 0;
+			x1 = (stride / 4 - 1) as u32;
+		}
+		Some((x0, y0, x1 - x0 + 1, y1 - y0 + 1))
+	}
+
+	pub fn set_fb_stride(&mut self, stride: u64) {
+		self.fb_stride = stride.max(4);
+	}
+
+	// risc-box patch: bump code_gen if this write can touch a marked page.
+	#[inline(always)]
+	fn snoop_exec(&mut self, p_address: u64, width: u64) {
+		if p_address >= FB_STORE_WINDOW.0 && p_address < FB_STORE_WINDOW.1 {
+			self.fb_writes = self.fb_writes.wrapping_add(1);
+			self.fb_bytes = self.fb_bytes.wrapping_add(width);
+			use std::sync::atomic::Ordering;
+			let off = p_address - 0x87e0_0000;
+			if off < self.fb_off_min.load(Ordering::Relaxed) {
+				self.fb_off_min.store(off, Ordering::Relaxed);
+			}
+			let end = off + width - 1;
+			if end > self.fb_off_max.load(Ordering::Relaxed) {
+				self.fb_off_max.store(end, Ordering::Relaxed);
+			}
+		}
+		let first = (p_address.wrapping_sub(DRAM_BASE) >> 12) as usize;
+		let last = (p_address.wrapping_add(width - 1).wrapping_sub(DRAM_BASE) >> 12) as usize;
+		let hit_first = match self.exec_page_marks.get(first) {
+			Some(&m) => m != 0,
+			None => false
+		};
+		let hit_last = last != first && match self.exec_page_marks.get(last) {
+			Some(&m) => m != 0,
+			None => false
+		};
+		if hit_first || hit_last {
+			if hit_first {
+				self.code_write_page(first);
+			}
+			if hit_last {
+				self.code_write_page(last);
+			}
+			self.code_gen = self.code_gen.wrapping_add(1);
+		}
+	}
+
+	// risc-box patch: a store reached marked page `page`: retire what was decoded from it (its generation moves)
+	// and unmark it; re-decoding re-marks it.
+	#[inline(always)]
+	fn code_write_page(&mut self, page: usize) {
+		if let Some(g) = self.page_gens.get_mut(page) {
+			*g = g.wrapping_add(1);
+		}
+		if let Some(m) = self.exec_page_marks.get_mut(page) {
+			*m = 0;
+		}
+	}
+
+	// risc-box patch: the code generation of the page holding p_address (0 when it is not DRAM)
+	#[inline(always)]
+	pub fn page_gen(&self, p_address: u64) -> u32 {
+		if p_address < DRAM_BASE {
+			return 0;
+		}
+		match self.page_gens.get(((p_address - DRAM_BASE) >> 12) as usize) {
+			Some(&g) => g,
+			None => 0
+		}
+	}
+
+	// risc-box patch
+	#[inline(always)]
+	pub fn glob_gen(&self) -> u32 {
+		self.glob_gen
+	}
+
+	// risc-box patch: remember that the page holding p_address backs cached
+	// predecoded instructions; false if the page cannot be snooped.
+	pub fn mark_exec_page(&mut self, p_address: u64) -> bool {
+		if p_address < DRAM_BASE {
+			return false;
+		}
+		let page = ((p_address - DRAM_BASE) >> 12) as usize;
+		match self.exec_page_marks.get_mut(page) {
+			Some(m) => {
+				*m = 1;
+				true
+			},
+			None => false
+		}
+	}
+
+	// risc-box patch
+	pub fn code_gen(&self) -> u32 {
+		self.code_gen
+	}
+
+	// risc-box patch: invalidates every cached predecoded instruction (their
+	// metas embed the old generation) and unmarks all pages — new fills
+	// re-mark what is still live.
+	pub fn bump_code_gen(&mut self) {
+		self.code_gen = self.code_gen.wrapping_add(1);
+		self.glob_gen = self.glob_gen.wrapping_add(1);
+		for m in self.exec_page_marks.iter_mut() {
+			*m = 0;
+		}
+	}
+
+	// risc-box patch: framebuffer scanout — bulk read of guest DRAM, no side
+	// effects (no exec-page snoop: reads never invalidate the decode cache).
+	pub fn read_range(&self, p_address: u64, out: &mut [u8]) {
+		debug_assert!(p_address >= DRAM_BASE, "Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.memory.read_range(p_address - DRAM_BASE, out)
+	}
+
+	#[inline(always)]
+	pub fn read_byte(&mut self, p_address: u64) -> u8 {
+		debug_assert!(p_address >= DRAM_BASE, "Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.memory.read_byte(p_address - DRAM_BASE)
+	}
+
+	#[inline(always)]
+	pub fn read_halfword(&mut self, p_address: u64) -> u16 {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(1) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.memory.read_halfword(p_address - DRAM_BASE)
+	}
+
+	#[inline(always)]
+	pub fn read_word(&mut self, p_address: u64) -> u32 {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(3) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.memory.read_word(p_address - DRAM_BASE)
+	}
+
+	#[inline(always)]
+	pub fn read_doubleword(&mut self, p_address: u64) -> u64 {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(7) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.memory.read_doubleword(p_address - DRAM_BASE)
+	}
+
+	#[inline(always)]
+	pub fn write_byte(&mut self, p_address: u64, value: u8) {
+		debug_assert!(p_address >= DRAM_BASE, "Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.snoop_exec(p_address, 1); // risc-box patch
+		self.memory.write_byte(p_address - DRAM_BASE, value)
+	}
+
+	#[inline(always)]
+	pub fn write_halfword(&mut self, p_address: u64, value: u16) {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(1) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.snoop_exec(p_address, 2); // risc-box patch
+		self.memory.write_halfword(p_address - DRAM_BASE, value)
+	}
+
+	#[inline(always)]
+	pub fn write_word(&mut self, p_address: u64, value: u32) {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(3) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.snoop_exec(p_address, 4); // risc-box patch
+		self.memory.write_word(p_address - DRAM_BASE, value)
+	}
+
+	#[inline(always)]
+	pub fn write_doubleword(&mut self, p_address: u64, value: u64) {
+		debug_assert!(p_address >= DRAM_BASE && p_address.wrapping_add(7) >= DRAM_BASE,
+			"Memory address must equals to or bigger than DRAM_BASE. {:X}", p_address);
+		self.snoop_exec(p_address, 8); // risc-box patch
+		self.memory.write_doubleword(p_address - DRAM_BASE, value)
+	}
+
+	pub fn validate_address(&self, address: u64) -> bool {
+		self.memory.validate_address(address - DRAM_BASE)
+	}
+
+	/// risc-box patch (SMP): host address for an atomic read-modify-write of `width` bytes at `p_address`, after
+	/// the same SMC snoop a store gets. None when the range is not all RAM.
+	pub fn rmw_ptr(&mut self, p_address: u64, width: u64) -> Option<*mut u8> {
+		if p_address < DRAM_BASE || !self.validate_address(p_address) || !self.validate_address(p_address + width - 1) {
+			return None;
+		}
+		self.snoop_exec(p_address, width);
+		Some(self.memory.rmw_ptr((p_address - DRAM_BASE) as usize))
+	}
+
+	// risc-box patch (snapshot/fork): the pages themselves. Writes made
+	// through these bypass the SMC snoop, so the caller bumps code_gen.
+	pub fn ram(&self) -> &Memory {
+		&self.memory
+	}
+
+	pub fn ram_mut(&mut self) -> &mut Memory {
+		&mut self.memory
+	}
+}
+
+// risc-box patch (snapshot): the bus writes one section per device, plus
+// its own translation state, the DTB, RAM and the disk delta. See
+// src/snapshot.rs for the format and lib.rs for the META/identity checks
+// that gate a restore.
+use snapshot::{self, De, Ser};
+
+fn addressing_mode_code(m: &AddressingMode) -> u8 {
+	match m {
+		AddressingMode::None => 0,
+		AddressingMode::SV32 => 1,
+		AddressingMode::SV39 => 2,
+		AddressingMode::SV48 => 3
+	}
+}
+
+fn addressing_mode_from(v: u8) -> Result<AddressingMode, String> {
+	Ok(match v {
+		0 => AddressingMode::None,
+		1 => AddressingMode::SV32,
+		2 => AddressingMode::SV39,
+		3 => AddressingMode::SV48,
+		_ => return Err(format!("snapshot: bad addressing mode {}", v))
+	})
+}
+
+pub(crate) fn privilege_code(p: &PrivilegeMode) -> u8 {
+	match p {
+		PrivilegeMode::User => 0,
+		PrivilegeMode::Supervisor => 1,
+		PrivilegeMode::Reserved => 2,
+		PrivilegeMode::Machine => 3
+	}
+}
+
+pub(crate) fn privilege_from(v: u8) -> Result<PrivilegeMode, String> {
+	match v {
+		0..=3 => Ok(get_privilege_mode(v as u64)),
+		_ => Err(format!("snapshot: bad privilege mode {}", v))
+	}
+}
+
+impl Mmu {
+	pub fn snapshot_into(&self, s: &mut Ser, level: u8, with_ram: bool) -> snapshot::SnapshotStats {
+		let at = s.begin_section(b"MMU_");
+		s.u64(self.clock);
+		s.u8(match self.xlen { Xlen::Bit32 => 32, Xlen::Bit64 => 64 });
+		s.u64(self.ppn);
+		s.u8(addressing_mode_code(&self.addressing_mode));
+		s.u8(privilege_code(&self.privilege_mode));
+		s.u64(self.mstatus);
+		s.u64(self.bus.ram_capacity);
+		s.end_section(at);
+
+		s.section(b"DTB_", &self.bus.dtb);
+
+		let at = s.begin_section(b"CLNT");
+		self.bus.clint.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"PLIC");
+		self.bus.plic.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"UART");
+		self.bus.uart.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"VBLK");
+		self.bus.disk.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"VNET");
+		self.bus.net.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"VINP");
+		self.bus.input.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"VSND");
+		self.bus.snd.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"VGPU");
+		self.bus.gpu.snapshot(s);
+		s.end_section(at);
+		let at = s.begin_section(b"OPL_");
+		self.bus.opl.snapshot(s);
+		s.end_section(at);
+
+		let ram = match with_ram {
+			true => {
+				let at = s.begin_section(b"RAM_");
+				let ram = snapshot::encode_ram(self.bus.memory.ram(), level, s);
+				s.end_section(at);
+				ram
+			},
+			false => snapshot::RamStats { bytes: self.bus.memory.ram().len() as u64, pages_kept: 0, pages_total: 0 }
+		};
+
+		let at = s.begin_section(b"DDLT");
+		let blocks = self.bus.disk.dirty_blocks();
+		let disk = &self.bus.disk;
+		snapshot::encode_delta(&blocks, level, |b, out| disk.read_block(b, out), s);
+		s.end_section(at);
+
+		snapshot::SnapshotStats { ram, delta_blocks: blocks.len() }
+	}
+
+	/// Apply one section. Ok(false) = not a section this layer knows.
+	/// risc-box patch (SMP): a secondary hart's translation state (the per-hart part of MMU_).
+	pub fn snapshot_translation(&self, s: &mut Ser) {
+		s.u64(self.clock);
+		s.u8(match self.xlen { Xlen::Bit32 => 32, Xlen::Bit64 => 64 });
+		s.u64(self.ppn);
+		s.u8(addressing_mode_code(&self.addressing_mode));
+		s.u8(privilege_code(&self.privilege_mode));
+		s.u64(self.mstatus);
+	}
+
+	pub fn restore_translation(&mut self, r: &mut De) -> Result<(), String> {
+		self.clock = r.u64()?;
+		self.xlen = match r.u8()? {
+			32 => Xlen::Bit32,
+			64 => Xlen::Bit64,
+			v => return Err(format!("snapshot: bad xlen {}", v))
+		};
+		self.ppn = r.u64()?;
+		self.addressing_mode = addressing_mode_from(r.u8()?)?;
+		self.privilege_mode = privilege_from(r.u8()?)?;
+		self.mstatus = r.u64()?;
+		self.clear_page_cache();
+		self.tlb_flush();
+		Ok(())
+	}
+
+	pub fn restore_section(&mut self, tag: &[u8; 4], payload: &[u8], stats: &mut snapshot::RestoreStats) -> Result<bool, String> {
+		let mut r = De::new(payload);
+		match tag {
+			b"MMU_" => {
+				self.bus.overlay = Overlay::new();
+				self.clock = r.u64()?;
+				self.xlen = match r.u8()? {
+					32 => Xlen::Bit32,
+					64 => Xlen::Bit64,
+					v => return Err(format!("snapshot: bad xlen {}", v))
+				};
+				self.ppn = r.u64()?;
+				self.addressing_mode = addressing_mode_from(r.u8()?)?;
+				self.privilege_mode = privilege_from(r.u8()?)?;
+				self.mstatus = r.u64()?;
+				self.bus.ram_capacity = r.u64()?;
+				if self.bus.ram_capacity > self.bus.memory.ram().len() as u64 {
+					return Err(format!(
+						"snapshot: MMU says {} bytes of RAM, {} allocated",
+						self.bus.ram_capacity, self.bus.memory.ram().len()
+					));
+				}
+				// every translation cache is derived state: start empty
+				self.clear_page_cache();
+				self.tlb_flush();
+				self.bus.memory.bump_code_gen();
+			},
+			b"DTB_" => {
+				if payload.len() > self.bus.dtb.len() {
+					return Err(format!("snapshot: DTB is {} bytes, window is {}", payload.len(), self.bus.dtb.len()));
+				}
+				self.bus.dtb[..payload.len()].copy_from_slice(payload);
+				for b in self.bus.dtb[payload.len()..].iter_mut() {
+					*b = 0;
+				}
+				return Ok(true);
+			},
+			b"CLNT" => self.bus.clint.restore(&mut r)?,
+			b"PLIC" => self.bus.plic.restore(&mut r)?,
+			b"UART" => self.bus.uart.restore(&mut r)?,
+			b"VBLK" => self.bus.disk.restore(&mut r)?,
+			b"VNET" => self.bus.net.restore(&mut r)?,
+			b"VINP" => self.bus.input.restore(&mut r)?,
+			b"VSND" => self.bus.snd.restore(&mut r)?,
+			b"VGPU" => self.bus.gpu.restore(&mut r)?,
+			b"OPL_" => self.bus.opl.restore(&mut r)?,
+			b"RAM_" => {
+				let st = snapshot::decode_ram_into(payload, self.bus.memory.ram_mut())?;
+				self.bus.memory.bump_code_gen();
+				stats.ram_pages_kept = st.pages_kept;
+				stats.ram_pages_total = st.pages_total;
+				return Ok(true);
+			},
+			b"DDLT" => {
+				let disk = &mut self.bus.disk;
+				let n = snapshot::decode_delta(payload, |b, data| disk.write_block(b, data))?;
+				stats.delta_blocks = n as usize;
+				return Ok(true);
+			},
+			_ => return Ok(false)
+		}
+		r.finish(&String::from_utf8_lossy(tag))?;
+		Ok(true)
+	}
+}
+
+#[cfg(test)]
+mod queue_notification_tests {
+    use super::MemoryWrapper;
+    use device::virtio_gpu::VirtioGpu;
+    use device::virtio_snd::VirtioSnd;
+    use snapshot::{De, Ser};
+
+    const DESC: u64 = 0x80001000;
+    const AVAIL: u64 = 0x80002000;
+    const USED: u64 = 0x80003000;
+    const REQ: u64 = 0x80004000;
+    const RESP: u64 = 0x80005000;
+
+    fn memory() -> MemoryWrapper {
+        let mut m = MemoryWrapper::new();
+        m.init(0x10000);
+        m.write_doubleword(DESC, REQ);
+        m.write_word(DESC + 8, 24);
+        m.write_halfword(DESC + 12, 1); // NEXT
+        m.write_halfword(DESC + 14, 1);
+        m.write_doubleword(DESC + 16, RESP);
+        m.write_word(DESC + 24, 512);
+        m.write_halfword(DESC + 28, 2); // WRITE
+        m.write_word(REQ, 0x100); // GPU display info or sound PCM info
+        m.write_word(REQ + 8, 1); // PCM info: one stream
+        m.write_word(REQ + 12, 32); // sizeof virtio_snd_pcm_info
+        m
+    }
+
+    fn configure(mut store: impl FnMut(u64, u8), base: u64) {
+        for &(off, value) in &[(0x30, 0u32), (0x38, 8), (0x80, DESC as u32),
+                              (0x90, AVAIL as u32), (0xa0, USED as u32),
+                              (0x44, 1), (0x70, 4)] {
+            for (i, b) in value.to_le_bytes().iter().enumerate() {
+                store(base + off + i as u64, *b);
+            }
+        }
+    }
+
+    fn post(m: &mut MemoryWrapper, first: u16, end: u16) {
+        for i in first..end {
+            m.write_halfword(AVAIL + 4 + (i as u64 % 8) * 2, 0);
+        }
+        m.write_halfword(AVAIL + 2, end);
+        m.write_word(RESP, 0);
+    }
+
+    #[test]
+    fn gpu_notifications_drain_batches_and_restore_pending_work() {
+        let mut m = memory();
+        let mut gpu = VirtioGpu::new(960, 600);
+        configure(|a, v| gpu.store(a, v), 0x10005000);
+        gpu.tick(&mut m); // ring initially empty
+        post(&mut m, 0, 1);
+        gpu.store(0x10005050, 0);
+        gpu.tick(&mut m);
+        assert_eq!(m.read_halfword(USED + 2), 1);
+        assert_eq!(m.read_word(RESP), 0x1101);
+        for _ in 0..100 { gpu.tick(&mut m); }
+        assert_eq!(m.read_halfword(USED + 2), 1);
+        post(&mut m, 1, 3);
+        gpu.store(0x10005050, 0);
+        gpu.tick(&mut m);
+        assert_eq!(m.read_halfword(USED + 2), 3, "one kick must drain the whole batch");
+        post(&mut m, 3, 4);
+        let mut w = Ser::new(); gpu.snapshot(&mut w);
+        let mut restored = VirtioGpu::new(960, 600);
+        restored.restore(&mut De::new(&w.buf)).unwrap();
+        restored.tick(&mut m);
+        assert_eq!(m.read_halfword(USED + 2), 4, "restore must recheck posted rings");
+        assert_eq!(m.read_word(RESP), 0x1101);
+        restored.store(0x10005050, 0); // spurious kick must not repeat work
+        restored.tick(&mut m);
+        assert_eq!(m.read_halfword(USED + 2), 4);
+    }
+
+    #[test]
+    fn sound_control_notifications_and_restore_keep_responses() {
+        let mut m = memory();
+        let mut snd = VirtioSnd::new();
+        configure(|a, v| snd.store(a, v), 0x10004000);
+        snd.tick(1, &mut m);
+        post(&mut m, 0, 1);
+        snd.store(0x10004050, 0);
+        snd.tick(2, &mut m);
+        assert_eq!(m.read_halfword(USED + 2), 1);
+        assert_eq!(m.read_word(RESP), 0x8000);
+        for t in 3..100 { snd.tick(t, &mut m); }
+        assert_eq!(m.read_halfword(USED + 2), 1);
+        post(&mut m, 1, 3);
+        snd.store(0x10004050, 0);
+        snd.tick(100, &mut m);
+        assert_eq!(m.read_halfword(USED + 2), 3);
+        post(&mut m, 3, 4);
+        let mut w = Ser::new(); snd.snapshot(&mut w);
+        let mut restored = VirtioSnd::new();
+        restored.restore(&mut De::new(&w.buf)).unwrap();
+        restored.tick(101, &mut m);
+        assert_eq!(m.read_halfword(USED + 2), 4);
+        assert_eq!(m.read_word(RESP), 0x8000);
+        restored.store(0x10004050, 0);
+        restored.tick(102, &mut m);
+        assert_eq!(m.read_halfword(USED + 2), 4);
+    }
+
+    #[test]
+    fn cached_playback_price_preserves_timing_across_restore_and_buffer_sizes() {
+        let mut m = memory();
+        let mut snd = VirtioSnd::new();
+        configure(|a, v| snd.store(a, v), 0x10004000);
+        m.write_word(REQ, 0x104); // PCM_START, default 48 kHz stereo
+        post(&mut m, 0, 1);
+        snd.store(0x10004050, 0);
+        snd.tick(1, &mut m);
+        assert!(snd.format().2);
+
+        let desc = DESC + 0x5000;
+        let avail = AVAIL + 0x5000;
+        let used = USED + 0x5000;
+        let pcm = REQ + 0x5000;
+        let status = RESP + 0x5000;
+        for &(off, value) in &[(0x30, 2u32), (0x38, 8), (0x80, desc as u32),
+                              (0x90, avail as u32), (0xa0, used as u32), (0x44, 1)] {
+            for (i, b) in value.to_le_bytes().iter().enumerate() {
+                snd.store(0x10004000 + off + i as u64, *b);
+            }
+        }
+        m.write_doubleword(desc, pcm);
+        m.write_word(desc + 8, 1924); // stream id + 10 ms PCM
+        m.write_halfword(desc + 12, 1);
+        m.write_halfword(desc + 14, 1);
+        m.write_doubleword(desc + 16, status);
+        m.write_word(desc + 24, 8);
+        m.write_halfword(desc + 28, 2);
+        m.write_word(pcm, 0);
+        for i in 0..1920 { m.write_byte(pcm + 4 + i, (i % 251) as u8); }
+        m.write_halfword(avail + 4, 0);
+        m.write_halfword(avail + 2, 1);
+        snd.store(0x10004050, 2);
+        // Many fine-grained ticks must not complete a 10 ms buffer early.
+        for t in 2..50002 { snd.tick(t, &mut m); }
+        assert_eq!(m.read_halfword(used + 2), 0);
+        assert_eq!(snd.pending_bytes(), 0);
+        let mut w = Ser::new(); snd.snapshot(&mut w);
+        let mut restored = VirtioSnd::new();
+        restored.restore(&mut De::new(&w.buf)).unwrap();
+        restored.tick(100000, &mut m);
+        assert_eq!(m.read_halfword(used + 2), 0);
+        restored.tick(100001, &mut m);
+        assert_eq!(m.read_halfword(used + 2), 1);
+        assert_eq!(m.read_word(status), 0x8000);
+        let actual = restored.take_pcm(1920);
+        let expected: Vec<u8> = (0..1920).map(|i| (i % 251) as u8).collect();
+        assert_eq!(actual, expected);
+
+        // Reusing the completed descriptor for a shorter period must not
+        // retain the old price or delay this 5 ms buffer to 10 ms.
+        m.write_word(desc + 8, 964);
+        m.write_halfword(avail + 6, 0);
+        m.write_halfword(avail + 2, 2);
+        restored.store(0x10004050, 2);
+        restored.tick(150000, &mut m);
+        assert_eq!(m.read_halfword(used + 2), 1);
+        restored.tick(150001, &mut m);
+        assert_eq!(m.read_halfword(used + 2), 2);
+        assert_eq!(restored.take_pcm(960), expected[..960]);
+    }
+}

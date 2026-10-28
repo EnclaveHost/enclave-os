@@ -1,0 +1,1071 @@
+//! Emulator throughput benchmark: boot a real guest and measure MIPS.
+//!
+//! Performance work on the interpreter needs a repeatable number, and the
+//! deployed app's `/status` MIPS is not it — that figure is measured on the
+//! wasm build while the same thread is also serving HTTP, scanning the
+//! framebuffer and encoding video, so it moves with what the browser is doing.
+//! This runs the emulator and nothing else, natively, so a change to the
+//! instruction loop can be attributed to the instruction loop.
+//!
+//!   cargo run --release --example boot-bench -- <fw_payload.elf> <rootfs.ext2>
+//!
+//! Options:
+//!   --insns N     stop after N instructions (default 2_000_000_000)
+//!   --until STR   stop when STR appears on the guest console, and report the
+//!                 instructions and seconds it took to get there. This is the
+//!                 metric that matters for boot time — "instructions to reach
+//!                 the login prompt" is a property of the guest, so it holds
+//!                 still while the emulator underneath it gets faster.
+//!   --console     echo the guest console to stdout as it boots
+//!
+//! It is deliberately an example rather than a test: it needs guest images,
+//! runs for minutes, and is a measuring tool, not an assertion.
+
+// The vendored crate is edition 2015 (upstream's Cargo.toml declared no
+// edition), so the example has to name the crate explicitly.
+extern crate riscv_emu_rust;
+
+use riscv_emu_rust::terminal::Terminal;
+use riscv_emu_rust::Emulator;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::time::Instant;
+
+/// Console sink that keeps the tail of the output for `--until` matching.
+/// `DefaultTerminal` drains with `Vec::remove(0)`, which is O(n) per byte and
+/// would show up in the profile as emulator time; this only ever appends.
+/// The buffer is shared with main so the marker can be checked between
+/// batches without reaching back through the emulator.
+struct BenchTerminal {
+    out: Rc<RefCell<Vec<u8>>>,
+    // --type: bytes queued here are fed to the guest UART as serial input
+    input: Rc<RefCell<std::collections::VecDeque<u8>>>,
+    // Buffered, and flushed a line at a time. Echoing straight to stdout costs
+    // a syscall per character, which is slow enough to halve the measured MIPS
+    // and make `--console` runs look like they stalled.
+    echo: Option<std::io::BufWriter<std::io::Stdout>>,
+}
+
+impl Terminal for BenchTerminal {
+    fn put_byte(&mut self, value: u8) {
+        if let Some(w) = self.echo.as_mut() {
+            use std::io::Write;
+            let _ = w.write_all(&[value]);
+            if value == b'\n' {
+                let _ = w.flush();
+            }
+        }
+        let mut out = self.out.borrow_mut();
+        out.push(value);
+        // bound the retained tail; `--until` only ever looks at the end
+        if out.len() > 1 << 20 {
+            out.drain(..1 << 19);
+        }
+    }
+    fn get_input(&mut self) -> u8 {
+        self.input.borrow_mut().pop_front().unwrap_or(0)
+    }
+    fn put_input(&mut self, value: u8) {
+        self.input.borrow_mut().push_back(value);
+    }
+    fn get_output(&mut self) -> u8 {
+        0
+    }
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let mut positional = Vec::new();
+    let mut budget: u64 = 2_000_000_000;
+    let mut ram_mib: u64 = 0; // 0 = emulator default (512 MiB)
+    let mut until: Option<String> = None;
+    let mut echo = false;
+    let mut fps_frame_bytes: Option<u64> = None;
+    let mut tier2_dump: Option<String> = None;
+    let mut aot = false;
+    // --harts N / --dtb FILE: an SMP machine; the DTB must describe N cpus
+    let mut harts: usize = 1;
+    let mut dtb_file: Option<String> = None;
+    let mut hart_slice: u64 = 0;
+    let mut threads = false;
+    // --snapshot-on MARKER:FILE / --restore FILE: exercise the machine
+    // snapshot natively (see src/snapshot.rs). The identity binding the
+    // delta to its base is just the image sizes here; the app hashes them.
+    let mut snapshot_on: Option<(String, String)> = None;
+    let mut restore_from: Option<String> = None;
+    let mut snap_level: u8 = 2;
+    let mut identity_override: Option<String> = None;
+    // --idle-batch N: mimic the app's loop, which steps a WFI-parked guest
+    // in small batches (and sleeps) instead of full ones.
+    let mut idle_batch: u64 = 0;
+    // --wall-clock / --throttle: reproduce the DEPLOYED app's clock choice here.
+    // The app sets wall-clock mtime (`cfg.realtime`), where guest time is the HOST's
+    // monotonic clock; this bench has always run instruction-driven, where guest time is
+    // retired instructions. The two only agree while the guest runs near real speed, and
+    // in VTL1 it runs ~200x slower - so the pair of knobs is what lets that be tested.
+    let mut throttle_mips: f64 = 0.0;
+    // --identity-out STR: the identity a --snapshot-on image is WRITTEN with, when it must differ
+    // from the one a --restore is checked against - re-keying a snapshot to settings its guest
+    // state is valid under (a realtime:true image resumed on the instruction clock, say).
+    let mut identity_out: Option<String> = None;
+    // --diag N: supervisor state every N instructions. A machine that is executing but
+    // touching no device looks identical from outside to one that is wedged; this is what
+    // tells them apart, and it is the thing that was missing while a restored guest sat
+    // inert for half an hour.
+    let mut diag_every: u64 = 0;
+    let mut pc_hist: std::collections::HashMap<u64, u64> = std::collections::HashMap::new();
+    let mut realtime = false;
+    let mut fb_size: Option<(u32, u32)> = None;
+    // --trace-tf FILE: watch the console for a V8 --print-opt-code dump, parse
+    // the code's start address + size, then log every executed instruction in
+    // that range (pc offset + which registers changed to what) to FILE. This
+    // is the execution-truth companion to the static dump: any mis-executed
+    // instruction shows up as a register value inconsistent with its inputs.
+    let mut type_script: Vec<(u64, String)> = Vec::new();
+    let mut xkey_script: Vec<(u64, String)> = Vec::new();
+    // --lat START:N — guest-internal input->pixel latency: from START s, N
+    // times: wait for a still framebuffer, inject one keystroke, then step
+    // the emulator in ~1ms slices until fb bytes move. Realtime only.
+    let mut lat_script: Option<(u64, u32)> = None;
+    let mut snap_script: Vec<(u64, String)> = Vec::new();
+    let mut xclick_script: Vec<(u64, u32, u32)> = Vec::new();
+    let mut xkey_on_script: Vec<(Vec<u8>, String)> = Vec::new();
+    let mut trace_file: Option<String> = None;
+    let mut trace_limit: u64 = 200_000;
+    let mut trace_sub: Option<(u64, u64)> = None;
+    let mut trace_call: Option<u64> = None;
+    let mut callee_range: Option<(u64, u64)> = None;
+    let mut i = 1;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--insns" => {
+                i += 1;
+                budget = args[i].replace('_', "").parse().expect("--insns takes a number");
+            }
+            "--ram-mib" => {
+                // guest DRAM size; the app wires the deployment's ramMiB the
+                // same way. The Alpine desktop runs the fleet at 1792.
+                i += 1;
+                ram_mib = args[i].parse().expect("--ram-mib takes MiB");
+            }
+            "--realtime" => realtime = true,
+            "--harts" => {
+                i += 1;
+                harts = args[i].parse().expect("--harts N");
+            }
+            "--hart-slice" => {
+                i += 1;
+                hart_slice = args[i].replace('_', "").parse().expect("--hart-slice N");
+            }
+            "--threads" => threads = true,
+            "--dtb" => {
+                i += 1;
+                dtb_file = Some(args[i].clone());
+            }
+            "--fb" => {
+                // W:H -- the simple-framebuffer's resolution, as the app's
+                // display config sets it on the fleet.
+                i += 1;
+                let (w, h) = args[i].split_once(':').expect("--fb W:H");
+                fb_size = Some((w.parse::<u32>().expect("width"), h.parse::<u32>().expect("height")));
+            }
+            "--fps" => {
+                // W:H -- report presented frames per WALL second, counted as
+                // framebuffer bytes painted divided by the bytes one frame of
+                // a W*H window costs. Guest-side timing cannot answer this:
+                // the guest's clock is driven by retired instructions, so a
+                // slow emulator makes the guest believe time slowed down too.
+                i += 1;
+                let (w, h) = args[i].split_once(':').expect("--fps W:H");
+                fps_frame_bytes = Some(
+                    w.parse::<u64>().expect("width") * h.parse::<u64>().expect("height") * 4,
+                );
+            }
+            "--aot" => aot = true,
+            "--snapshot-on" => {
+                // MARKER:FILE -- when MARKER appears on the console, write a
+                // whole-machine snapshot to FILE and keep running.
+                i += 1;
+                let (m, f) = args[i].split_once(':').expect("--snapshot-on MARKER:FILE");
+                snapshot_on = Some((m.to_string(), f.to_string()));
+            }
+            "--restore" => {
+                // FILE -- skip the boot: load the base images, then resume
+                // the machine from FILE. --type/--until/--xkey still apply.
+                i += 1;
+                restore_from = Some(args[i].clone());
+            }
+            "--snap-level" => {
+                i += 1;
+                snap_level = args[i].parse().expect("--snap-level 1..9");
+            }
+            "--idle-batch" => {
+                i += 1;
+                idle_batch = args[i].replace('_', "").parse().expect("--idle-batch N");
+            }
+            "--identity-out" => {
+                i += 1;
+                identity_out = Some(args[i].clone());
+            }
+            "--diag" => {
+                i += 1;
+                diag_every = args[i].replace('_', "").parse().expect("--diag N");
+            }
+            "--throttle" => {
+                // MIPS -- hold the guest to this rate by sleeping between batches, so
+                // real time runs away from guest time the way it does in the enclave.
+                i += 1;
+                throttle_mips = args[i].parse().expect("--throttle MIPS");
+            }
+            "--identity" => {
+                // STR -- the identity string to write into / expect from a
+                // snapshot, so the app's snapshots can be exercised here.
+                i += 1;
+                identity_override = Some(args[i].clone());
+            }
+            "--tier2" => {
+                // enable the coverage-mode region dispatcher; optional
+                // DUMPFILE records every formed region for the AOT bake.
+                i += 1;
+                tier2_dump = Some(args.get(i).cloned().unwrap_or_default());
+            }
+            "--until" => {
+                i += 1;
+                until = Some(args[i].clone());
+            }
+            "--console" => echo = true,
+            "--type" => {
+                // SECONDS:COMMAND -- queue COMMAND (plus newline) as serial
+                // input once the wall clock passes SECONDS. Repeatable.
+                i += 1;
+                let (secs, cmd) = args[i].split_once(':').expect("--type SECONDS:COMMAND");
+                type_script.push((secs.parse::<u64>().expect("seconds"), format!("{}\n", cmd)));
+            }
+            "--snap" => {
+                // SECONDS:FILE -- once the wall clock passes SECONDS, dump
+                // the 1024x768 framebuffer as a binary PPM to FILE.
+                i += 1;
+                let (secs, path) = args[i].split_once(':').expect("--snap SECONDS:FILE");
+                snap_script.push((secs.parse::<u64>().expect("seconds"), path.to_string()));
+            }
+            "--xclick" => {
+                // SECONDS:X:Y -- left-click at screen pixel (X,Y) via the
+                // absolute virtio-input pointer. Use before --xkey: fluxbox
+                // assigns initial focus nondeterministically, and a click
+                // makes the target window focused for certain.
+                i += 1;
+                let parts: Vec<&str> = args[i].split(':').collect();
+                xclick_script.push((
+                    parts[0].parse::<u64>().expect("seconds"),
+                    parts[1].parse::<u32>().expect("x"),
+                    parts[2].parse::<u32>().expect("y"),
+                ));
+            }
+            "--xkey-on" => {
+                // MARKER:TEXT -- inject TEXT as X keyboard events when MARKER
+                // appears on the guest console. Wall-clock --xkey races the X
+                // session's keyboard subdevice, which arrives seconds after
+                // the desktop LOOKS ready (later still when Xorg retried);
+                // pair this with a serial poll that prints the marker once
+                // /var/log/Xorg.0.log shows 'type: KEYBOARD'.
+                i += 1;
+                let (marker, txt) = args[i].split_once(':').expect("--xkey-on MARKER:TEXT");
+                xkey_on_script.push((marker.as_bytes().to_vec(), txt.to_string()));
+            }
+            "--lat" => {
+                i += 1;
+                let (secs, n) = args[i].split_once(':').expect("--lat START:N");
+                lat_script = Some((secs.parse().expect("seconds"), n.parse().expect("count")));
+            }
+            "--xkey" => {
+                // SECONDS:TEXT -- once the wall clock passes SECONDS, inject
+                // TEXT into the guest as virtio-input KEYBOARD events (press,
+                // release, SYN per character), the same path the app's
+                // browser input uses. Reaches an X session, which serial
+                // --type cannot. "\n" for Enter is written as "$".
+                i += 1;
+                let (secs, txt) = args[i].split_once(':').expect("--xkey SECONDS:TEXT");
+                xkey_script.push((secs.parse::<u64>().expect("seconds"), txt.to_string()));
+            }
+            "--trace-tf" => {
+                i += 1;
+                trace_file = Some(args[i].clone());
+            }
+            "--trace-limit" => {
+                i += 1;
+                trace_limit = args[i].replace('_', "").parse().expect("--trace-limit takes a number");
+            }
+            "--trace-call" => {
+                // OFFSET (hex, relative to the armed code start) of a jalr
+                // call site: on reaching it, read t6 (the target), dump the
+                // callee's first 8 KiB of code words, then trace the callee's
+                // execution (entry snapshots + reg diffs) instead of the
+                // caller range.
+                i += 1;
+                trace_call = Some(u64::from_str_radix(args[i].trim_start_matches("+"), 16).expect("hex off"));
+            }
+            "--trace-sub" => {
+                // OFFLO:OFFHI (hex, relative to the armed code start): only log
+                // instructions inside this sub-window, with a full register
+                // snapshot each time execution ENTERS it, so a verifier has
+                // complete state per visit.
+                i += 1;
+                let parts: Vec<&str> = args[i].split(':').collect();
+                trace_sub = Some((
+                    u64::from_str_radix(parts[0].trim_start_matches("+"), 16).expect("hex off"),
+                    u64::from_str_radix(parts[1].trim_start_matches("+"), 16).expect("hex off"),
+                ));
+            }
+            other => positional.push(other.to_string()),
+        }
+        i += 1;
+    }
+    if positional.len() < 2 {
+        eprintln!("usage: boot-bench <fw_payload.elf> <rootfs.ext2> [--insns N] [--until STR] [--console]");
+        std::process::exit(2);
+    }
+
+    // Exact-size, chunked reads. std::fs::read grows its buffer by doubling
+    // (a 640 MiB rootfs transiently holds ~1.3 GiB), and a single fd_read of
+    // the whole image makes the preview1 adapter materialize a host buffer
+    // that big, which an engine's store limiter rejects — either way the
+    // wasm build of this benchmark OOMed loading a desktop image. One
+    // exactly-sized buffer, filled 32 MiB per read, fits everywhere (the
+    // app's own S3 fetch sizes exactly for the same reason).
+    let read_exact_file = |path: &str| -> Vec<u8> {
+        use std::io::Read;
+        let mut f = std::fs::File::open(path).expect("open image");
+        let len = f.metadata().expect("stat image").len() as usize;
+        let mut buf = vec![0u8; len];
+        let mut off = 0usize;
+        while off < len {
+            let end = (off + 32 * 1024 * 1024).min(len);
+            f.read_exact(&mut buf[off..end]).expect("read image");
+            off = end;
+        }
+        buf
+    };
+    let kernel = read_exact_file(&positional[0]);
+    let fs = read_exact_file(&positional[1]);
+    eprintln!(
+        "boot-bench: kernel {} bytes, rootfs {} bytes",
+        kernel.len(),
+        fs.len()
+    );
+
+    // Mirror the app's boot exactly (src/main.rs `boot`), minus the network:
+    // no host sockets, so the measurement has no external dependency.
+    let console = Rc::new(RefCell::new(Vec::new()));
+    let ser_in = Rc::new(RefCell::new(std::collections::VecDeque::new()));
+    let mut emu = Emulator::new(Box::new(BenchTerminal {
+        out: console.clone(),
+        input: ser_in.clone(),
+        echo: match echo {
+            true => Some(std::io::BufWriter::new(std::io::stdout())),
+            false => None,
+        },
+    }));
+    if let Some(f) = dtb_file.as_ref() {
+        emu.setup_dtb(read_exact_file(f));
+    }
+    if ram_mib > 0 {
+        emu.setup_ram_bytes(ram_mib * 1024 * 1024);
+    }
+    if harts > 1 {
+        emu.set_harts(harts);
+        if hart_slice > 0 {
+            emu.set_hart_slice(hart_slice);
+        }
+        eprintln!("SMP: {} harts", emu.harts());
+    }
+    if let Some((w, h)) = fb_size {
+        emu.set_framebuffer_size(w, h);
+    }
+    emu.set_wall_clock(realtime);
+    let identity = identity_override
+        .unwrap_or_else(|| format!("boot-bench kernel={} fs={}", kernel.len(), fs.len()));
+    match restore_from.as_ref() {
+        Some(path) => {
+            let data = read_exact_file(path);
+            let t = Instant::now();
+            emu.setup_filesystem(fs);
+            let info = emu.restore(&data, &identity).unwrap_or_else(|e| {
+                eprintln!("restore failed: {}", e);
+                std::process::exit(1);
+            });
+            println!(
+                "RESTORED {} bytes in {:.2}s: {}/{} RAM pages, {} delta blocks, taken {}",
+                info.bytes,
+                t.elapsed().as_secs_f64(),
+                info.ram_pages_kept,
+                info.ram_pages_total,
+                info.delta_blocks,
+                info.taken_unix
+            );
+        }
+        None => {
+            emu.setup_program(kernel);
+            emu.setup_filesystem(fs);
+        }
+    }
+    if throttle_mips > 0.0 {
+        eprintln!("throttled to {} MIPS", throttle_mips);
+    }
+    let throttle_start = Instant::now();
+    #[cfg(feature = "aot")]
+    if aot {
+        emu.aot_enable();
+        eprintln!("aot dispatcher on: {} baked regions", emu.aot_baked());
+    }
+    #[cfg(not(feature = "aot"))]
+    if aot {
+        eprintln!("--aot needs a build with --features aot");
+        std::process::exit(2);
+    }
+    if threads && harts > 1 {
+        let n = emu.start_threads(&mut |f| std::thread::Builder::new().spawn(f).is_ok());
+        eprintln!("SMP: {} hart threads", n);
+    }
+    #[cfg(feature = "tier2")]
+    if let Some(d) = tier2_dump.as_ref() {
+        emu.tier2_enable(match d.is_empty() {
+            true => None,
+            false => Some(std::path::Path::new(d)),
+        });
+        eprintln!("tier2 coverage on{}", match d.is_empty() {
+            true => String::new(),
+            false => format!(", dumping regions to {}", d),
+        });
+    }
+    #[cfg(not(feature = "tier2"))]
+    if tier2_dump.is_some() {
+        eprintln!("--tier2 needs a build with --features tier2");
+        std::process::exit(2);
+    }
+
+    // Batch size matches the app's TICK_BATCH so the loop overhead outside
+    // tick() is the same shape as production.
+    const BATCH: u64 = 400_000;
+    let mut next_diag: u64 = 0;
+    let start = Instant::now();
+    let mut done: u64 = 0;
+    let mut last_fbw: u64 = 0;
+    let mut last_fbb: u64 = 0;
+    let mut window = Instant::now();
+    let mut opl_writes: u64 = 0;
+    let mut audio_total: u64 = 0;
+    let mut audio_nonzero: u64 = 0;
+    let mut window_insns: u64 = 0;
+
+    // --trace-tf state
+    let mut trace_range: Option<(u64, u64)> = None; // armed once the dump is seen
+    let mut trace_out: Option<std::io::BufWriter<std::fs::File>> = None;
+    let mut traced: u64 = 0;
+    let mut was_in = false;
+    let mut skip_visit = false;
+    let mut prev_regs = [0i64; 32];
+
+    while done < budget {
+        match trace_range {
+            Some((lo, hi)) if traced < trace_limit => {
+                // armed: single-step so every in-range instruction is observed
+                use std::io::Write;
+                for _ in 0..BATCH {
+                    let pc = emu.get_cpu().read_pc();
+                    // callee-tracing mode: arm the callee range at the call site.
+                    // The site is found by its unique signature rather than a
+                    // fixed offset (TF layouts drift between compilations):
+                    // `jalr ra, 0(t6)` immediately followed by `srai a4, a0, 32`.
+                    if let (Some(_), None) = (trace_call, callee_range) {
+                        let in_range = pc >= lo && pc < hi;
+                        let sig = in_range
+                            && emu.get_mut_cpu().get_mut_mmu().load_word(pc).map(|w| w == 0x000f80e7).unwrap_or(false)
+                            && emu.get_mut_cpu().get_mut_mmu().load_word(pc + 4).map(|w| w == 0x42055713).unwrap_or(false);
+                        if sig {
+                            let t6 = emu.get_cpu().read_register(31) as u64;
+                            callee_range = Some((t6, t6 + 0x2000));
+                            eprintln!("CALLEE_ARMED {:#x}", t6);
+                            // dump the callee's code words for the verifier
+                            if let Some(w) = trace_out.as_mut() {
+                                use std::io::Write;
+                                for a in (t6..t6 + 0x2000).step_by(8) {
+                                    match emu.get_mut_cpu().get_mut_mmu().load_doubleword(a) {
+                                        Ok(d) => { let _ = w.write_all(format!("CODE {:x} {:016x}\n", a - t6, d).as_bytes()); }
+                                        Err(_) => break,
+                                    }
+                                }
+                                let _ = w.flush();
+                            }
+                        }
+                    }
+                    let (slo, shi) = match (callee_range, trace_call) {
+                        (Some((a, b)), _) => (a, b),
+                        (None, Some(_)) => (u64::MAX, u64::MAX), // callee not armed yet: trace nothing
+                        _ => match trace_sub {
+                            Some((a, b)) => (lo + a, lo + b),
+                            None => (lo, hi),
+                        },
+                    };
+                    let mut hit = pc >= slo && pc < shi;
+                    if hit && !was_in && callee_range.is_some() {
+                        // only trace builtin visits CALLED FROM the TF code
+                        let ra = emu.get_cpu().read_register(1) as u64;
+                        if !(ra >= lo && ra < hi) {
+                            skip_visit = true;
+                        } else {
+                            skip_visit = false;
+                        }
+                    }
+                    if callee_range.is_some() && skip_visit {
+                        hit = false;
+                    }
+                    if hit && !was_in {
+                        // full snapshot on entry: the verifier gets complete state
+                        if let Some(w) = trace_out.as_mut() {
+                            use std::io::Write;
+                            let mut line = format!("={:x}", pc - slo);
+                            for r in 1..32 {
+                                line.push_str(&format!(" x{}={:x}", r, emu.get_cpu().read_register(r as u8) as u64));
+                            }
+                            line.push('\n');
+                            let _ = w.write_all(line.as_bytes());
+                        }
+                    }
+                    was_in = hit;
+                    if hit {
+                        for r in 1..32 {
+                            prev_regs[r] = emu.get_cpu().read_register(r as u8);
+                        }
+                    }
+                    emu.tick();
+                    if hit {
+                        if let Some(w) = trace_out.as_mut() {
+                            let mut line = format!("+{:x}", pc - slo);
+                            for r in 1..32 {
+                                let v = emu.get_cpu().read_register(r as u8);
+                                if v != prev_regs[r] {
+                                    line.push_str(&format!(" x{}={:x}", r, v as u64));
+                                }
+                            }
+                            line.push('\n');
+                            let _ = w.write_all(line.as_bytes());
+                        }
+                        traced += 1;
+                        if traced == trace_limit {
+                            if let Some(w) = trace_out.as_mut() { let _ = w.flush(); }
+                            eprintln!("TRACE_CAPTURED {} lines", traced);
+                        }
+                    }
+                }
+            }
+            _ => {
+                // batched entry point: same instruction count, loop overhead
+                // amortized inside the emulator (mirrors the app's loop)
+                if idle_batch > 0 && emu.get_cpu().is_idle() {
+                    emu.run_n(idle_batch);
+                    std::thread::sleep(std::time::Duration::from_millis(1));
+                    done += idle_batch;
+                    window_insns += idle_batch;
+                    continue;
+                }
+                emu.run_n(BATCH);
+                // A WFI-parked guest consumes its batch without executing, so
+                // an idle guest would otherwise burn the whole --insns budget
+                // in moments of wall time and break the --type/--until script.
+                // Pace idle batches to roughly the pre-fast-forward idle rate
+                // (~400 MIPS) so script timings stay comparable.
+                if emu.get_cpu().is_idle() {
+                    std::thread::sleep(std::time::Duration::from_millis(1));
+                }
+            }
+        }
+        if diag_every > 0 {
+            let c = emu.get_cpu();
+            *pc_hist.entry(c.read_pc()).or_insert(0) += 1;
+            if done >= next_diag {
+                next_diag = done + diag_every;
+                let (pc, mode, satp, scause, stval, sepc, stvec, sstatus, mip, mie) = c.diag();
+                let idle = c.is_idle();
+                let (mtime, mtimecmp, wall) = c.timer_diag();
+                eprintln!(
+                    "DIAG insns={done} retired={} pc={pc:#x} mode={mode} scause={scause:#x} \
+                     mip={mip:#x} mie={mie:#x} idle={idle} mtime={mtime} mtimecmp={mtimecmp} \
+                     due={} wall={wall} host={:.1}s",
+                    c.retired(),
+                    mtime >= mtimecmp,
+                    throttle_start.elapsed().as_secs_f64()
+                );
+            }
+        }
+        // Hold the guest to --throttle by letting real time catch up with it.
+        if throttle_mips > 0.0 {
+            let want = done as f64 / (throttle_mips * 1e6);
+            let have = throttle_start.elapsed().as_secs_f64();
+            if want > have {
+                std::thread::sleep(std::time::Duration::from_secs_f64(want - have));
+            }
+        }
+        if trace_file.is_some() && trace_range.is_none() {
+            // Not armed yet: watch the console for the dump header, then the
+            // first instruction line:  "Instructions (size = N)\n0xADDR ..."
+            let buf = console.borrow();
+            if let Some(pos) = find_sub(&buf, b"Instructions (size = ") {
+                let tail = &buf[pos..];
+                if let Some((size, rest_off)) = parse_usize_after(tail, b"Instructions (size = ") {
+                    if let Some(addr) = parse_hex_line_start(&tail[rest_off..]) {
+                        drop(buf);
+                        let f = std::fs::File::create(trace_file.as_ref().unwrap()).expect("trace file");
+                        trace_out = Some(std::io::BufWriter::new(f));
+                        trace_range = Some((addr, addr + size as u64));
+                        eprintln!("TRACE_ARMED {:#x}..{:#x}", addr, addr + size as u64);
+                    }
+                }
+            }
+        }
+        done += BATCH;
+        window_insns += BATCH;
+
+        if let Some((marker, path)) = snapshot_on.clone() {
+            let hit = console
+                .borrow()
+                .windows(marker.len())
+                .any(|w| w == marker.as_bytes());
+            if hit {
+                let t = Instant::now();
+                let (data, info) = emu.snapshot(identity_out.as_deref().unwrap_or(&identity), snap_level);
+                let took = t.elapsed().as_secs_f64();
+                std::fs::write(&path, &data).expect("write snapshot");
+                println!(
+                    "SNAPSHOT {} bytes to {} in {:.2}s: {}/{} RAM pages kept, {} delta blocks, after {:.0}M insns",
+                    info.bytes,
+                    path,
+                    took,
+                    info.ram_pages_kept,
+                    info.ram_pages_total,
+                    info.delta_blocks,
+                    done as f64 / 1e6
+                );
+                snapshot_on = None;
+            }
+        }
+
+        if let Some(marker) = &until {
+            // The marker is ASCII, so a byte-window search finds it wherever
+            // it sits in the retained tail.
+            let buf = console.borrow();
+            if buf
+                .windows(marker.len())
+                .any(|w| w == marker.as_bytes())
+            {
+                let secs = start.elapsed().as_secs_f64();
+                println!(
+                    "REACHED {:?} after {:.0}M instructions in {:.2}s = {:.1} MIPS",
+                    marker,
+                    done as f64 / 1e6,
+                    secs,
+                    done as f64 / 1e6 / secs
+                );
+                return;
+            }
+        }
+
+        if window.elapsed().as_secs_f64() >= 2.0 {
+            let elapsed_s = start.elapsed().as_secs();
+            type_script.retain(|(at, cmd)| {
+                if *at <= elapsed_s {
+                    for b in cmd.bytes() {
+                        ser_in.borrow_mut().push_back(b);
+                    }
+                    eprintln!("TYPED@{}s insns={}: {}", elapsed_s, done, cmd.trim_end());
+                    false
+                } else {
+                    true
+                }
+            });
+            let mut clicks: Vec<(u32, u32)> = Vec::new();
+            xclick_script.retain(|(at, x, y)| {
+                if *at <= elapsed_s {
+                    clicks.push((*x, *y));
+                    false
+                } else {
+                    true
+                }
+            });
+            for (x, y) in clicks {
+                let max = riscv_emu_rust::Emulator::input_abs_max() as u64;
+                let ax = (x as u64 * max / 1023) as u32;
+                let ay = (y as u64 * max / 767) as u32;
+                emu.push_input_event(3, 0, ax); // EV_ABS ABS_X
+                emu.push_input_event(3, 1, ay); // EV_ABS ABS_Y
+                emu.push_input_event(0, 0, 0);
+                emu.push_input_event(1, 0x110, 1); // BTN_LEFT down
+                emu.push_input_event(0, 0, 0);
+                emu.push_input_event(1, 0x110, 0); // BTN_LEFT up
+                emu.push_input_event(0, 0, 0);
+                eprintln!("XCLICKED@{}s: {},{}", elapsed_s, x, y);
+            }
+            let mut fired: Vec<String> = Vec::new();
+            xkey_script.retain(|(at, txt)| {
+                if *at <= elapsed_s {
+                    fired.push(txt.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            {
+                let buf = console.borrow();
+                xkey_on_script.retain(|(marker, txt)| {
+                    if buf.windows(marker.len()).any(|w| w == &marker[..]) {
+                        fired.push(txt.clone());
+                        false
+                    } else {
+                        true
+                    }
+                });
+            }
+            let mut snaps: Vec<String> = Vec::new();
+            snap_script.retain(|(at, path)| {
+                if *at <= elapsed_s {
+                    snaps.push(path.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            for path in snaps {
+                // simplefb: XRGB8888 at 0x87e00000, stride = width * 4
+                // Snapshot whichever surface the guest is DRIVING. With
+                // virtio-gpu the picture lives in the scanout resource, not at
+                // 0x87e00000, and reading the old address just captures a
+                // black simple-framebuffer nobody is writing any more.
+                let gpu_mode = emu.gpu_mode();
+                let (w, h) = match gpu_mode.or(fb_size) {
+                    Some((w, h)) => (w as usize, h as usize),
+                    None => (1024usize, 768usize)
+                };
+                let stride = w * 4;
+                let mut fb = vec![0u8; stride * h];
+                let from_gpu = emu.read_display(0x87e0_0000, &mut fb, gpu_mode.is_some());
+                let mut ppm = format!("P6\n{} {}\n255\n", w, h).into_bytes();
+                for y in 0..h {
+                    for x in 0..w {
+                        let o = y * stride + x * 4;
+                        ppm.push(fb[o + 2]); // R (XRGB little-endian)
+                        ppm.push(fb[o + 1]); // G
+                        ppm.push(fb[o]); // B
+                    }
+                }
+                std::fs::write(&path, &ppm).expect("snap write");
+                eprintln!("SNAPPED@{}s: {} ({})", elapsed_s, path,
+                          if from_gpu { "virtio-gpu scanout" } else { "simple-framebuffer" });
+            }
+            for txt in fired {
+                for ch in txt.chars() {
+                    if let Some((code, shift)) = linux_keycode(ch) {
+                        if shift {
+                            emu.push_input_event(1, 42, 1); // KEY_LEFTSHIFT down
+                            emu.push_input_event(0, 0, 0);
+                        }
+                        emu.push_input_event(1, code, 1);
+                        emu.push_input_event(0, 0, 0);
+                        emu.push_input_event(1, code, 0);
+                        emu.push_input_event(0, 0, 0);
+                        if shift {
+                            emu.push_input_event(1, 42, 0);
+                            emu.push_input_event(0, 0, 0);
+                        }
+                    }
+                }
+                eprintln!("XKEYED@{}s: {}", elapsed_s, txt);
+            }
+            if let Some((at, n)) = lat_script {
+                if at <= elapsed_s {
+                    lat_script = None;
+                    let slice: u64 = 200_000; // ~1ms of guest at bench speed
+                    let mut samples: Vec<f64> = Vec::new();
+                    for _ in 0..n {
+                        // settle: still framebuffer for 300ms
+                        let mut last = emu.fb_bytes();
+                        let mut still = std::time::Instant::now();
+                        let settle = std::time::Instant::now();
+                        while still.elapsed().as_millis() < 300 {
+                            emu.run_n(slice);
+                            let now_b = emu.fb_bytes();
+                            if now_b != last {
+                                last = now_b;
+                                still = std::time::Instant::now();
+                            }
+                            if settle.elapsed().as_secs() > 10 {
+                                eprintln!("LAT: screen never settled; is the demo still running?");
+                                break;
+                            }
+                        }
+                        let before = emu.fb_bytes();
+                        let t0 = std::time::Instant::now();
+                        emu.push_input_event(1, 30, 1); // KEY_A down
+                        emu.push_input_event(0, 0, 0);
+                        emu.push_input_event(1, 30, 0);
+                        emu.push_input_event(0, 0, 0);
+                        loop {
+                            emu.run_n(slice);
+                            if emu.fb_bytes() != before {
+                                samples.push(t0.elapsed().as_secs_f64() * 1e3);
+                                break;
+                            }
+                            if t0.elapsed().as_secs() > 5 {
+                                eprintln!("LAT: no pixel within 5s (focus lost?)");
+                                break;
+                            }
+                        }
+                    }
+                    samples.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                    if !samples.is_empty() {
+                        let m = samples.len();
+                        eprintln!(
+                            "LAT keypress->fb-write: n={} min {:.1} p25 {:.1} median {:.1} p75 {:.1} max {:.1} ms",
+                            m, samples[0], samples[m / 4], samples[m / 2],
+                            samples[3 * m / 4], samples[m - 1]
+                        );
+                    }
+                }
+            }
+            let mips = window_insns as f64 / 1e6 / window.elapsed().as_secs_f64();
+            // debug aid: framebuffer store rate + a two-pixel probe (origin and
+            // center) so display transitions land in the same log as the rate.
+            let fbw = emu.fb_writes();
+            let dfbw = fbw.wrapping_sub(last_fbw);
+            last_fbw = fbw;
+            let fbb = emu.fb_bytes();
+            let dfbb = fbb.wrapping_sub(last_fbb);
+            last_fbb = fbb;
+            let fps = match fps_frame_bytes {
+                Some(per) => format!(
+                    " {:>5.1} fps",
+                    dfbb as f64 / per as f64 / window.elapsed().as_secs_f64()
+                ),
+                None => String::new(),
+            };
+            #[cfg(feature = "tier2")]
+            let fps = {
+                let (cov, tot, regions, black) = emu.tier2_stats();
+                #[cfg(feature = "aot")]
+                let inst = {
+                    let (ok, fail) = emu.aot_install_stats();
+                    format!(" inst {}/{}", ok, ok + fail)
+                };
+                #[cfg(not(feature = "aot"))]
+                let inst = String::new();
+                format!(
+                    "{} t2 {:.1}% ({} entries, {} black){}",
+                    fps,
+                    100.0 * cov as f64 / tot.max(1) as f64,
+                    regions,
+                    black,
+                    inst
+                )
+            };
+            let mut px = [0u8; 4];
+            emu.read_physical_range(0x87e0_0000, &mut px);
+            let mut cx = [0u8; 4];
+            emu.read_physical_range(0x87e0_0000 + (384 * 4096 + 512 * 4) as u64, &mut cx);
+            // corner probes OUTSIDE a 640x480 window at origin: bottom-right + right-mid
+            let mut br = [0u8; 4];
+            emu.read_physical_range(0x87e0_0000 + (740 * 4096 + 1000 * 4) as u64, &mut br);
+            let mut rm = [0u8; 4];
+            emu.read_physical_range(0x87e0_0000 + (300 * 4096 + 900 * 4) as u64, &mut rm);
+            // risc-box patch: virtio-gpu state. "gpu=-" means the guest is
+            // not driving the display controller and the picture is still
+            // coming from the simple-framebuffer; "gpu=WxH+N" means it has
+            // bound a scanout and flushed N dirty regions since the last
+            // line. Without this the only evidence of the device working is
+            // that the driver probed, which says nothing about pixels.
+            // risc-box patch: what the sound card actually produced this
+            // window, and how much of it was NOT silence. MIPS cannot answer
+            // "is music playing" or "what did the synth cost" — the guest
+            // spends the same instruction budget either way, it just spends
+            // more of it on audio. Non-zero bytes are the signal: SFX are
+            // sparse, music is continuous.
+            let aud = {
+                let pcm = emu.take_audio(64 * 1024);
+                let nz = pcm.chunks_exact(2)
+                    .filter(|c| i16::from_le_bytes([c[0], c[1]]) != 0)
+                    .count();
+                audio_total += pcm.len() as u64;
+                audio_nonzero += (nz * 2) as u64;
+                match pcm.is_empty() {
+                    true => "aud=-".to_string(),
+                    false => format!("aud={}B/{}%", pcm.len(), nz * 200 / pcm.len().max(1)),
+                }
+            };
+            // risc-box patch: OPL register traffic. The host does the actual
+            // synthesis (src/opl.rs), which boot-bench does not run — so the
+            // question this answers is narrower and still the important one:
+            // is the guest posting music to the mailbox at all?
+            let opl = {
+                let w = emu.opl_take_writes();
+                opl_writes += w.len() as u64;
+                format!("opl={}", opl_writes)
+            };
+            let cur = match emu.gpu_cursor() {
+                Some((r, x, y, n)) => format!("cur=res{}@{},{}#{}", r, x, y, n),
+                None => "cur=-".to_string(),
+            };
+            let gpu = match emu.gpu_mode() {
+                Some((w, h)) => {
+                    let d = emu.gpu_take_dirty().is_some() as u32;
+                    format!("{}x{}+{}", w, h, d)
+                }
+                None => "-".to_string(),
+            };
+            eprintln!(
+                "  {:>6.1}s  {:>6.0}M insns  {:>7.1} MIPS{} guest{:>7.1}s fbw+{} gpu={} {} {} {} px={:02x}{:02x}{:02x} cx={:02x}{:02x}{:02x} rm={:02x}{:02x}{:02x} br={:02x}{:02x}{:02x}",
+                start.elapsed().as_secs_f64(),
+                done as f64 / 1e6,
+                mips,
+                fps,
+                emu.guest_mtime() as f64 / 1e7,
+                dfbw,
+                gpu,
+                cur,
+                aud,
+                opl,
+                px[2], px[1], px[0],
+                cx[2], cx[1], cx[0],
+                rm[2], rm[1], rm[0],
+                br[2], br[1], br[0]
+            );
+            if emu.harts() > 1 {
+                let hs: Vec<String> = emu.hart_states().iter().enumerate()
+                    .map(|(h, (pc, mode, wfi, r))| format!("h{}:{:x}/{}{} {}M", h, pc, mode, if *wfi { "w" } else { "" }, r / 1_000_000))
+                    .collect();
+                eprintln!("          harts {}", hs.join("  "));
+            }
+            window = Instant::now();
+            window_insns = 0;
+        }
+    }
+
+    #[cfg(feature = "blockstats")]
+    emu.dump_block_stats();
+    #[cfg(feature = "tier2")]
+    if tier2_dump.is_some() || aot {
+        let (cov, tot, entries, black) = emu.tier2_stats();
+        println!(
+            "T2 covered {:.1}% ({} entries, {} black); heaviest uncovered pcs (sampled):",
+            100.0 * cov as f64 / tot.max(1) as f64, entries, black
+        );
+        for (pc, heat) in emu.tier2_miss_top(40) {
+            println!("  {:>16x} {:>12}", pc, heat);
+        }
+    }
+    let secs = start.elapsed().as_secs_f64();
+    report_pc_hist(&pc_hist);
+    for (h, (pc, mode, wfi, retired)) in emu.hart_states().into_iter().enumerate() {
+        println!("HART {} pc={:#x} mode={} wfi={} retired={}M", h, pc, mode, wfi, retired / 1_000_000);
+    }
+    println!(
+        "TOTAL {:.0}M instructions in {:.2}s = {:.1} MIPS",
+        done as f64 / 1e6,
+        secs,
+        done as f64 / 1e6 / secs
+    );
+}
+
+
+/// ASCII -> (Linux input keycode, needs shift). Enough for typing shell
+/// commands into an X terminal; '$' stands in for Enter so --xkey values
+/// survive shell quoting.
+fn linux_keycode(ch: char) -> Option<(u16, bool)> {
+    let (code, shift) = match ch {
+        '1' => (2, false), '2' => (3, false), '3' => (4, false), '4' => (5, false),
+        '5' => (6, false), '6' => (7, false), '7' => (8, false), '8' => (9, false),
+        '9' => (10, false), '0' => (11, false),
+        'q' => (16, false), 'w' => (17, false), 'e' => (18, false), 'r' => (19, false),
+        't' => (20, false), 'y' => (21, false), 'u' => (22, false), 'i' => (23, false),
+        'o' => (24, false), 'p' => (25, false),
+        'a' => (30, false), 's' => (31, false), 'd' => (32, false), 'f' => (33, false),
+        'g' => (34, false), 'h' => (35, false), 'j' => (36, false), 'k' => (37, false),
+        'l' => (38, false),
+        'z' => (44, false), 'x' => (45, false), 'c' => (46, false), 'v' => (47, false),
+        'b' => (48, false), 'n' => (49, false), 'm' => (50, false),
+        ' ' => (57, false), '-' => (12, false), '=' => (13, false),
+        '.' => (52, false), '/' => (53, false), ';' => (39, false),
+        '$' => (28, false), // Enter
+        '~' => (1, false),  // Escape: DOOM's menu key, the cleanest visible key response
+        '_' => (12, true), '&' => (8, true), '|' => (43, true),
+        _ => return None,
+    };
+    Some((code, shift))
+}
+
+// --trace-tf helpers -----------------------------------------------------
+
+/// The PCs a run spent its samples at. A handful of addresses taking nearly every
+/// sample is a loop; a long flat tail is a guest getting on with its work.
+fn report_pc_hist(h: &std::collections::HashMap<u64, u64>) {
+    if h.is_empty() { return; }
+    let total: u64 = h.values().sum();
+    let mut v: Vec<(u64, u64)> = h.iter().map(|(k, n)| (*k, *n)).collect();
+    v.sort_by(|a, b| b.1.cmp(&a.1));
+    eprintln!("PC SAMPLES: {} distinct over {} samples", v.len(), total);
+    for (pc, n) in v.iter().take(12) {
+        eprintln!("   {pc:#018x}  {n:6}  {:5.1}%", 100.0 * *n as f64 / total as f64);
+    }
+}
+
+fn find_sub(hay: &[u8], needle: &[u8]) -> Option<usize> {
+    hay.windows(needle.len()).position(|w| w == needle)
+}
+
+/// Parses the decimal number that follows `prefix` inside `tail` (which must
+/// start with `prefix`); returns (number, offset just past the number).
+fn parse_usize_after(tail: &[u8], prefix: &[u8]) -> Option<(usize, usize)> {
+    let mut i = prefix.len();
+    let mut n: usize = 0;
+    let mut any = false;
+    while i < tail.len() && tail[i].is_ascii_digit() {
+        n = n * 10 + (tail[i] - b'0') as usize;
+        i += 1;
+        any = true;
+    }
+    match any {
+        true => Some((n, i)),
+        false => None,
+    }
+}
+
+/// Finds the first "0x<hex>" at a line start in `tail` and parses it — the
+/// first disassembly line's instruction address.
+fn parse_hex_line_start(tail: &[u8]) -> Option<u64> {
+    let mut i = 0;
+    while i + 2 < tail.len() {
+        // seek to just after a newline
+        while i < tail.len() && tail[i] != b'\n' {
+            i += 1;
+        }
+        i += 1;
+        if i + 2 >= tail.len() {
+            return None;
+        }
+        if tail[i] == b'0' && tail[i + 1] == b'x' {
+            let mut j = i + 2;
+            let mut v: u64 = 0;
+            let mut any = false;
+            while j < tail.len() && tail[j].is_ascii_hexdigit() {
+                v = v * 16
+                    + match tail[j] {
+                        b'0'..=b'9' => (tail[j] - b'0') as u64,
+                        b'a'..=b'f' => (tail[j] - b'a') as u64 + 10,
+                        _ => (tail[j] - b'A') as u64 + 10,
+                    };
+                j += 1;
+                any = true;
+            }
+            if any {
+                return Some(v);
+            }
+        }
+    }
+    None
+}

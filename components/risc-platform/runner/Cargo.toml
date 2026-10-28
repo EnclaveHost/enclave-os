@@ -1,0 +1,13 @@
+[package]
+name = "enclave-risc-boot-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+[dependencies]
+riscv_emu_rust = { path = "../vendor/emu" }
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+panic = "abort"

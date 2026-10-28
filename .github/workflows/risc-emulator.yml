@@ -1,0 +1,51 @@
+name: Actual RISC Box emulator with Alpine userland
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  emulator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: riscv-software-src/opensbi
+          ref: 234ed8e427f4d92903123199f6590d144e0d9351
+          path: opensbi
+      - name: Verify recovered emulator and install cross-build tools
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('components/risc-platform')
+          for name,digest in json.loads((root/'source.json').read_text())['files'].items():
+              assert hashlib.sha256((root/'vendor'/name).read_bytes()).hexdigest()==digest,name
+          PY
+          sudo apt-get update
+          sudo apt-get install -y gcc-riscv64-linux-gnu g++-riscv64-linux-gnu bison flex bc libssl-dev libelf-dev device-tree-compiler e2fsprogs
+          rustup toolchain install 1.90.0 --profile minimal --target wasm32-wasip1
+      - name: Build known emulator-compatible kernel, firmware and fresh Alpine disk
+        run: bash components/risc-platform/build-boot-test.sh
+      - name: Build native and Wasm versions of the same instruction/device implementation
+        run: |
+          cd components/risc-platform/runner
+          cargo +1.90.0 build --release -j2 >../../../out/emulator-build.log 2>&1
+          cargo +1.90.0 build --release --target wasm32-wasip1 -j2 >../../../out/emulator-wasm-build.log 2>&1
+          cp Cargo.lock ../../../out/
+          cp target/wasm32-wasip1/release/enclave-risc-boot-test.wasm ../../../out/
+      - name: Boot the real emulator with Alpine musl
+        run: |
+          timeout 660 components/risc-platform/runner/target/release/enclave-risc-boot-test out/fw_payload.elf out/rootfs.ext2 >out/boot.log 2>&1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: risc-alpine-boot
+          path: |
+            out/*.log
+            out/*.config
+            out/Cargo.lock
+            out/*.wasm
+            out/fw_payload.elf
+            out/rootfs.ext2
+          retention-days: 7
