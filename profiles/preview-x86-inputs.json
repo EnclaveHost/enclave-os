@@ -157,7 +157,7 @@
     {
       "name": "libffi",
       "repository": "EnclaveHost/enclave-os",
-      "run": 40662854503,
+      "run": 40663838084,
       "artifact": "enclave-libffi-x86_64",
       "packages": [
         "libffi"
