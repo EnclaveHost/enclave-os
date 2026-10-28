@@ -1,0 +1,39 @@
+name: RISC Box Wasm boot with Alpine
+on:
+  workflow_dispatch:
+    inputs:
+      boot_run_id:
+        required: true
+        description: Pinned emulator/kernel/Alpine fixture build
+permissions:
+  contents: read
+  actions: read
+jobs:
+  boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Fetch the exact boot candidate and pinned Wasmtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN: ${{ inputs.boot_run_id }}
+        run: |
+          [[ "$RUN" =~ ^[0-9]+$ ]]
+          gh run download "$RUN" --name risc-alpine-boot --dir input
+          curl -fLSs https://github.com/bytecodealliance/wasmtime/releases/download/v50.0.0/wasmtime-v50.0.0-x86_64-linux.tar.xz -o wasmtime.tar.xz
+          printf '%s\n' '77c19ee0437991f9ac7837b9c269d9c7076744f85dad263fea5214cc2723c7ff  wasmtime.tar.xz' | sha256sum -c -
+          tar -xf wasmtime.tar.xz
+          mkdir out
+          sha256sum input/enclave-risc-boot-test.wasm input/fw_payload.elf input/rootfs.ext2 >out/inputs.sha256
+      - name: Execute the actual emulator as a Wasm command
+        run: |
+          timeout 660 wasmtime-v50.0.0-x86_64-linux/wasmtime run --dir input::/fixtures \
+            input/enclave-risc-boot-test.wasm /fixtures/fw_payload.elf /fixtures/rootfs.ext2 >out/wasm-boot.log 2>&1
+          grep -q 'PASS: real RISC Box emulator booted Alpine' out/wasm-boot.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: risc-wasm-alpine-boot
+          path: out/
+          retention-days: 7
