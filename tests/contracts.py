@@ -58,3 +58,4 @@ with tempfile.TemporaryDirectory() as td:
         assert all(game in default.stderr for game in ('openarena','librequake','visual-pinball-x','openhv'))
         assert not (pathlib.Path(td)/'root').exists()
 print(f'PASS: {len(manifest["files"])} provenance hashes, shared feature graph, baseline policy, source archive checksums')
+subprocess.run(['python3',str(root/'tests/native-root.py')],check=True)

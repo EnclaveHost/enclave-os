@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Assemble a clean Alpine userland. Kernel/attestation adapters are separate."""
 import argparse, hashlib, json, pathlib, shutil, subprocess, urllib.request
+from native_root import configure as configure_native
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def run(*args): subprocess.run(args,check=True)
 def main():
@@ -49,18 +50,7 @@ def main():
     if 'desktop' in profile['presets'][a.preset]:
         target=out/'etc/X11/xorg.conf';target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'platforms'/platform['platform']/'xorg.conf',target)
-    if a.adapter:
-        # Empty session mount points, never a copied user profile or password.
-        (out/'home/desktop').mkdir(mode=0o700,exist_ok=True)
-        (out/'home/desktop').chmod(0o700)
-        # The KVM domain has no general network route. Preserve its measured
-        # public-web SOCKS/DNS boundary while keeping the shared browser policy.
-        (out/'etc/resolv.conf').write_text('nameserver 127.0.0.2\noptions timeout:2 attempts:2\n')
-        policy_path=out/'usr/lib/enclave-browser/distribution/policies.json'
-        policies=json.loads(policy_path.read_text())
-        policies['policies']['Proxy']={'Mode':'manual','Locked':True,
-            'SOCKSProxy':'127.0.0.2:1080','SOCKSVersion':5,'UseProxyForDNS':True,'Passthrough':''}
-        policy_path.write_text(json.dumps(policies,indent=2)+'\n')
+    native=configure_native(out,(ROOT/'components/native-platform/70-kvm-box-input.rules').read_bytes()) if a.adapter else None
     installed=(out/'lib/apk/db/installed').read_text()
     sizes=[]
     for block in installed.split('\n\n'):
@@ -71,7 +61,7 @@ def main():
     sizes.sort(key=lambda item:item['bytes'],reverse=True)
     report={'largest_packages':sizes[:20],'excluded_test_packages':profile['exclude_packages'],'architecture':a.arch,'preset':a.preset,'platform':platform['platform'],'production_qualified':False,
             'pending_qualification':[f for f in profile['pending_features'] if f in profile['presets'][a.preset]],
-            'adapter':a.adapter,'runtime_admission':False,
+            'adapter':a.adapter,'nativeRootPreparation':native,'runtime_admission':False,
             'requested_packages':packages,'bytes':sum(f.stat().st_size for f in out.rglob('*') if f.is_file() and not f.is_symlink())}
     # Installed database records dependency versions, sizes and origin for the entire image.
     shutil.copyfile(out/'lib/apk/db/installed',out.parent/(out.name+'.apk-installed'))
