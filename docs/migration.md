@@ -15,11 +15,11 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
 | Sunshine/Moonlight | Pinned source-based X11/software-encoder APK in progress for both CPUs; client audio/input patch preserved in `integrations/moonlight` | Finish musl builds, RV64 capture/encoder feasibility; authenticated service integration and audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK and trusted-core/service dual-ISA builds pass; finish OpenCL frontend and masked worker/CPU fallback conformance |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK and trusted-core/service dual-ISA builds pass; x86 CPU OpenCL arithmetic passes; finish frontend/HIP and masked worker conformance |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
-| Visual Pinball X | Imported runtime inventory | Scripting/spatial audio pass on both CPUs; finish matching image-codec/core/plugins, retained tables and graphics qualification |
+| Visual Pinball X | Imported runtime inventory | Scripting/spatial audio pass on both CPUs; image codec passes both CPUs; x86 core and two rendered tables pass; RV64 core/plugins and streamed qualification remain |
 | OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup passed; RV64 runtime port, W^X and full rendering tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
@@ -108,3 +108,26 @@ pass on both CPUs, including native VBScript execution. The newer engine require
 its matching FreeImage fork for half-float texture decoding; its package and core
 qualification are underway. The RV64 .NET runtime for OpenHV is also undergoing a
 separate pinned cross-build; no released runtime or OpenHV RV64 support is claimed.
+
+The [x86 CPU OpenCL package](https://github.com/EnclaveHost/enclave-os/actions/runs/40613687178)
+passes actual event semantics, 7,717,008 float-to-half conversions across all four
+rounding modes and six vector widths, 393,216 half-tanh evaluations and 78 image
+cases. [Installed requalification](https://github.com/EnclaveHost/enclave-os/actions/runs/40614636701)
+passes without an external loader-path workaround. Explicit worker stack bounds
+fix the musl default-stack overflow; no tests or vector widths were removed.
+
+[Pinball dependencies](https://github.com/EnclaveHost/enclave-os/actions/runs/40610908013)
+now include the matching half-float FreeImage fork on both CPUs. The
+[x86 core](https://github.com/EnclaveHost/enclave-os/actions/runs/40611425469) and
+[rendered-table fixture](https://github.com/EnclaveHost/enclave-os/actions/runs/40614899067)
+pass. Both the newer engine's default table and the older engine revision's
+example table produce visible 960×600 renderings through private Mesa CPU
+fallback. This does not qualify streamed play, audio or plugin parity.
+
+The [Alpine native adapter candidate](https://github.com/EnclaveHost/enclave-os/actions/runs/40614301225)
+builds its guarded x86 binaries and passes recovered gateway/automation protocol
+tests. [Real-kernel security tests](https://github.com/EnclaveHost/enclave-os/actions/runs/40615018707)
+also pass role UID/GID/capability boundaries and confined input-daemon socket and
+syscall rules, including inheritance across exec. The exact production kernel
+checks remain intact. Complete service startup, input mediation and measured
+platform admission are still open.
