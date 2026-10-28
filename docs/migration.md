@@ -12,7 +12,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Desktop | Fluxbox, tiny theme, 960×600, outline dragging | Real input, clipboard, resize and accessibility checks |
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
-| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | RV64 musl package and all nine actual-kernel browser checks pass; x86 package rebuild and full desktop/proxy/extension checks remain |
+| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Both musl packages and all nine actual-kernel browser checks pass; combined desktop packaging and full desktop/proxy/extension checks remain |
 | Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend, CUDA/HIP and installed IR tests pass; RV64 apps and masked worker conformance remain |
@@ -310,3 +310,13 @@ under emulation. Run
 [40650944319](https://github.com/EnclaveHost/enclave-os/actions/runs/40650944319)
 retests those signed packages with a bounded 30-minute RV64 fixture timeout;
 it does not skip numerical checks or rebuild the applications.
+
+The custom x86 browser build
+[40636358008](https://github.com/EnclaveHost/enclave-browser/actions/runs/40636358008)
+and all nine kernel-policy checks in
+[40656689685](https://github.com/EnclaveHost/enclave-browser/actions/runs/40656689685)
+pass. That run's separate preview job stopped at APK resolution: both the
+browser and desktop supplied `enclave-browser`. Packaging revision r2 reserves
+that command for the shared desktop and exposes the binary as `enclave-firefox`.
+The existing compiled browser is being repackaged and requalified; no feature
+or browser patch is removed to resolve the conflict.
