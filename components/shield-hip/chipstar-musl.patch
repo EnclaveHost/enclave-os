@@ -66,3 +66,21 @@
  #include <map>
  #include <memory>
  #include <vector>
+--- a/src/CHIPBackend.cc
++++ b/src/CHIPBackend.cc
+@@ -22,5 +22,6 @@
+ 
+ #include "CHIPBackend.hh"
++#include <sched.h>
+ 
+ /// Queue a kernel for retrieving information about the device variable.
+ static void queueKernel(chipstar::Queue *Q, chipstar::Kernel *K,
+@@ -1212,7 +1213,7 @@
+   // libCHIP.so!chipstar::Backend::findQueue
+   // libCHIP.so!hipMemcpyAsyncInternal
+   // libCHIP.so!hipMemcpyAsync
+-  pthread_yield();
++  sched_yield();
+   unsigned long long int sleepMicroSeconds = 500000;
+   usleep(sleepMicroSeconds);
+ 
