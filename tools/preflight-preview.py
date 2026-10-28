@@ -6,7 +6,9 @@ profile=json.loads((source/'profiles/common.json').read_text())
 packages=sorted({p for f in profile['presets']['preview'] if f!='enclave-browser'
                  for p in profile['features'][f]}|{'xf86-video-dummy','enclave-native-platform'})
 root.mkdir()
-keys=pathlib.Path('/out/keys')
+keys=pathlib.Path('/tmp/preview-all-keys');keys.mkdir()
+for directory in (pathlib.Path('/etc/apk/keys'),pathlib.Path('/out/keys')):
+    for key in directory.glob('*.pub'):shutil.copyfile(key,keys/key.name)
 repos=pathlib.Path('/out/test-repositories')
 repos.write_text('/out/repository\n'+pathlib.Path('/etc/apk/repositories').read_text())
 subprocess.run(['apk','--root',str(root),'--initdb','--keys-dir',str(keys),

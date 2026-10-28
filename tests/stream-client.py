@@ -6,7 +6,7 @@ root=pathlib.Path.cwd();fixture=root/'fixture';out=root/'out'
 home=fixture/'client-home';home.mkdir()
 env={**os.environ,'HOME':str(home),'XDG_CONFIG_HOME':str(home/'config'),
      'QT_QUICK_BACKEND':'software','SDL_AUDIODRIVER':'dummy',
-     'QT_LOGGING_RULES':'*.debug=true'}
+     'QT_LOGGING_RULES':'qt.*.debug=false'}
 password=(fixture/'password').read_text()
 context=ssl.create_default_context(cafile=str(fixture/'cert.pem'))
 auth='Basic '+base64.b64encode(('ci:'+password).encode()).decode()
@@ -36,7 +36,16 @@ with (out/'pair.log').open('w') as pair_log:
             assert pair.poll() is None
             time.sleep(.5)
         else:raise AssertionError('No pending pairing')
-        assert pair.wait(timeout=20)==0
+        for _ in range(40):
+            if api('/api/clients/list')['named_certs']:break
+            time.sleep(.25)
+        else:raise AssertionError('Server did not retain paired client')
+        # Qt's CLI pairing action presents a success dialog. Acknowledge that
+        # dialog only after the server confirms cryptographic pairing.
+        time.sleep(1)
+        windows=subprocess.check_output(['xdotool','search','--onlyvisible','--pid',str(pair.pid)],text=True).splitlines()
+        subprocess.run(['xdotool','windowfocus',windows[-1],'key','Return'],check=True)
+        assert pair.wait(timeout=10)==0
     finally:
         if pair.poll() is None:pair.kill();pair.wait()
 with (out/'stream.log').open('w') as log:
