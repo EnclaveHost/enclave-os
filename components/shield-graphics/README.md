@@ -173,3 +173,10 @@ Build `test_grid_client.c` alongside the existing client sanitizer suites.
 See `../qualification/README.md` for standard-API tests. Independent Claude
 reviews covered the original ICD/client and structural compiler integration;
 they are scoped reviews, not a cryptographic or platform security audit.
+
+The Mesa 25.0.7 package backports upstream commit
+[1c27ddefd050](https://gitlab.freedesktop.org/mesa/mesa/-/commit/1c27ddefd050cd9485634139c7a3c05cb85fd655),
+which selects each ORC object cache under the symbol-lookup mutex. The installed
+RV64 Pinball fixture exposed a missing `sample` JIT definition during static
+prerendering; a window alone is insufficient, so the fixture requires actual
+rendered table pixels. Requalification of the backport is required.
