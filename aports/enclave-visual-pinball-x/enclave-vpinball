@@ -18,7 +18,8 @@ if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
     printf '%s\n' 'Usage: enclave-vpinball [table.vpx]' >&2
     exit 64
 fi
-table=$(realpath -- "$1")
+case "$1" in /*) table=$1;; *) table="$PWD/$1";; esac
+table=$(realpath "$table")
 child=
 cleanup() {
     trap - EXIT INT TERM
