@@ -1,33 +1,57 @@
 name: Installed audited Shield IR reference
 on:
   workflow_dispatch:
+    inputs:
+      cpu_run_id:
+        required: true
+        default: '40617020912'
+      frontend_run_id:
+        required: true
+        default: '40636421820'
+      hip_run_id:
+        required: true
+        default: '40619200767'
+      platform:
+        type: choice
+        options: [amd64, riscv64]
+        default: amd64
 permissions:
   contents: read
   actions: read
 jobs:
   reference:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: inputs.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
       - name: Fetch qualified compiler and runtime packages
         env:
           GH_TOKEN: ${{ github.token }}
+          CPU_RUN: ${{ inputs.cpu_run_id }}
+          FRONTEND_RUN: ${{ inputs.frontend_run_id }}
+          HIP_RUN: ${{ inputs.hip_run_id }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
-          gh run download 40617020912 --name opencl-cpu-amd64 --dir cpu
-          gh run download 40617930209 --name shield-opencl-amd64 --dir frontend
-          gh run download 40619200767 --name shield-hip-amd64 --dir hip
+          [[ "$CPU_RUN" =~ ^[0-9]+$ && "$FRONTEND_RUN" =~ ^[0-9]+$ && "$HIP_RUN" =~ ^[0-9]+$ ]]
+          gh run download "$CPU_RUN" --name "opencl-cpu-$PLATFORM" --dir cpu
+          gh run download "$FRONTEND_RUN" --name "shield-opencl-$PLATFORM" --dir frontend
+          gh run download "$HIP_RUN" --name "shield-hip-$PLATFORM" --dir hip
       - name: Install the reference and exercise actual wrapper and rejection cases
         run: |
           mkdir out
-          docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/${{ inputs.platform }} \
             -v "$PWD:/src:ro" -v "$PWD/cpu:/cpu:ro" -v "$PWD/frontend:/frontend:ro" \
             -v "$PWD/hip:/hip:ro" -v "$PWD/out:/out" \
-            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
             /bin/sh /src/tools/ci-shield-ir.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: shield-ir-amd64
+          name: shield-ir-${{ inputs.platform }}
           path: out/
           retention-days: 7
