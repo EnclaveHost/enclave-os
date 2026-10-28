@@ -1,0 +1,186 @@
+From c9b2a8a4ceb2fa1f46c0200592562677214084fd Mon Sep 17 00:00:00 2001
+From: Peter Bergner <bergner@tenstorrent.com>
+Date: Thu, 7 Aug 2025 06:40:35 -0500
+Subject: [PATCH] riscv: Add static trampoline support (#931) (#933)
+
+Add static trampoline support to riscv32 and riscv64 Linux ABIs.
+The implementation follows the s390x and powerpc implementations
+which does not introduce a ffi_closure_*_alt function, but rather
+jumps directly to the ffi_closure_asm function itself.
+---
+ Makefile.am          |  2 +-
+ configure.ac         |  3 ++-
+ src/riscv/ffi.c      | 55 +++++++++++++++++++++++++++++++-------------
+ src/riscv/internal.h |  7 ++++++
+ src/riscv/sysv.S     | 24 +++++++++++++++++++
+ 5 files changed, 73 insertions(+), 18 deletions(-)
+ create mode 100644 src/riscv/internal.h
+
+diff --git a/Makefile.am b/Makefile.am
+index c3bcf00b3..42ce89b30 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -63,7 +63,7 @@ noinst_HEADERS = src/aarch64/ffitarget.h src/aarch64/internal.h		\
+ 	src/or1k/ffitarget.h src/pa/ffitarget.h				\
+ 	src/powerpc/ffitarget.h src/powerpc/asm.h			\
+ 	src/powerpc/ffi_powerpc.h src/powerpc/internal.h		\
+-	src/riscv/ffitarget.h						\
++	src/riscv/ffitarget.h src/riscv/internal.h			\
+ 	src/s390/ffitarget.h src/s390/internal.h src/sh/ffitarget.h	\
+ 	src/sh64/ffitarget.h src/sparc/ffitarget.h			\
+ 	src/sparc/internal.h src/tile/ffitarget.h src/vax/ffitarget.h	\
+diff --git a/configure.ac b/configure.ac
+index dcfc7b242..cac166db5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -392,7 +392,8 @@ case "$target" in
+        fi
+      ;;
+      *arm*-*-linux-* | aarch64*-*-linux-* | i*86-*-linux-* | x86_64-*-linux-* \
+-     | loongarch*-*-linux-* | s390x*-linux-* | powerpc*-linux-*)
++     | loongarch*-*-linux-* | s390x*-linux-* | powerpc*-linux-* \
++     | riscv*-linux-*)
+        AC_DEFINE(FFI_EXEC_STATIC_TRAMP, 1,
+                  [Define this if you want statically defined trampolines])
+      ;;
+diff --git a/src/riscv/ffi.c b/src/riscv/ffi.c
+index b455b12ae..b1a14417e 100644
+--- a/src/riscv/ffi.c
++++ b/src/riscv/ffi.c
+@@ -29,6 +29,8 @@
+ 
+ #include <ffi.h>
+ #include <ffi_common.h>
++#include "internal.h"
++#include <tramp.h>
+ 
+ #include <stdlib.h>
+ #include <stdint.h>
+@@ -424,34 +426,44 @@ extern void ffi_closure_asm(void) FFI_HIDDEN;
+ 
+ ffi_status ffi_prep_closure_loc(ffi_closure *closure, ffi_cif *cif, void (*fun)(ffi_cif*,void*,void**,void*), void *user_data, void *codeloc)
+ {
+-    uint32_t *tramp = (uint32_t *) &closure->tramp[0];
+-    uint64_t fn = (uint64_t) (uintptr_t) ffi_closure_asm;
+-
+     if (cif->abi <= FFI_FIRST_ABI || cif->abi >= FFI_LAST_ABI)
+         return FFI_BAD_ABI;
+ 
+-    /* we will call ffi_closure_inner with codeloc, not closure, but as long
+-       as the memory is readable it should work */
++#ifdef FFI_EXEC_STATIC_TRAMP
++  if (ffi_tramp_is_present (closure))
++    {
++      /* Initialize the static trampoline's parameters. */
++      void (*dest)(void) = ffi_closure_asm;
++      ffi_tramp_set_parms (closure->ftramp, dest, closure);
++    }
++  else
++#endif
++    {
++      uint32_t *tramp = (uint32_t *) &closure->tramp[0];
++      uint64_t fn = (uint64_t) (uintptr_t) ffi_closure_asm;
++
++      /* we will call ffi_closure_inner with codeloc, not closure, but as long
++	 as the memory is readable it should work */
+ 
+-    tramp[0] = 0x00000317; /* auipc t1, 0 (i.e. t0 <- codeloc) */
++      tramp[0] = 0x00000317; /* auipc t1, 0 (i.e. t0 <- codeloc) */
+ #if __SIZEOF_POINTER__ == 8
+-    tramp[1] = 0x01033383; /* ld t2, 16(t1) */
++      tramp[1] = 0x01033383; /* ld t2, 16(t1) */
+ #else
+-    tramp[1] = 0x01032383; /* lw t2, 16(t1) */
++      tramp[1] = 0x01032383; /* lw t2, 16(t1) */
+ #endif
+-    tramp[2] = 0x00038067; /* jr t2 */
+-    tramp[3] = 0x00000013; /* nop */
+-    tramp[4] = fn;
+-    tramp[5] = fn >> 32;
++      tramp[2] = 0x00038067; /* jr t2 */
++      tramp[3] = 0x00000013; /* nop */
++      tramp[4] = fn;
++      tramp[5] = fn >> 32;
++#if !defined(__FreeBSD__)
++    __builtin___clear_cache(codeloc, codeloc + FFI_TRAMPOLINE_SIZE);
++#endif
++    }
+ 
+     closure->cif = cif;
+     closure->fun = fun;
+     closure->user_data = user_data;
+ 
+-#if !defined(__FreeBSD__)
+-    __builtin___clear_cache(codeloc, codeloc + FFI_TRAMPOLINE_SIZE);
+-#endif
+-
+     return FFI_OK;
+ }
+ 
+@@ -512,3 +524,14 @@ ffi_closure_inner (ffi_cif *cif,
+         marshal(&cb, cif->rtype, 0, rvalue);
+     }
+ }
++
++#ifdef FFI_EXEC_STATIC_TRAMP
++void *
++ffi_tramp_arch (size_t *tramp_size, size_t *map_size)
++{
++  extern void *trampoline_code_table;
++  *tramp_size = RISCV_TRAMP_SIZE;
++  *map_size = RISCV_TRAMP_MAP_SIZE;
++  return &trampoline_code_table;
++}
++#endif
+diff --git a/src/riscv/internal.h b/src/riscv/internal.h
+new file mode 100644
+index 000000000..efc22319b
+--- /dev/null
++++ b/src/riscv/internal.h
+@@ -0,0 +1,7 @@
++#ifdef FFI_EXEC_STATIC_TRAMP
++/* For the trampoline table mapping, a mapping size of 4K (base page size)
++   is chosen.  */
++#define RISCV_TRAMP_MAP_SHIFT	12
++#define RISCV_TRAMP_MAP_SIZE	(1 << RISCV_TRAMP_MAP_SHIFT)
++#define RISCV_TRAMP_SIZE	16
++#endif /* FFI_EXEC_STATIC_TRAMP */
+diff --git a/src/riscv/sysv.S b/src/riscv/sysv.S
+index 522d0b005..8398b5ecb 100644
+--- a/src/riscv/sysv.S
++++ b/src/riscv/sysv.S
+@@ -29,6 +29,7 @@
+ #define LIBFFI_ASM
+ #include <fficonfig.h>
+ #include <ffi.h>
++#include "internal.h"
+ 
+ /* Define aliases so that we can handle all ABIs uniformly */
+ 
+@@ -291,3 +292,26 @@ ffi_go_closure_asm:
+     ret
+     .cfi_endproc
+     .size ffi_go_closure_asm, .-ffi_go_closure_asm
++
++#ifdef FFI_EXEC_STATIC_TRAMP
++/*
++  trampoline_code_table.
++*/
++    .globl trampoline_code_table
++    .hidden trampoline_code_table
++    .type trampoline_code_table, @function
++    .align RISCV_TRAMP_MAP_SHIFT
++trampoline_code_table:
++    .option push
++    # Do not allow the jr insn to be encoded as c.jr for alignment purposes
++    .option norvc
++    .rept   RISCV_TRAMP_MAP_SIZE / RISCV_TRAMP_SIZE
++    auipc   t2, RISCV_TRAMP_MAP_SIZE >> 12
++    LARG    t1, 0(t2)
++    LARG    t2, PTRS(t2)
++    jr      t2
++    .endr
++    .option pop
++    .size   trampoline_code_table,.-trampoline_code_table
++    .align RISCV_TRAMP_MAP_SHIFT
++#endif /* FFI_EXEC_STATIC_TRAMP */

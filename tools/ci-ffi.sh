@@ -1,12 +1,14 @@
 #!/bin/sh
 set -eux
-apk add --no-cache alpine-sdk sudo texinfo dejagnu linux-headers python3 strace
+apk add --no-cache alpine-sdk sudo texinfo dejagnu linux-headers python3 strace cpio
 mkdir -p /out
 cc -O2 -Wall -Wextra -Werror -I/src/components/platform-policy \
     /src/tests/managed-policy-exec.c -o /out/policy-exec
 # Retain the stock behavior for diagnosis; acceptance uses the rebuilt package.
-strace -f -o /out/stock-ffi.trace /out/policy-exec /usr/bin/python3 -I -c 'import ctypes' \
-    >/out/stock-ffi.log 2>&1 || true
+if [ "$(uname -m)" = x86_64 ]; then
+    strace -f -o /out/stock-ffi.trace /out/policy-exec /usr/bin/python3 -I -c 'import ctypes' \
+        >/out/stock-ffi.log 2>&1 || true
+fi
 if [ -d /retained/repository ]; then
     cp -a /retained/repository /out/
     cp /retained/*.pub /out/
@@ -25,5 +27,9 @@ else
     cp -a /home/builder/packages/enclave /out/repository
     cp /home/builder/.abuild/*.pub /out/
 fi
-apk add --no-cache /out/repository/x86_64/libffi-3.5.2-r100.apk
-/out/policy-exec /usr/bin/python3 -I /src/tests/ffi-policy.py >/out/ffi-policy.json
+apk add --no-cache /out/repository/"$(uname -m)"/libffi-[0-9]*.apk
+if [ "$(uname -m)" = x86_64 ]; then
+    /out/policy-exec /usr/bin/python3 -I /src/tests/ffi-policy.py >/out/ffi-policy.json
+else
+    /bin/sh /src/tools/ci-ffi-boot-build.sh
+fi
