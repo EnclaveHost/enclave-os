@@ -5,11 +5,11 @@ pkgdesc="Pinned CUDA/HIP source compatibility through the Shield OpenCL frontend
 url="https://github.com/CHIP-SPV/chipStar"
 arch="x86_64 riscv64"
 license="MIT"
-makedepends="cmake samurai clang18-dev clang18-static clang18-extra-tools llvm18-dev
+makedepends="bash cmake samurai clang18-dev clang18-static clang18-extra-tools llvm18-dev
  llvm18-static llvm18-gtest spdlog-dev fmt-dev libffi-dev libedit-dev zlib-dev
  opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3 py3-yaml perl patchelf xxd spirv-tools-dev"
 depends="enclave-shield-opencl clang18 clang18-extra-tools llvm18 enclave-llvm-spirv18
- python3 perl"
+ python3 perl bash"
 ldpath="/usr/lib/enclave-shield-hip/lib"
 sonameprefix="$pkgname:"
 options="!check" # Installed CUDA/HIP source and numerical tests run in CI.
