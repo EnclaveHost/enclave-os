@@ -22,7 +22,7 @@ cp /home/builder/aports/enclave/enclave-shield-hip/APKBUILD /out/APKBUILD
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
 apk add --no-cache enclave-shield-hip opencl-headers
 export POCL_DEVICES=pthread POCL_MAX_PTHREAD_COUNT=2 OCL_ICD_VENDORS=/etc/OpenCL/vendors/pocl.icd
-export LD_LIBRARY_PATH=/usr/lib/enclave-shield-opencl/lib:/usr/lib/enclave-pocl/lib:/usr/lib/enclave-pocl/lib/pocl
+export LD_LIBRARY_PATH=/usr/lib/enclave-shield-opencl/lib
 mkdir -p /tests
 sh /src/components/shield-hip/test-host.sh >/out/runtime.log 2>&1 || { cp -a /tests /out/; exit 1; }
 cp -a /tests /out/
