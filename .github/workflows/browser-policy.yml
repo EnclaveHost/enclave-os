@@ -1,5 +1,16 @@
 name: Custom browser under actual kernel memory policy
 on:
+  workflow_call:
+    inputs:
+      browser_run:
+        type: string
+        required: true
+      platform:
+        type: string
+        required: true
+      source_ref:
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       browser_run:
@@ -17,6 +28,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave-os
+          ref: ${{ inputs.source_ref || github.sha }}
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
         if: inputs.platform == 'riscv64'
         with:

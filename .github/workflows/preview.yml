@@ -1,5 +1,13 @@
 name: Separate x86 full-feature preview root
 on:
+  workflow_call:
+    inputs:
+      browser_run_id:
+        type: string
+        required: true
+      source_ref:
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       browser_run_id:
@@ -14,6 +22,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave-os
+          ref: ${{ inputs.source_ref || github.sha }}
       - name: Fetch pinned, qualified x86 package inputs
         env:
           GH_TOKEN: ${{ github.token }}
