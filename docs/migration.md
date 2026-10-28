@@ -12,7 +12,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Desktop | Fluxbox, tiny theme, 960×600, outline dragging | Real input, clipboard, resize and accessibility checks |
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
-| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
+| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | RV64 musl package and all nine actual-kernel browser checks pass; x86 package rebuild and full desktop/proxy/extension checks remain |
 | Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend/HIP and masked worker conformance remain |
@@ -245,3 +245,13 @@ measured root and pinned KVM kernel. A fixture passes the existing platform
 profile validator. Retained controller/model identities are carried forward,
 but those payloads are not included or freshly verified by this descriptor.
 Full platform archive construction and startup/admission remain separate gates.
+
+The [recovered RV64 Enclave Browser APK](https://github.com/EnclaveHost/enclave-browser/actions/runs/40636360719)
+installs and executes the custom `153.5.1esr` binary. Its [actual-kernel qualification](https://github.com/EnclaveHost/enclave-os/actions/runs/40637349551)
+passes all nine unchanged browser cases: interaction/screenshots, isolated
+cookies, interception, downloads, isolated and nested frames with keyboard
+focus/navigation, 960×600 VP9 playback, and refusal of TLS/CSP bypass. The test
+controller uses Node's interpreter mode because V8 startup requests denied
+memory permissions; Firefox retains the enforced memory policy and its normal
+configuration. This establishes browser behavior under RV64 system emulation,
+not real RISC Box performance or full desktop/extension/proxy integration.
