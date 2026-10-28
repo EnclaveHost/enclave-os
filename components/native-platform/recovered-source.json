@@ -1,0 +1,29 @@
+{
+  "reference": "provenance/import.json",
+  "files": {
+    "nsinit.c": "3043951d696bbe95e5f00711bf6dd49fb83ec463c6d143c3f7527652f3130d11",
+    "supervisor.c": "96c8275dfb0097e14d2facf20b268a0777dd323b0c6cc36ed08878f6a2cc51d8",
+    "native-root.h": "b46297bbbae396bb7a74142fde4793ed5ccff3d29b69217769945b578dad34b2",
+    "home-seed.h": "8859734365ad8e845e02ca61bbfe3bfe31c14483d218ea6f4afd106c1261e3dc",
+    "desktop-auth.h": "13eb3c0bd3792396eaf6c5a2a987d52efb4d641a31a40dfd51bb4e7b252ea394",
+    "role-policy.h": "6b4bb95fbc363f9524a1bd945425ca21387e9e2ecb35441f71c94220d6c3613f",
+    "proc-privacy.h": "3fc1200223f886966e08958399276ecc0ed9c270da07854b42869f4ac787cdc8",
+    "udev-policy.h": "600d136bc0c9516114027fc4e2d6c8810ed7495e9ccfee5e1f89f6839a93eac1",
+    "udev-launch.c": "a14f999da97b7719b817f4796c6b0ca9b72727793d2fd2c273b10a0201feee4f",
+    "desktop-capture.c": "13e64c0756dbda502568fb0cef090e957cf2efec4f68f6766d5a5cb3f56692b2",
+    "readiness.py": "b41832c1a1c678014bbfd13973a5fbfee1b7858ea60ae2536ca93a8c55da0b87",
+    "network_policy.py": "2f152788e7bdcc136ff29bcc71f12254d685ce3372d20c09cc32c3040f48838a",
+    "build_home_defaults.py": "8fe357b5c5c9499531d7bde05d500e6ebbb4acadba7270ddb0090ec2707eeda4",
+    "70-kvm-box-input.rules": "1484a506e3e12f11ed869af2bff3229970f649e87a6a3d9f740988895a0c93f4",
+    "gateway/gateway_test.go": "89bb7bf31220026b6457835440364fc53e7cef00a0b6981a54518e14edf4f90a",
+    "gateway/gateway.go": "7545c8df341bb86fc4fc69e3eb52b73bcc9fc37bdfe6780615855b9680a1b2e7",
+    "inner/inner.go": "2369cc05846841f38a4465f222993f62dce591b7d869d2ff0a75c783e53c76aa",
+    "inner/inner_test.go": "0b84c3ee2910b40cb9774a12a340ca4b667ce464865727b7ebd4f1f931be72c0",
+    "inner/automation.go": "3a566735e60811695502a9dd03c4260767ec8895ff0b44183e4535d90e935550",
+    "inner/automation_test.go": "e60957df11376e03a8391a3af775906ff73c45a8421489f884e9df72d981f08d",
+    "automation/computer_test.go": "37015c668284acc1e19ebcf247676c64d1745f85da6fd45e9b9ec07f28d1b6f9",
+    "automation/automation.go": "f01e8f4c75589af865ee79b873d99b6cd3780102456ebda83f8b7f5c04879ac5",
+    "automation/automation_test.go": "22dcb3dd7191cc442f8030a27fc621a2d96cb5ea345843fc10de39db329802f6",
+    "automation/computer.go": "f55f5b7def3685c9af044235289a96f4d1987df96a3b005ba86cac6b61d57588"
+  }
+}

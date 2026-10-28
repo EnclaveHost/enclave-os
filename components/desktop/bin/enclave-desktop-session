@@ -11,4 +11,7 @@ mkdir -p "$HOME"
 /usr/libexec/enclave-os/seed-home.py
 /usr/libexec/enclave-os/games-menu.py
 /usr/libexec/enclave-os/cursor/start.py
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    exec fluxbox
+fi
 exec dbus-run-session -- fluxbox

@@ -1,0 +1,24 @@
+name: Alpine native platform candidate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Build native boundary and test authenticated protocols
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-native-platform.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-platform-amd64
+          path: out/
+          retention-days: 7
