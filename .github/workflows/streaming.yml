@@ -1,0 +1,51 @@
+name: Actual encrypted Sunshine Moonlight preview stream
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  stream:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Fetch the qualified server and retained client
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 40589225530 --name sunshine-amd64 --dir server
+          gh run download 40616779298 --name moonlight-client-amd64 --dir client
+          chmod 755 client/moonlight
+          sudo apt-get update
+          sudo apt-get install -y libqt6quickcontrols2-6 libqt6svg6 qml6-module-qtquick-controls \
+            qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtqml-workerscript \
+            qml6-module-qtquick-window qml6-module-qtquick libsdl2-ttf-2.0-0 libopus0 \
+            libavcodec60 libavutil58 libswscale7 xvfb xauth python3-pil xdotool
+      - name: Pair and decode an actual encrypted synthetic desktop stream
+        run: |
+          mkdir fixture out
+          python3 - <<'PY'
+          import pathlib,secrets
+          pathlib.Path('fixture/password').write_text(secrets.token_hex(32))
+          pathlib.Path('fixture/password').chmod(0o600)
+          PY
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost \
+            -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' \
+            -keyout fixture/key.pem -out fixture/cert.pem 2>/dev/null
+          docker run --name stream-server -d --network host --memory=2g --memory-swap=2g --cpus=2 \
+            -e TEST_UID="$(id -u)" -v "$PWD:/src:ro" -v "$PWD/server:/server:ro" \
+            -v "$PWD/fixture:/fixture" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh -ec 'apk add --no-cache python3 xvfb-run xauth xsetroot pulseaudio pulseaudio-utils;
+              cp /server/*.pub /etc/apk/keys/; printf "\n/server/repository\n" >>/etc/apk/repositories;
+              apk add --no-cache enclave-sunshine; adduser -D -u "$TEST_UID" player;
+              su player -c '\''xvfb-run -a -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/stream-server.py'\'''
+          trap 'docker logs stream-server >out/container.log 2>&1; docker rm -f stream-server >/dev/null' EXIT
+          xvfb-run -a -s '-screen 0 1024x768x24 -nolisten tcp' timeout 240 python3 tests/stream-client.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: actual-moonlight-stream
+          path: out/
+          retention-days: 7
