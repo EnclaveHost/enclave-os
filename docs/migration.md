@@ -255,3 +255,16 @@ controller uses Node's interpreter mode because V8 startup requests denied
 memory permissions; Firefox retains the enforced memory policy and its normal
 configuration. This establishes browser behavior under RV64 system emulation,
 not real RISC Box performance or full desktop/extension/proxy integration.
+
+The [x86 graphics requalification](https://github.com/EnclaveHost/enclave-os/actions/runs/40638050875)
+and [both rendered Pinball tables](https://github.com/EnclaveHost/enclave-os/actions/runs/40638030821)
+pass with Mesa's upstream ORC cache-lock fix. The preview input manifest now
+selects those APKs and the [requalified device-language compiler](https://github.com/EnclaveHost/enclave-os/actions/runs/40636421820).
+RV64 runtime requalification of these updates is still in progress.
+
+Enclave Browser's `enclave-kvm-preview.yml` calls immutable Enclave OS workflow
+revisions after a successful x86 musl browser job. It assembles the separate
+preview and runs browser/kernel checks automatically. No workflow deploys or
+replaces the running app. The measured-root boot fixture remains unqualified
+until the first full candidate is available; full native service startup and
+admission are still required afterward.
