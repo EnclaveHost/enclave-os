@@ -1,0 +1,58 @@
+name: Shield OpenCL frontend on musl
+on:
+  workflow_dispatch:
+    inputs:
+      cpu_run_id:
+        description: Successful patched CPU OpenCL build run
+        required: true
+      platforms:
+        default: '["amd64","riscv64"]'
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Archive migrated frontend and fetch CPU substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.cpu_run_id }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$RUN_ID" --name "opencl-cpu-$PLATFORM" --dir packages
+          cp -a components/shield-opencl shield-opencl
+          python3 - <<'PYCODE'
+          import pathlib,hashlib,json,os
+          root=pathlib.Path('shield-opencl')
+          (root/'enclave-source.json').write_text(json.dumps({'commit':os.environ['GITHUB_SHA'],
+              'files':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.rglob('*')) if p.is_file()},
+              'releaseQualified':False},indent=2)+'\n')
+          PYCODE
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf enclave-shield-opencl-source.tar shield-opencl
+      - name: Build and exercise the installed standard API
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-shield-opencl.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: shield-opencl-${{ matrix.platform }}
+          path: out/
+          retention-days: 7

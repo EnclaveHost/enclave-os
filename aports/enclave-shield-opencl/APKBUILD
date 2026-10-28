@@ -1,0 +1,37 @@
+pkgname=enclave-shield-opencl
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Shield OpenCL frontend with typed source recognition and CPU fallback"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="LicenseRef-Enclave-Source-Available AND MIT"
+makedepends="build-base python3 clang18-dev llvm18-dev llvm18-static llvm18-gtest
+ opencl-headers opencl-icd-loader-dev nlohmann-json openssl-dev patchelf spirv-tools"
+depends="python3 clang18 llvm18 enclave-llvm-spirv18 enclave-pocl spirv-tools"
+ldpath="/usr/lib/enclave-shield-opencl/lib"
+sonameprefix="$pkgname:"
+source="enclave-shield-opencl-source.tar"
+builddir="$srcdir/shield-opencl"
+build() {
+    make -j2 all ir-compiler "CXXFLAGS=$CXXFLAGS -O2 -std=c++20 -fPIC -Wall -Wextra" \
+        'CPPFLAGS=-DSHIELD_Q8_CAPTURE -DSHIELD_Q8_MASKED -DSHIELD_COMPILER=\"/usr/lib/enclave-shield-opencl/q8_capture_compiler.py\" -DSHIELD_Q8_CAPTURE_LOG=\"\"' \
+        'LDLIBS=-lcrypto'
+}
+check() {
+    export OPENBLAS_NUM_THREADS=1
+    python3 -m unittest -v test_kernel_compiler test_q8_kernel_compiler test_q8_admission \
+        test_compiler_limits test_source_declines test_program_lifetime
+}
+package() {
+    local dest="$pkgdir/usr/lib/enclave-shield-opencl"
+    mkdir -p "$dest/lib"
+    cp -a runtime/. "$dest/lib/"
+    install -m755 ir-compiler "$dest/"
+    for name in kernel_compiler q8_kernel_compiler q8_capture_compiler q8_admission; do
+        install -m644 "$name.py" "$dest/"
+    done
+    install -m644 gemm_i8.cl enclave-source.json "$dest/"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 q8-reference/LICENSE "$pkgdir/usr/share/licenses/$pkgname/llama-LICENSE"
+}
+sha512sums=""
