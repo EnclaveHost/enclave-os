@@ -29,7 +29,7 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
     [ -b /dev/sda ] && [ -b /dev/sdb ] && break
     sleep 1
 done
-veritysetup open --readonly --no-superblock --format=1 --hash=sha256 \
+veritysetup open --no-superblock --format=1 --hash=sha256 \
     --hash-offset=0 --data-block-size=4096 --hash-block-size=4096 \
     --data-blocks="$BLOCKS" --salt="$SALT" /dev/sda preview-root /dev/sdb "$ROOT_HASH"
 dd if=/dev/mapper/preview-root of=/dev/null bs=1048576
