@@ -7,6 +7,10 @@ jobs:
   kernel:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    env:
+      # The explicit config suffix is the ABI identity; do not append Git's
+      # dirty-tree '+' for our separately recorded TPM source patch.
+      LOCALVERSION: ''
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
