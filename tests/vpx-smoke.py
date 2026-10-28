@@ -86,6 +86,13 @@ with tempfile.TemporaryDirectory() as directory:
                         break
                     time.sleep(1)
                 else:
+                    tree = subprocess.run(['xwininfo', '-root', '-tree'], env=env,
+                        capture_output=True, text=True, timeout=10)
+                    (OUT/f'{name}-windows.log').write_text(tree.stdout+tree.stderr)
+                    capture = subprocess.check_output(['/tmp/capture'], env=env, timeout=10)
+                    assert capture[:4] == b'RGB1'
+                    width, height, _, _ = struct.unpack('>4I', capture[4:20])
+                    Image.frombytes('RGB', (width,height), capture[20:]).save(OUT/f'{name}-failure.png')
                     raise AssertionError('No VPX player window: '+(OUT/f'{name}.log').read_text())
             finally:
                 stop(game)

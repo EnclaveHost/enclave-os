@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eux
-apk add --no-cache alpine-sdk sudo python3 py3-pillow xvfb-run xauth xdotool fluxbox font-misc-misc font-dejavu xprop pulseaudio libx11-dev
+apk add --no-cache alpine-sdk sudo python3 py3-pillow xvfb-run xauth xdotool fluxbox font-misc-misc font-dejavu xprop xwininfo pulseaudio libx11-dev
 for packages in /core /dependencies /mesa; do
     cp "$packages"/*.pub /etc/apk/keys/
     printf '\n%s/repository\n' "$packages" >>/etc/apk/repositories

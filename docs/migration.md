@@ -13,13 +13,13 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
-| Sunshine/Moonlight | x86 musl Sunshine streams changing encrypted frames to the retained patched Moonlight client | RV64 build/capture/encoder feasibility; full native service integration and audio/input parity |
+| Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend/HIP and masked worker conformance remain |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
-| Visual Pinball X | Pinned engine, retained default table and installed launcher | Scripting/spatial audio and image codec pass both CPUs; x86 installed launcher/tables pass; RV64 core/plugins and streamed qualification remain |
+| Visual Pinball X | Pinned engine, retained default table and installed launcher | Core, scripting/spatial audio and image codec build on both CPUs; x86 installed launcher/tables pass; RV64 runtime, plugins and streamed qualification remain |
 | OpenHV | Pinned OpenHV/OpenRA shared CIL with native musl libraries | x86 .NET 10 and signed RV64 .NET 12 development runtime startup pass; actual-kernel managed W^X and streamed tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Pinned actual emulator, OpenSBI and kernel fixture | Native and Wasm emulator boot Alpine; full desktop/device tests and supported production kernel/admission remain |
@@ -210,3 +210,11 @@ retains the exact `6.6.87.2-enclave-kvm-box` ABI and recovered OpenHCL TPM drive
 pass W^X refusal, inherited seccomp and role/input-daemon confinement under TCG.
 This does not establish a full native service graph, hardware attestation,
 production admission or a kernel security-update qualification.
+
+The [RV64 encrypted stream](https://github.com/EnclaveHost/enclave-os/actions/runs/40632814126)
+also passes using the installed RV64 Sunshine APK and retained x86 Moonlight
+client. It confirms decoded changing 960×600 frames with verified TLS and required
+encrypted transport under user emulation, not real RV64 frame rate or audio/input
+parity. The [RV64 Pinball core](https://github.com/EnclaveHost/enclave-os/actions/runs/40615372405)
+builds, but the first installed runtime test could not identify a visible player
+window after initialization; that runtime gate remains open.
