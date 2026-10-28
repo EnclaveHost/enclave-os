@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <net/if.h>
+#include <poll.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -37,6 +38,14 @@ static int run(void) {
     struct ifreq ifr={0};strcpy(ifr.ifr_name,"lo");fd=socket(AF_INET,SOCK_DGRAM|SOCK_CLOEXEC,0);CHECK(fd>=0);
     CHECK(!ioctl(fd,SIOCGIFFLAGS,&ifr));ifr.ifr_flags|=IFF_UP;CHECK(!ioctl(fd,SIOCSIFFLAGS,&ifr));close(fd);
     char *const helper[]={"/plat/native-boot",NULL};CHECK(!run_cmd(helper));
+    /* The host can bind its per-VM transport only once this partition runs.
+     * Synchronize the disposable test over its private serial pipe instead of
+     * racing that bind against the production client's short dial timeout.
+     * This initializer is never present in a serving platform archive. */
+    dprintf(1,"NATIVE_FIXTURE_WAIT_FOR_WORKER\n");
+    fd=open("/dev/console",O_RDONLY|O_CLOEXEC);CHECK(fd>=0);
+    struct pollfd gate={.fd=fd,.events=POLLIN};CHECK(poll(&gate,1,60000)==1);
+    char go[2];CHECK(read(fd,go,sizeof go)==2 && go[0]=='G' && go[1]=='\n');close(fd);
     char *const probe[]={"/monitor-probe","-test.v","-test.run=^TestNativeGuestKVM$","-test.timeout=180s",NULL};
     CHECK(!run_cmd(probe));return 0;
 }
