@@ -117,6 +117,24 @@
       "packages": [
         "enclave-openhv"
       ]
+    },
+    {
+      "name": "hip",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40619200767,
+      "artifact": "shield-hip-amd64",
+      "packages": [
+        "enclave-shield-hip"
+      ]
+    },
+    {
+      "name": "ir-reference",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40619795731,
+      "artifact": "shield-ir-amd64",
+      "packages": [
+        "enclave-shield-ir-reference"
+      ]
     }
   ]
 }

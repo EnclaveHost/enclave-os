@@ -65,7 +65,9 @@
       "enclave-shield-compute",
       "enclave-shield-service",
       "enclave-shield-opencl",
-      "enclave-shield-apps"
+      "enclave-shield-apps",
+      "enclave-shield-hip",
+      "enclave-shield-ir-reference"
     ],
     "moonlight-server": [
       "enclave-sunshine"

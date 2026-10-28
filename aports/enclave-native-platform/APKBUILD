@@ -12,8 +12,7 @@ source="native-platform.tar"
 builddir="$srcdir/native-platform"
 package() {
     local dest="$pkgdir/usr/libexec/enclave-os/native"
-    mkdir -p "$dest" "$pkgdir/usr/share/enclave-os" "$pkgdir/models" "$pkgdir/shield" "$pkgdir/home/desktop"
-    chmod 700 "$pkgdir/home/desktop"
+    mkdir -p "$dest" "$pkgdir/usr/share/enclave-os" "$pkgdir/models" "$pkgdir/shield"
     for name in nsinit supervisor gateway inner automation capture udev-launch; do
         install -m555 "bin/$name" "$dest/"
     done
