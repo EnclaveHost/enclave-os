@@ -8,6 +8,9 @@ on:
       frontend_run_id:
         required: true
         description: Signed Shield OpenCL frontend packages
+      apps_run_id:
+        required: false
+        description: Retest retained signed apps without recompiling
       platforms:
         required: true
         default: '["amd64","riscv64"]'
@@ -61,10 +64,16 @@ jobs:
           CPU_RUN: ${{ inputs.cpu_run_id }}
           FRONTEND_RUN: ${{ inputs.frontend_run_id }}
           PLATFORM: ${{ matrix.platform }}
+          APPS_RUN: ${{ inputs.apps_run_id }}
         run: |
           [[ "$CPU_RUN" =~ ^[0-9]+$ && "$FRONTEND_RUN" =~ ^[0-9]+$ ]]
           gh run download "$CPU_RUN" --name "opencl-cpu-$PLATFORM" --dir cpu
           gh run download "$FRONTEND_RUN" --name "shield-opencl-$PLATFORM" --dir frontend
+          mkdir -p apps
+          if [ -n "$APPS_RUN" ]; then
+            [[ "$APPS_RUN" =~ ^[0-9]+$ ]]
+            gh run download "$APPS_RUN" --name "shield-apps-$PLATFORM" --dir apps
+          fi
       - name: Reconstruct the exact customized SD source and export SDK inputs
         run: |
           python3 - <<'PYCODE'
@@ -83,7 +92,7 @@ jobs:
         run: |
           mkdir -p out
           docker run --rm --memory=6g --memory-swap=6g --cpus=2 --platform linux/${{ matrix.platform }} \
-            -v "$PWD:/src:ro" -v "$PWD/out:/out" -v "$PWD/cpu:/cpu:ro" -v "$PWD/frontend:/frontend:ro" \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" -v "$PWD/cpu:/cpu:ro" -v "$PWD/frontend:/frontend:ro" -v "$PWD/apps:/apps:ro" \
             alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
             /bin/sh /src/tools/ci-shield-apps.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
