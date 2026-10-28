@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Test real package composition while the browser builds; emits no image."""
 import json,pathlib,shutil,subprocess
+from chroot_runtime import runtime
 source=pathlib.Path('/src');root=pathlib.Path('/out/dependency-test-root')
 profile=json.loads((source/'profiles/common.json').read_text())
 packages=sorted({p for f in profile['presets']['preview'] if f!='enclave-browser'
@@ -13,7 +14,7 @@ repos=pathlib.Path('/out/test-repositories')
 repos.write_text('/out/repository\n'+pathlib.Path('/etc/apk/repositories').read_text())
 subprocess.run(['apk','--root',str(root),'--initdb','--keys-dir',str(keys),
                 '--repositories-file',str(repos),'--no-cache','add',*packages,'!py3-numpy-tests'],check=True)
-with open('/out/package-composition.log','w') as log:
+with runtime(root), open('/out/package-composition.log','w') as log:
     subprocess.run(['chroot',str(root),'/bin/sh','-ec','''
         test "$(id -u desktop)" = 1000
         test "$(id -u shield)" = 1001
