@@ -15,11 +15,11 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Enclave Browser musl/RV64 builds, browser security gates, Playwright/Fission tests, video playback |
 | Sunshine/Moonlight | Pinned source-based X11/software-encoder APK in progress for both CPUs; client audio/input patch preserved in `integrations/moonlight` | Finish musl builds, RV64 capture/encoder feasibility; authenticated service integration and audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Rebuild native dependencies for musl and each ISA; masked operation and CPU fallback conformance |
-| OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Finish RV64 build and real masked service/worker qualification; never replace Shield routing with direct GPU access |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK and trusted-core/service dual-ISA builds pass; finish OpenCL frontend and masked worker/CPU fallback conformance |
+| OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | RV64 installed compute/draw checks and real masked service/worker qualification; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
-| Visual Pinball X | Imported runtime inventory | Engine/dependency portability, table distribution/licensing, graphics qualification |
+| Visual Pinball X | Imported runtime inventory | Scripting/spatial audio pass on both CPUs; finish matching image-codec/core/plugins, retained tables and graphics qualification |
 | OpenHV | Pinned OpenHV/OpenRA source port to shared .NET 10 and native musl libraries | x86 build/startup passed; RV64 runtime port, W^X and full rendering tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Existing OpenSBI/Buildroot/kernel sources retained | Reconcile newer musl/Xorg requirements with emulator ISA and kernel; rebuild payload and disk |
@@ -89,3 +89,22 @@ passes on both CPUs. [OpenHV on musl .NET 10](https://github.com/EnclaveHost/enc
 builds, installs and retains a visible game window through the private graphics
 stack. Its NuGet dependency closure is locked. Neither startup fixture establishes
 streamed input/audio parity; OpenHV's RV64 runtime remains pending.
+
+The [RV64 Mesa package](https://github.com/EnclaveHost/enclave-os/actions/runs/40591223582)
+now builds and installs, with Vulkan/GL capability queries succeeding through the
+private stack. Installed compute/draw tests are a separate gate.
+
+The [native SDK](https://github.com/EnclaveHost/enclave-os/actions/runs/40591609962)
+builds and installs on both CPUs, including custom llama.cpp/sd.cpp and the Shield
+backend. CLI startup does not qualify model numerics or GPU offload.
+The [trusted service/core](https://github.com/EnclaveHost/enclave-os/actions/runs/40591960292)
+passes both architectures' field reference vectors, half rounding, recovered
+compiler/service/Q8 tests, and installed broker/client UID rejection checks.
+Actual masked service-to-worker execution and measured adapter admission remain
+required.
+
+[Pinball's scripting and spatial-audio dependencies](https://github.com/EnclaveHost/enclave-os/actions/runs/40589801467)
+pass on both CPUs, including native VBScript execution. The newer engine requires
+its matching FreeImage fork for half-float texture decoding; its package and core
+qualification are underway. The RV64 .NET runtime for OpenHV is also undergoing a
+separate pinned cross-build; no released runtime or OpenHV RV64 support is claimed.
