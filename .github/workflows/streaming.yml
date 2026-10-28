@@ -40,9 +40,9 @@ jobs:
             /bin/sh -ec 'apk add --no-cache python3 xvfb-run xauth xsetroot pulseaudio pulseaudio-utils;
               cp /server/*.pub /etc/apk/keys/; printf "\n/server/repository\n" >>/etc/apk/repositories;
               apk add --no-cache enclave-sunshine; adduser -D -u "$TEST_UID" player;
-              su player -c '\''xvfb-run -a -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/stream-server.py'\'''
+              su player -c '\''xvfb-run -n 101 -e /out/server-xvfb.log -s "-screen 0 960x600x24 -nolisten tcp" python3 /src/tests/stream-server.py'\'''
           trap 'docker logs stream-server >out/container.log 2>&1; docker rm -f stream-server >/dev/null' EXIT
-          xvfb-run -a -s '-screen 0 1024x768x24 -nolisten tcp' timeout 240 python3 tests/stream-client.py
+          xvfb-run -n 103 -e out/client-xvfb.log -s '-screen 0 1024x768x24 -nolisten tcp' timeout 240 python3 tests/stream-client.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
