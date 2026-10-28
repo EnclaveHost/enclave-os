@@ -7,6 +7,7 @@ python3 - <<'PY'
 import hashlib,json,pathlib,re,shutil,subprocess
 root=pathlib.Path('/inputs')
 inputs=json.loads((root/'inputs.json').read_text())
+assert inputs['scope']=='dependency-preflight-without-browser' if __import__('os').environ.get('ENCLAVE_PREVIEW_PREFLIGHT')=='1' else inputs['scope']=='preview'
 selected={}
 for source in inputs['sources']:
     directory=root/source['name']
@@ -37,6 +38,10 @@ su builder -c 'abuild-keygen -a -n'
 cp /home/builder/.abuild/*.pub /out/keys/
 apk index -o /out/repository/x86_64/APKINDEX.tar.gz /out/repository/x86_64/*.apk
 abuild-sign -k /home/builder/.abuild/*.rsa /out/repository/x86_64/APKINDEX.tar.gz
+if [ "${ENCLAVE_PREVIEW_PREFLIGHT:-0}" = 1 ]; then
+    python3 /src/tools/preflight-preview.py
+    exit
+fi
 set --
 for key in /out/keys/*.pub; do set -- "$@" --key "$key"; done
 python3 /src/tools/assemble.py --arch x86_64 --preset preview \

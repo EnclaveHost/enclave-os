@@ -9,14 +9,18 @@ def api(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--browser-run', type=int, required=True)
+    mode=parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--browser-run', type=int)
+    mode.add_argument('--preflight-without-browser', action='store_true',help='package composition test only; cannot produce a preview image')
     parser.add_argument('--output', type=pathlib.Path, required=True)
     args = parser.parse_args()
     args.output.mkdir(exist_ok=False)
     inputs = json.loads((ROOT/'profiles/preview-x86-inputs.json').read_text())
     sources = inputs['sources']
-    sources.append({'name': 'browser', 'repository': 'EnclaveHost/enclave-browser',
-                    'run': args.browser_run, 'packages': ['enclave-browser']})
+    inputs['scope']='dependency-preflight-without-browser' if args.preflight_without_browser else 'preview'
+    if not args.preflight_without_browser:
+        sources.insert(0,{'name': 'browser', 'repository': 'EnclaveHost/enclave-browser',
+                         'run': args.browser_run, 'packages': ['enclave-browser']})
     for source in sources:
         repo, run = source['repository'], source['run']
         info = api(f'repos/{repo}/actions/runs/{run}')

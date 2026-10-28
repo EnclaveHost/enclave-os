@@ -1,0 +1,32 @@
+name: Preview package composition preflight without browser
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Fetch qualified packages for a disposable composition test
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/fetch-preview.py --preflight-without-browser --output inputs
+      - name: Verify combined installation and executable startup
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
+            -e ENCLAVE_PREVIEW_PREFLIGHT=1 -v "$PWD:/src:ro" -v "$PWD/inputs:/inputs:ro" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-preview.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: preview-composition-preflight
+          path: |
+            out/*.json
+            out/*.apk-installed
+            out/*.log
+          retention-days: 7
