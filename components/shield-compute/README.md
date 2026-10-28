@@ -15,6 +15,16 @@ pad, credential or pairing material is embedded in the package. Installed CLI
 version checks are build gates only; masked numerics, service routing and actual
 VM admission remain required before release.
 
+The `shield-apps.yml` pipeline builds a separate `enclave-shield-apps` APK for
+ordinary desktop `llama-cli` and `sd-cli` commands. It retains the recovered
+standard OpenCL device-capability checks, Q8 view/readback fix, mandatory source
+validation, native CPU placement and SD mixed-backend graph/upload patches.
+Its private libraries do not enter the trusted service SDK's backend search path.
+The build checks Q8 byte identity and a deterministic CPU/OpenCL/CPU graph without
+physical GPU access. Real models, masked worker execution and platform admission
+remain separate gates; the package does not grant approximation or weight policy
+approval automatically.
+
 # Native engines and the guest compute boundary
 
 This integration runs native llama.cpp and stable-diffusion.cpp inside the

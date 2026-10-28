@@ -1,0 +1,36 @@
+pkgname=enclave-shield-apps
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Custom llama.cpp and sd.cpp using standard Shield OpenCL and native CPU fallback"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="x86_64 riscv64"
+license="MIT"
+makedepends="build-base cmake samurai git python3 openssl-dev patchelf linux-headers opencl-headers"
+depends="enclave-shield-opencl"
+ldpath="/usr/lib/enclave-shield-apps/lib:/usr/lib/enclave-shield-apps/bin"
+sonameprefix="$pkgname:"
+options="!check" # Installed mixed-backend and Q8 fixtures run in CI.
+source="enclave-shield-compute-source.tar"
+builddir="$srcdir/shield-compute"
+build() {
+    export ENCLAVE_BUILD_ROOT="$builddir/build-output" ENCLAVE_INPUT_ROOT="$builddir" JOBS=2
+    /bin/sh ./build.sh
+}
+package() {
+    mkdir -p "$pkgdir/usr/lib/enclave-shield-apps" "$pkgdir/usr/bin"
+    cp -a build-output/out/. "$pkgdir/usr/lib/enclave-shield-apps/"
+    local name extra
+    for name in llama-cli sd-cli; do
+        extra=""
+        [ "$name" != llama-cli ] || extra="--no-kv-offload"
+        cat >"$pkgdir/usr/bin/$name" <<EOF
+#!/bin/sh
+set -eu
+export GGML_SHIELD_NATIVE_CPU_FALLBACK=1
+export POCL_MAX_PTHREAD_COUNT="\${POCL_MAX_PTHREAD_COUNT:-2}"
+exec /usr/lib/enclave-shield-apps/bin/$name $extra "\$@"
+EOF
+        chmod 755 "$pkgdir/usr/bin/$name"
+    done
+}
+sha512sums=""

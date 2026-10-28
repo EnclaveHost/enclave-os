@@ -1,0 +1,94 @@
+name: Standard Shield llama.cpp and sd.cpp on musl
+on:
+  workflow_dispatch:
+    inputs:
+      cpu_run_id:
+        required: true
+        description: Signed patched CPU OpenCL packages
+      frontend_run_id:
+        required: true
+        description: Signed Shield OpenCL frontend packages
+      platforms:
+        required: true
+        default: '["amd64","riscv64"]'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  compute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: ggml-org/llama.cpp
+          ref: ddd4ec1428a6201e18975ea52b07c71e0f9aef26
+          path: upstream/llama
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: leejet/stable-diffusion.cpp
+          ref: b5d812008eb7082a238fc589444544b3278187ae
+          path: upstream/sd
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave
+          ref: 04a27e8da4e7d8a5f4b1270e6d02231a2b96d29a
+          path: upstream/enclave
+          sparse-checkout: |
+            wasm
+            LICENSE
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave
+          ref: aa3b780ae37b69fb9d15aa16dfe44c6ceaab94bf
+          path: upstream/shield
+          sparse-checkout: |
+            wasm
+            LICENSE
+      - name: Fetch signed OpenCL dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CPU_RUN: ${{ inputs.cpu_run_id }}
+          FRONTEND_RUN: ${{ inputs.frontend_run_id }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          [[ "$CPU_RUN" =~ ^[0-9]+$ && "$FRONTEND_RUN" =~ ^[0-9]+$ ]]
+          gh run download "$CPU_RUN" --name "opencl-cpu-$PLATFORM" --dir cpu
+          gh run download "$FRONTEND_RUN" --name "shield-opencl-$PLATFORM" --dir frontend
+      - name: Reconstruct the exact customized SD source and export SDK inputs
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib,json,pathlib,subprocess
+          lock=json.loads(pathlib.Path('components/shield-compute/sources.lock.json').read_text())
+          patch=pathlib.Path('integrations/shield-compute/sd-custom.patch').resolve()
+          assert hashlib.sha256(patch.read_bytes()).hexdigest()==lock['sdPatchSha256']
+          subprocess.run(['git','-C','upstream/sd','apply','--index',str(patch)],check=True)
+          tree=subprocess.check_output(['git','-C','upstream/sd','write-tree'],text=True).strip()
+          assert tree==lock['sdTree'],tree
+          PYCODE
+          python3 components/shield-compute/prepare.py --llama upstream/llama --sd upstream/sd --enclave upstream/enclave --shield upstream/shield --output shield-compute
+          python3 components/shield-compute/prepare-standard.py shield-compute
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -cf enclave-shield-compute-source.tar shield-compute
+      - name: Build and exercise standard Shield applications
+        run: |
+          mkdir -p out
+          docker run --rm --memory=6g --memory-swap=6g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" -v "$PWD/cpu:/cpu:ro" -v "$PWD/frontend:/frontend:ro" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-shield-apps.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: shield-apps-${{ matrix.platform }}
+          path: out/
+          retention-days: 7
