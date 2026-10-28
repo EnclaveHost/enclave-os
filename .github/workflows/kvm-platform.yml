@@ -14,15 +14,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          repository: EnclaveHost/enclave
-          ref: 0f46f807d21d961c86846a54d8d963a5c26d244b
-          path: platform-source
-          sparse-checkout: |
-            isolation/contract
-            isolation/m2
-            isolation/m3
       - name: Check media tampering refusals
         run: python3 tests/kvm-platform-media.py
       - name: Fetch verified preview and exact retained bootstrap inputs
@@ -31,7 +22,9 @@ jobs:
           PREVIEW_RUN: ${{ inputs.preview_run }}
         run: |
           [[ "$PREVIEW_RUN" =~ ^[0-9]+$ ]]
-          mkdir out
+          mkdir out platform-source
+          printf '%s\n' '85f51d772fa9b775f59b8dc14f7a5a3330fe442c773e13dd30ff938b879ac4fb  integrations/native-platform/source.tar.gz' | sha256sum -c -
+          tar -xzf integrations/native-platform/source.tar.gz -C platform-source
           gh run view "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --json headSha,conclusion,workflowName >out/preview-run.json
           test "$(jq -r .conclusion out/preview-run.json)" = success
           test "$(jq -r .workflowName out/preview-run.json)" = 'Separate x86 full-feature preview root'

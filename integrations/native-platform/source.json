@@ -1,0 +1,13 @@
+{
+  "repository": "EnclaveHost/enclave",
+  "commit": "0f46f807d21d961c86846a54d8d963a5c26d244b",
+  "gitPaths": [
+    "LICENSE",
+    "isolation/contract",
+    "isolation/m2",
+    "isolation/m3"
+  ],
+  "archive": "source.tar.gz",
+  "sha256": "85f51d772fa9b775f59b8dc14f7a5a3330fe442c773e13dd30ff938b879ac4fb",
+  "scope": "Exact git archive of the clean committed native platform sources. That local commit is not available from the remote; this export omits unrelated working-tree changes and binaries. The native builder records its own source inventory. No production release or runtime admission is implied."
+}
