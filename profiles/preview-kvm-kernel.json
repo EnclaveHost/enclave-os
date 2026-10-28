@@ -1,0 +1,12 @@
+{
+  "repository": "EnclaveHost/enclave-os",
+  "run": 40621991327,
+  "artifact": "native-kernel-fixture-amd64",
+  "release": "6.6.87.2-enclave-kvm-box",
+  "files": {
+    "bzImage": "d1b2313a6775853305be0cfb2df2f0911c0428170cc7b12b5015a8a613cd61a4",
+    "vmlinux": "52045cf7a197eb9364725912509887551d7198e98ac4654b4df9813cacfe4727",
+    "nft_ct.ko": "014f2396b3b21d8650fae37fdad7fd1f16c736385ecc95722beb5f99d29a2228",
+    ".config": "ae63bc1e413235a02b2f81301bf7e1af878a97bd8e2fdbe939cc85d14ef4ebab"
+  }
+}

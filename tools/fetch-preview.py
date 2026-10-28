@@ -40,6 +40,15 @@ def main():
                            hashlib.file_digest(p.open('rb'), 'sha256').hexdigest()
                            for p in sorted((args.output/source['name']).rglob('*')) if p.is_file()}
     (args.output/'inputs.json').write_text(json.dumps(inputs, indent=2)+'\n')
+    kernel=json.loads((ROOT/'profiles/preview-kvm-kernel.json').read_text())
+    info=api(f'repos/{kernel["repository"]}/actions/runs/{kernel["run"]}')
+    if info['conclusion']!='success':raise ValueError('pinned KVM kernel did not pass')
+    subprocess.run(['gh','run','download',str(kernel['run']),'--repo',kernel['repository'],
+                    '--name',kernel['artifact'],'--dir',str(args.output/'kernel')],check=True)
+    for name,expected in kernel['files'].items():
+        with (args.output/'kernel'/name).open('rb') as f:
+            if hashlib.file_digest(f,'sha256').hexdigest()!=expected:
+                raise ValueError('KVM kernel artifact hash mismatch: '+name)
 
 if __name__ == '__main__':
     main()

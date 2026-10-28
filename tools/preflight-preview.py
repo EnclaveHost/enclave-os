@@ -3,6 +3,7 @@
 import json,pathlib,shutil,subprocess
 from chroot_runtime import runtime
 from native_root import configure as configure_native
+from kvm_boot_inputs import stage as stage_kvm
 source=pathlib.Path('/src');root=pathlib.Path('/out/dependency-test-root')
 profile=json.loads((source/'profiles/common.json').read_text())
 packages=sorted({p for f in profile['presets']['preview'] if f!='enclave-browser'
@@ -33,8 +34,10 @@ with runtime(root), open('/out/package-composition.log','w') as log:
     '''],check=True,stdout=log,stderr=log,timeout=120)
 shutil.copyfile(root/'lib/apk/db/installed','/out/preflight.apk-installed')
 native=configure_native(root,(source/'components/native-platform/70-kvm-box-input.rules').read_bytes())
+boot=stage_kvm(root,pathlib.Path('/inputs/kernel'),pathlib.Path('/out/kvm-boot-preflight'))
 subprocess.run(['python3',str(source/'tests/native-policy.py'),str(root/'shield')],check=True)
 pathlib.Path('/out/preflight.json').write_text(json.dumps({'scope':'dependency-preflight-without-browser',
     'passed':True,'packages':packages,'browserPresent':False,'imageProduced':False,
-    'nativeRootPreparation':native,'runtimeAdmission':False,'productionQualified':False},indent=2)+'\n')
+    'nativeRootPreparation':native,'kvmBootInputs':boot,'runtimeAdmission':False,'productionQualified':False},indent=2)+'\n')
 shutil.rmtree(root)
+shutil.rmtree('/out/kvm-boot-preflight')

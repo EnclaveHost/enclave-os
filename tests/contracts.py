@@ -59,3 +59,4 @@ with tempfile.TemporaryDirectory() as td:
         assert not (pathlib.Path(td)/'root').exists()
 print(f'PASS: {len(manifest["files"])} provenance hashes, shared feature graph, baseline policy, source archive checksums')
 subprocess.run(['python3',str(root/'tests/native-root.py')],check=True)
+subprocess.run(['python3',str(root/'tests/kvm-boot-inputs.py')],check=True)

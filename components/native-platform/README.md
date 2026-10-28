@@ -27,3 +27,11 @@ assembly, eudev/input confinement tests, complete service startup, nftables,
 streaming and platform measurement/admission still need qualification. The RV64
 adapter retains its separate boot boundary; this x86-only launcher does not
 remove or bypass its architecture/kernel guards to claim support there.
+
+The current KVM boot/monitor ABI opens `nsinit` and `gateway` beneath
+`/usr/local/libexec/kvm-box` without following symlinks, and loads `nft_ct.ko`
+from that same directory. `tools/kvm_boot_inputs.py` creates regular hard links
+to the Alpine package helpers and adds the exact module from the pinned preview
+kernel build. It also exports the static helpers and kernel files for subsequent
+platform archive construction. Hash mismatches fail before root modification.
+These inputs alone are not a bootable or admitted platform archive.

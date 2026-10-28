@@ -40,5 +40,6 @@ jobs:
             out/*.squashfs
             out/*.verity
             out/SHA256SUMS
+            out/kvm-boot/
           retention-days: 7
           compression-level: 0
