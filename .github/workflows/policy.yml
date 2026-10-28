@@ -39,6 +39,7 @@ jobs:
           path: |
             out/boot.log
             out/root/policy-test
+            out/root/native-roles-test
             out/smoke-kernel
             out/smoke-initramfs.cpio.gz
           retention-days: 7

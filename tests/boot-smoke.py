@@ -18,6 +18,8 @@ try:
 except subprocess.TimeoutExpired as e:
     log=(e.stdout or b'').decode(errors='replace');code=124
 (out/'boot.log').write_text(log)
+if os.environ.get('ENCLAVE_POLICY_TEST') == '1' and arch == 'x86_64' and 'ENCLAVE_NATIVE_ROLES_OK' not in log:
+    print(log[-16000:]);raise SystemExit('Native role/udev confinement tests did not pass')
 if code or f'ENCLAVE_BOOT_OK {arch}' not in log or (os.environ.get('ENCLAVE_POLICY_TEST') == '1' and 'ENCLAVE_POLICY_OK' not in log):
     print(log[-16000:]);raise SystemExit(f'{arch}: boot failed (exit {code})')
 print(f'PASS: {arch} kernel boot, Enclave userland, ASLR, shutdown')

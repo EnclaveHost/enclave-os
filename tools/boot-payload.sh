@@ -29,6 +29,10 @@ poweroff -f
 INIT
 if [ "${ENCLAVE_POLICY_TEST:-0}" = 1 ]; then
     sed -i '/echo "ENCLAVE_BOOT_OK/i /policy-test' "$root/init"
+    if [ "$arch" = x86_64 ]; then
+        test -x "$root/native-roles-test"
+        sed -i '/echo "ENCLAVE_BOOT_OK/i /native-roles-test' "$root/init"
+    fi
 fi
 chmod 755 "$root/init"
 [ -e "$root/dev/console" ] || mknod -m600 "$root/dev/console" c 5 1
