@@ -1,0 +1,57 @@
+name: Execute OpenHV on RV64 musl runtime
+on:
+  workflow_dispatch:
+    inputs:
+      runtime_run_id:
+        required: true
+        default: '40613908533'
+      game_run_id:
+        required: true
+        default: '40588447643'
+      mesa_run_id:
+        required: true
+        default: '40591223582'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  managed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Fetch exact candidate artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNTIME: ${{ inputs.runtime_run_id }}
+          GAME: ${{ inputs.game_run_id }}
+          MESA: ${{ inputs.mesa_run_id }}
+        run: |
+          [[ "$RUNTIME" =~ ^[0-9]+$ && "$GAME" =~ ^[0-9]+$ && "$MESA" =~ ^[0-9]+$ ]]
+          gh run download "$RUNTIME" --name dotnet-riscv64-candidate --dir runtime
+          gh run download "$GAME" --name openhv-amd64 --dir game
+          gh run download "$MESA" --name shield-mesa-riscv64 --dir mesa
+          mkdir managed out
+      - name: Compile managed fixture using the shared .NET 10 target
+        run: |
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/amd64 \
+            -v "$PWD:/src:ro" -v "$PWD/managed:/managed" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh -ec 'apk add --no-cache dotnet10-sdk; cp -a /src/tests/managed-runtime /tmp/test; dotnet build /tmp/test -c Release -o /managed -m:2'
+      - name: Execute RV64 managed code and OpenHV through private Mesa
+        run: |
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/riscv64 \
+            -v "$PWD:/src:ro" -v "$PWD/managed:/managed:ro" -v "$PWD/runtime:/runtime:ro" \
+            -v "$PWD/game:/game:ro" -v "$PWD/mesa:/mesa:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-openhv-riscv.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: openhv-riscv64-runtime
+          path: out/
+          retention-days: 7

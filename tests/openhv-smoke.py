@@ -7,7 +7,7 @@ with tempfile.TemporaryDirectory() as home:
     with (out/'openhv-smoke.log').open('w') as log:
         game=subprocess.Popen(['/usr/bin/enclave-openhv','Graphics.WindowMode=Windowed'],env=env,stdout=log,stderr=subprocess.STDOUT)
         try:
-            deadline=time.monotonic()+90
+            deadline=time.monotonic()+int(os.environ.get("ENCLAVE_GAME_START_TIMEOUT","90"))
             while time.monotonic()<deadline:
                 assert game.poll() is None, (out/'openhv-smoke.log').read_text()
                 windows=subprocess.run(['xdotool','search','--onlyvisible','--pid',str(game.pid)],capture_output=True,text=True)
