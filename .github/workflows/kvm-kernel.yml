@@ -1,0 +1,39 @@
+name: Pinned KVM adapter kernel fixture
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: microsoft/WSL2-Linux-Kernel
+          ref: 427645e3db3a8896714f22a3d3fe0c3f7b317ad4
+          path: kernel
+      - name: Prepare the existing native ABI from clean source
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential flex bison libelf-dev libssl-dev bc dwarves
+          mkdir out
+          python3 platforms/kvm-box/kernel/prepare.py kernel >out/prepare.log 2>&1
+      - name: Build the bounded separate test kernel
+        env:
+          KBUILD_BUILD_USER: enclave-ci
+          KBUILD_BUILD_HOST: enclave-ci
+          KBUILD_BUILD_TIMESTAMP: Thu Jan 1 00:00:00 UTC 1970
+        run: |
+          make -C kernel -j2 bzImage >out/build.log 2>&1
+          make -C kernel -j2 net/netfilter/nft_ct.ko >>out/build.log 2>&1
+          cp kernel/arch/x86/boot/bzImage kernel/vmlinux kernel/.config kernel/enclave-kernel-source.json kernel/net/netfilter/nft_ct.ko out/
+          sha256sum out/bzImage out/vmlinux out/nft_ct.ko out/.config >out/SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-kernel-fixture-amd64
+          path: out/
+          include-hidden-files: true
+          retention-days: 7
