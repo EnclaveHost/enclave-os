@@ -11,7 +11,9 @@ def main():
     p.add_argument('--repository',type=pathlib.Path,required=True,help='signed local repository parent (contains architecture dirs)')
     p.add_argument('--key',type=pathlib.Path,action='append',required=True,help='public APK signing key ONLY; repeat for independently signed package inputs')
     p.add_argument('--output',type=pathlib.Path,required=True)
+    p.add_argument('--adapter',choices=['kvm-box-native'],help='include the separate native service boundary; does not establish admission')
     a=p.parse_args();out=a.output.resolve()
+    if a.adapter and a.arch != 'x86_64': p.error('the KVM native adapter requires x86_64')
     if out.exists(): p.error('output must not exist; refusing to modify an existing root')
     if any(not key.name.endswith('.pub') for key in a.key): p.error('only a public signing key may enter an image')
     if len({key.name for key in a.key}) != len(a.key): p.error('duplicate signing key filename')
@@ -23,6 +25,9 @@ def main():
     if missing:p.error('Full feature parity is not qualified: '+', '.join(missing))
     packages=sorted(set(pkg for feature in profile['presets'][a.preset] for pkg in profile['features'][feature]))
     if 'desktop' in profile['presets'][a.preset]: packages+=platform['packages']
+    if a.adapter:
+        if 'desktop' not in profile['presets'][a.preset]: p.error('native adapter requires a desktop preset')
+        packages.append('enclave-native-platform')
     url=f'https://dl-cdn.alpinelinux.org/alpine/{lock["alpine_branch"]}/releases/{a.arch}/alpine-minirootfs-{lock["alpine_version"]}-{a.arch}.tar.gz'
     data=urllib.request.urlopen(url,timeout=60).read()
     if hashlib.sha256(data).hexdigest()!=lock['minirootfs'][a.arch]['sha256']: raise SystemExit('minirootfs checksum mismatch')
@@ -44,6 +49,10 @@ def main():
     if 'desktop' in profile['presets'][a.preset]:
         target=out/'etc/X11/xorg.conf';target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'platforms'/platform['platform']/'xorg.conf',target)
+    if a.adapter:
+        # Empty session mount points, never a copied user profile or password.
+        (out/'home/desktop').mkdir(mode=0o700,exist_ok=True)
+        (out/'home/desktop').chmod(0o700)
     installed=(out/'lib/apk/db/installed').read_text()
     sizes=[]
     for block in installed.split('\n\n'):
@@ -54,6 +63,7 @@ def main():
     sizes.sort(key=lambda item:item['bytes'],reverse=True)
     report={'largest_packages':sizes[:20],'excluded_test_packages':profile['exclude_packages'],'architecture':a.arch,'preset':a.preset,'platform':platform['platform'],'production_qualified':False,
             'pending_qualification':[f for f in profile['pending_features'] if f in profile['presets'][a.preset]],
+            'adapter':a.adapter,'runtime_admission':False,
             'requested_packages':packages,'bytes':sum(f.stat().st_size for f in out.rglob('*') if f.is_file() and not f.is_symlink())}
     # Installed database records dependency versions, sizes and origin for the entire image.
     shutil.copyfile(out/'lib/apk/db/installed',out.parent/(out.name+'.apk-installed'))

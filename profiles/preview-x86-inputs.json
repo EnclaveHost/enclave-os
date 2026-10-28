@@ -135,6 +135,15 @@
       "packages": [
         "enclave-shield-ir-reference"
       ]
+    },
+    {
+      "name": "native",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40620715390,
+      "artifact": "native-platform-amd64",
+      "packages": [
+        "enclave-native-platform"
+      ]
     }
   ]
 }

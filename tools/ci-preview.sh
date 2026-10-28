@@ -40,7 +40,7 @@ abuild-sign -k /home/builder/.abuild/*.rsa /out/repository/x86_64/APKINDEX.tar.g
 set --
 for key in /out/keys/*.pub; do set -- "$@" --key "$key"; done
 python3 /src/tools/assemble.py --arch x86_64 --preset preview \
-    --repository /out/repository "$@" --output /out/root-preview
+    --adapter kvm-box-native --repository /out/repository "$@" --output /out/root-preview
 chroot /out/root-preview /bin/sh -ec '
     test "$(cat /etc/alpine-release)" = 3.24.3
     enclave-firefox --version
