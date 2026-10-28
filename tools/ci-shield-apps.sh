@@ -39,6 +39,8 @@ esac
 cases="q8_views opencl_cpu_fallback"
 if [ "${SHIELD_APPS_DIAGNOSTIC_ONLY:-0}" = 1 ]; then
     cases=opencl_cpu_fallback
+    apk add --no-cache gdb
+    ulimit -c 1048576
     printf '%s\n' '{"fullQualification":false,"diagnostic":"mixed CPU/OpenCL graph"}' >/out/diagnostic.json
 fi
 for name in $cases; do
@@ -46,7 +48,18 @@ for name in $cases; do
         -I"$sdk/include" -I/src/shield-compute/sd/src \
         /src/components/shield-compute/test_$name.cpp \
         -L"$sdk/lib" -Wl,-rpath,"$sdk/lib" -lggml -lggml-base -o "/out/tests/$name"
-    timeout "$test_timeout" "/out/tests/$name" "$sdk/bin/libggml-opencl.so" "$sdk/bin/libggml-cpu.so" >"/out/$name.log" 2>&1
+    result=0
+    (cd /out && timeout "$test_timeout" "/out/tests/$name" "$sdk/bin/libggml-opencl.so" "$sdk/bin/libggml-cpu.so") >"/out/$name.log" 2>&1 || result=$?
+    if [ "$result" != 0 ] && [ "${SHIELD_APPS_DIAGNOSTIC_ONLY:-0}" = 1 ]; then
+        for core in /out/qemu_*.core; do
+            [ -f "$core" ] || continue
+            timeout 180 gdb -batch -ex 'set pagination off' -ex 'thread apply all bt' \
+                -ex 'info registers' -ex 'x/12i $pc-16' "/out/tests/$name" "$core" \
+                >"/out/$name-backtrace.log" 2>&1 || true
+            rm -f "$core"
+        done
+    fi
+    [ "$result" = 0 ] || exit "$result"
 done
 llama-cli --list-devices >/out/devices.log 2>&1
 sd-cli --help >/out/sd-help.log 2>&1
