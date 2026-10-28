@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Visual Pinball X
+Comment=Pinball through Enclave Shield graphics
+Exec=enclave-vpinball
+Terminal=false
+Categories=Game;ArcadeGame;

@@ -1,11 +1,27 @@
 #!/bin/sh
 set -eux
-apk add --no-cache build-base python3 py3-pillow xvfb-run xauth xdotool fluxbox font-misc-misc font-dejavu xprop pulseaudio libx11-dev
+apk add --no-cache alpine-sdk sudo python3 py3-pillow xvfb-run xauth xdotool fluxbox font-misc-misc font-dejavu xprop pulseaudio libx11-dev
 for packages in /core /dependencies /mesa; do
     cp "$packages"/*.pub /etc/apk/keys/
     printf '\n%s/repository\n' "$packages" >>/etc/apk/repositories
 done
 apk add --no-cache enclave-vpx-core enclave-shield-graphics
+adduser -D builder
+addgroup builder abuild
+printf 'builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/builder
+python3 /src/tools/stage-aports.py /home/builder/aports/enclave
+cp -a /src/aports/enclave-visual-pinball-x /home/builder/aports/enclave/
+chown -R builder:builder /home/builder
+su builder -c 'abuild-keygen -a -n'
+cp /home/builder/.abuild/*.pub /etc/apk/keys/
+printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
+for name in cursor desktop visual-pinball-x; do
+    su builder -c "cd /home/builder/aports/enclave/enclave-$name && abuild -r" >"/out/$name-build.log" 2>&1
+    apk update
+done
+cp -a /home/builder/packages/enclave /out/repository
+cp /home/builder/.abuild/*.pub /out/
+apk add --no-cache enclave-visual-pinball-x
 adduser -D player
 cc -O2 /src/components/native-platform/desktop-capture.c -lX11 -o /tmp/capture
 chown player:player /out

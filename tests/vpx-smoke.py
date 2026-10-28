@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory() as directory:
             time.sleep(.1)
         results = []
         for name, table in [('current', ENGINE/'tables/default-table.vpx'),
-                            ('retained', Path('/src/retained-exampleTable.vpx'))]:
+                            ('retained', Path('/usr/share/enclave-os/vpinball/exampleTable.vpx'))]:
             preferences = home/name
             preferences.mkdir()
             tables = preferences/'tables'
@@ -61,15 +61,16 @@ with tempfile.TemporaryDirectory() as directory:
             ini = preferences/'VPinballX.ini'
             ini.write_text('[Player]\nFullScreen=0\nWidth=960\nHeight=600\nMaxFramerate=30\nSyncMode=0\n')
             with (OUT/f'{name}.log').open('w') as log:
-                game = subprocess.Popen([str(ENGINE/'VPinballX_GL'), '-LessCPUthreads',
-                    '-PrefPath', str(preferences), '-Ini', str(ini), '-Play', str(writable_table)],
+                command = ([str(ENGINE/'VPinballX_GL'), '-LessCPUthreads',
+                    '-PrefPath', str(preferences), '-Ini', str(ini), '-Play', str(writable_table)]
+                    if name == 'current' else ['/usr/bin/enclave-vpinball'])
+                game = subprocess.Popen(command,
                     cwd=ENGINE, env=env, stdout=log, stderr=log)
             try:
                 deadline = time.monotonic()+120
                 while time.monotonic() < deadline:
                     assert game.poll() is None, (OUT/f'{name}.log').read_text()
-                    windows = subprocess.run(['xdotool', 'search', '--onlyvisible', '--pid', str(game.pid),
-                        '--name', 'Visual Pinball'], capture_output=True, text=True, env=env)
+                    windows = subprocess.run(['xdotool', 'search', '--onlyvisible', '--name', 'Visual Pinball'], capture_output=True, text=True, env=env)
                     if windows.returncode == 0:
                         window = windows.stdout.splitlines()[0]
                         subprocess.run(['xdotool', 'windowactivate', '--sync', window], env=env, check=True, timeout=5)
@@ -87,6 +88,10 @@ with tempfile.TemporaryDirectory() as directory:
                     raise AssertionError('No VPX player window: '+(OUT/f'{name}.log').read_text())
             finally:
                 stop(game)
+                if name == 'retained':
+                    seeded = home/'.local/share/enclave-vpinball/tables/exampleTable.vpx'
+                    assert seeded.read_bytes() == table.read_bytes()
+                    assert (home/'.config/enclave-vpinball/VPinballX.ini').is_file()
                 shutil.copytree(preferences, OUT/f'{name}-preferences', dirs_exist_ok=True)
         (OUT/'results.json').write_text(json.dumps({'tables':results,'gpuExecution':False,
             'streamedInputQualification':False,'audioQualification':False},indent=2)+'\n')
