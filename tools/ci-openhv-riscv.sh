@@ -31,6 +31,7 @@ chown -R builder:builder /home/builder
 su builder -c 'abuild-keygen -a -n'
 cp /home/builder/.abuild/*.pub /etc/apk/keys/
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
+apk update
 for name in cursor desktop dotnet-riscv openhv-riscv; do
     su builder -c "cd /home/builder/aports/enclave/enclave-$name && abuild checksum && abuild -r" >"/out/$name-build.log" 2>&1
     apk update
