@@ -11,11 +11,44 @@
 #include <stdexcept>
 #include <vector>
 
+#if defined(SHIELD_DIAGNOSTIC_SIGNAL) && defined(__riscv)
+#include <csignal>
+#include <dlfcn.h>
+#include <ucontext.h>
+#include <unistd.h>
+static void diagnostic_fault(int signal, siginfo_t * info, void * context) {
+    const auto pc = static_cast<ucontext_t *>(context)->uc_mcontext.__gregs[0];
+    Dl_info module{};
+    if (dladdr(reinterpret_cast<void *>(pc), &module)) {
+        std::fprintf(stderr, "fault: signal=%d address=%p pc=%lx module=%s base=%p offset=%lx\n",
+                     signal, info->si_addr, pc, module.dli_fname, module.dli_fbase,
+                     pc - reinterpret_cast<unsigned long>(module.dli_fbase));
+    } else {
+        std::fprintf(stderr, "fault: signal=%d address=%p pc=%lx module=unknown\n", signal, info->si_addr, pc);
+    }
+    _Exit(128 + signal);
+}
+static void install_diagnostic_signal() {
+    static char signal_stack[65536];
+    stack_t stack{};
+    stack.ss_sp = signal_stack; stack.ss_size = sizeof(signal_stack);
+    if (sigaltstack(&stack, nullptr)) std::abort();
+    struct sigaction action{};
+    action.sa_sigaction = diagnostic_fault;
+    action.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    sigemptyset(&action.sa_mask);
+    if (sigaction(SIGSEGV, &action, nullptr) || sigaction(SIGBUS, &action, nullptr)) std::abort();
+}
+#endif
+
 static void require(bool value, const char * message) {
     if (!value) throw std::runtime_error(message);
 }
 int main(int argc, char ** argv) {
     try {
+#if defined(SHIELD_DIAGNOSTIC_SIGNAL) && defined(__riscv)
+        install_diagnostic_signal();
+#endif
         require(argc == 3, "usage: test-opencl-cpu-fallback OPENCL_PLUGIN CPU_PLUGIN");
         setenv("GGML_SHIELD_NATIVE_CPU_FALLBACK", "1", 1);
         require(ggml_backend_load(argv[1]) != nullptr, "load OpenCL");
