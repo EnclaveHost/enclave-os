@@ -20,9 +20,12 @@ PY
 python3 build_home_defaults.py --root /src/components/desktop/skel \
     --manifest home-defaults-manifest.json --output home-defaults.h
 for name in nsinit supervisor udev-launch; do
-    cc -O2 -Wall -Wextra -Werror -fstack-protector-strong -fPIE -pie \
+    cc -O2 -Wall -Wextra -Werror -fstack-protector-strong -fPIE -static-pie \
         -DKVMBOX_SHIELD_GRAPHICS -I/src/components/platform-policy \
         "$name.c" -Wl,-z,relro,-z,now,-z,noexecstack -o "/out/bin/$name"
+    # These run before pivoting into the musl desktop root. They must not
+    # depend on the old platform's glibc interpreter or a second loader copy.
+    if readelf -lW "/out/bin/$name" | grep -q INTERP; then exit 1; fi
 done
 cc -O2 -Wall -Wextra -Werror desktop-capture.c -lX11 \
     -Wl,-z,relro,-z,now,-z,noexecstack -o /out/bin/capture

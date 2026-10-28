@@ -24,7 +24,7 @@ package() {
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     printf 'KVM-BOX-MASKED/1\n' >"$pkgdir/desktop.profile"
     chmod 444 "$pkgdir/desktop.profile"
-    mkdir -p "$pkgdir/etc/pulse"
-    printf 'autospawn = no\n' >"$pkgdir/etc/pulse/client.conf"
+    mkdir -p "$pkgdir/etc/pulse/client.conf.d"
+    printf 'autospawn = no\n' >"$pkgdir/etc/pulse/client.conf.d/90-enclave-native.conf"
 }
 sha512sums=""
