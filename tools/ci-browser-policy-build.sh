@@ -26,7 +26,11 @@ sysctl -w kernel.randomize_va_space=2
 ip link set lo up
 export HOME=/tmp TMPDIR=/tmp ENCLAVE_BROWSER_EXECUTABLE=/usr/bin/enclave-firefox
 export ENCLAVE_TEST_ARTIFACTS=/tmp/browser-artifacts
-/policy-exec /usr/bin/node /tests/smoke.mjs
+if ! /policy-exec /usr/bin/node --jitless /tests/smoke.mjs; then
+    echo ENCLAVE_BROWSER_POLICY_FAILED
+    sync
+    poweroff -f
+fi
 /usr/bin/node /tests/browser-policy-report.mjs
 echo ENCLAVE_BROWSER_POLICY_OK
 echo "ENCLAVE_BOOT_OK $(uname -m)"
