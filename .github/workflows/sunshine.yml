@@ -32,7 +32,7 @@ jobs:
         run: |
           docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/amd64 \
             -v "$PWD/upstream:/source" -w /source \
-            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
             /bin/sh -ec 'apk add --no-cache nodejs npm; npm ci --ignore-scripts; mkdir prebuilt; SUNSHINE_ASSETS_DIR=/source/prebuilt npm run build; rm -rf node_modules'
       - name: Archive pinned source and submodule provenance
         run: |

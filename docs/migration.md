@@ -16,7 +16,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Sunshine/Moonlight | Pinned source-based X11/software-encoder APK in progress for both CPUs; client audio/input patch preserved in `integrations/moonlight` | Finish musl builds, RV64 capture/encoder feasibility; authenticated service integration and audio/input parity |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK and trusted-core/service dual-ISA builds pass; finish OpenCL frontend and masked worker/CPU fallback conformance |
-| OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | RV64 installed compute/draw checks and real masked service/worker qualification; never replace Shield routing with direct GPU access |
+| OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
 | Visual Pinball X | Imported runtime inventory | Scripting/spatial audio pass on both CPUs; finish matching image-codec/core/plugins, retained tables and graphics qualification |
@@ -92,7 +92,7 @@ streamed input/audio parity; OpenHV's RV64 runtime remains pending.
 
 The [RV64 Mesa package](https://github.com/EnclaveHost/enclave-os/actions/runs/40591223582)
 now builds and installs, with Vulkan/GL capability queries succeeding through the
-private stack. Installed compute/draw tests are a separate gate.
+private stack. [Installed RV64 compute/draw tests](https://github.com/EnclaveHost/enclave-os/actions/runs/40611009310) also pass, including wrong-peer rejection. These use CPU fallback.
 
 The [native SDK](https://github.com/EnclaveHost/enclave-os/actions/runs/40591609962)
 builds and installs on both CPUs, including custom llama.cpp/sd.cpp and the Shield
