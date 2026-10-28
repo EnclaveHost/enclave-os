@@ -7,7 +7,7 @@ $(OUT)/libOpenCL-shield-cpu.so.1:
 	patchelf --set-soname libOpenCL-shield-cpu.so.1 $@
 $(OUT)/libOpenCL.so.1: shield_opencl.cpp opencl.map $(wildcard q8_capture.inc q8_masked.inc source_declines.hpp) $(OUT)/libOpenCL-shield-cpu.so.1
 	$(CXX) $(CXXFLAGS) -std=c++20 -fPIC $(CPPFLAGS) -shared $< -L$(OUT) -Wl,--no-as-needed -l:libOpenCL-shield-cpu.so.1 -Wl,--as-needed -Wl,--version-script=opencl.map -Wl,-soname,libOpenCL.so.1,-rpath,'$$ORIGIN',-z,relro,-z,now,-z,noexecstack -ldl -pthread $(LDLIBS) -o $@
-	ln -sf libOpenCL.so.1 $(OUT)/libOpenCL.so
+	printf 'GROUP ( libOpenCL.so.1 libOpenCL-shield-cpu.so.1 )\n' > $(OUT)/libOpenCL.so
 clean:
 	rm -rf $(OUT) test-opencl
 test-opencl: test_opencl.cpp
