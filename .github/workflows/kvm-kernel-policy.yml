@@ -28,7 +28,15 @@ jobs:
           test "$(gh run view "$POLICY" --json conclusion --jq .conclusion)" = success
           gh run download "$KERNEL" --name native-kernel-fixture-amd64 --dir kernel
           gh run download "$POLICY" --name native-policy-amd64 --dir out
-          (cd kernel && sha256sum -c SHA256SUMS)
+          python3 - <<'PY'
+          import hashlib,pathlib
+          root=pathlib.Path('kernel')
+          hashes={path.removeprefix('out/'):digest for digest,path in
+                  (line.split() for line in (root/'SHA256SUMS').read_text().splitlines())}
+          for name in ('bzImage','vmlinux','nft_ct.ko','.config'):
+              with (root/name).open('rb') as f:
+                  assert hashlib.file_digest(f,'sha256').hexdigest()==hashes[name],name
+          PY
           cp kernel/bzImage out/smoke-kernel
       - name: Execute actual seccomp and role checks in the exact adapter ABI
         run: |
