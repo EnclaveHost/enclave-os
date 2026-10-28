@@ -15,7 +15,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | RV64 musl package and all nine actual-kernel browser checks pass; x86 package rebuild and full desktop/proxy/extension checks remain |
 | Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend/HIP and masked worker conformance remain |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend tests pass; RV64 apps/HIP/IR and masked worker conformance remain |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
@@ -268,3 +268,11 @@ preview and runs browser/kernel checks automatically. No workflow deploys or
 replaces the running app. The measured-root boot fixture remains unqualified
 until the first full candidate is available; full native service startup and
 admission are still required afterward.
+
+The [RV64 OpenCL frontend](https://github.com/EnclaveHost/enclave-os/actions/runs/40636418156)
+passes all 37 source/compiler/security tests and installed Q8 recognition and
+changed-arithmetic rejection. Its event, shared-memory, convolution, half-float
+and image fixtures also pass. Q8 syntax analysis now targets the SPIR64 device
+language instead of inheriting the build host's unsupported half extension;
+compiler resource limits and runtime admission requirements are unchanged.
+The dependent RV64 llama.cpp/sd.cpp and CUDA/HIP builds are running separately.
