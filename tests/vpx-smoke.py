@@ -2,6 +2,7 @@
 """Installed VPX table startup through private Mesa, with isolated null audio."""
 import json
 import os
+import platform
 from pathlib import Path
 import shutil
 import struct
@@ -67,7 +68,8 @@ with tempfile.TemporaryDirectory() as directory:
                 game = subprocess.Popen(command,
                     cwd=ENGINE, env=env, stdout=log, stderr=log)
             try:
-                deadline = time.monotonic()+120
+                started = time.monotonic()
+                deadline = started+(600 if platform.machine() == 'riscv64' else 120)
                 while time.monotonic() < deadline:
                     assert game.poll() is None, (OUT/f'{name}.log').read_text()
                     windows = subprocess.run(['xdotool', 'search', '--onlyvisible', '--name', 'Visual Pinball'], capture_output=True, text=True, env=env)
@@ -81,8 +83,13 @@ with tempfile.TemporaryDirectory() as directory:
                         assert capture[:4] == b'RGB1'
                         width, height, _, _ = struct.unpack('>4I', capture[4:20])
                         assert (width, height) == (960, 600)
-                        Image.frombytes('RGB', (width,height), capture[20:]).save(OUT/f'{name}.png')
-                        results.append({'table':name,'visibleWindow':True,'survivedSeconds':15})
+                        picture = Image.frombytes('RGB', (width,height), capture[20:])
+                        picture.save(OUT/f'{name}.png')
+                        colors = len(picture.crop((240,150,720,450)).getcolors(480*300))
+                        assert colors > 256, 'Player window did not contain a rendered table'
+                        results.append({'table':name,'visibleWindow':True,'survivedSeconds':15,
+                                        'startupSeconds':round(time.monotonic()-started,2),
+                                        'centerColors':colors})
                         break
                     time.sleep(1)
                 else:
