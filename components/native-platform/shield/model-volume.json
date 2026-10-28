@@ -1,0 +1,12 @@
+{
+  "verity": {
+    "alg": "sha256",
+    "root": "f2581705c89c2a4afca613e39ba16209825414e1a04ba0fe5c5b8b700d8d65cd",
+    "salt": "6245710f8f3a972d86978a1749924a12a0d4eb04901096db3548120d46011b4f",
+    "dataBlockSize": 4096,
+    "hashBlockSize": 4096,
+    "dataBlocks": 621588,
+    "hashOffset": 2546024448,
+    "hashStartBlock": 621589
+  }
+}

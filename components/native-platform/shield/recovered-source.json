@@ -1,0 +1,18 @@
+{
+  "schema": "enclave-recovered-model-policy/1",
+  "source": "recovered native-automation-image-v11 root inputs",
+  "files": {
+    "policy/qwen.json": "e7e8a13e0b368e0bfd90655cbbc05e1a1adab55620cb0606773d6d9fa94aae69",
+    "policy/qwen.calib": "25698f09603838fbb840dfbf1b0eeb87883326130e85156bfc142805fff26ce7",
+    "policy/sd15.json": "6e6768ce6a75de3ce9db8ca41e1dd1177169f1021a4c53428ca84516d0be821a",
+    "policy/sd15.calib": "f86c2f983ff23f6e73f1eb8b6677cbbdf44f9e4c706da16f9a6e7fc104f067f1",
+    "model-volume.json": "eededea6fa3af3831cbbb67cf5b6a04f21f17112af1e3aeb499f72f16c7b8038",
+    "native-service.json": "9e457c05e442c29711f7399775872340f050d3ff2bb592c96f2f7693d122968c"
+  },
+  "productionQualified": false,
+  "originalServiceSha256": "9356d6e5c275e8daac549018f91fd145ccd06f6114f606a8ce38af1d616eb012",
+  "adaptations": {
+    "sdk": "/usr/lib/enclave-shield-compute",
+    "core": "/usr/lib/enclave-shield-service/libshield-core.so"
+  }
+}

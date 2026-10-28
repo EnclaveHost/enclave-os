@@ -11,6 +11,16 @@ streaming packages. The embedded initial home is generated from the shared
 desktop skeleton rather than the old Debian home. The desktop inherits the
 supervised session bus instead of spawning a second one.
 
+`shield/` retains the two public model tensor policies, calibration files and
+model-volume measurement from the recovered native image inputs. Only the SDK
+and masking-core installation paths in `native-service.json` change for Alpine;
+model hashes, tensor hashes, worker route, peer UIDs and constant allowlist stay
+unchanged. `recovered-source.json` pins these inputs. The model payloads remain a
+separate measured read-only volume and are not bundled or downloaded by this
+package. The service still verifies the actual mounted models before becoming
+ready. Retaining these policies does not qualify new binaries or grant platform
+admission; those require the full startup and masked numerical tests.
+
 The native workflow builds candidate binaries and runs recovered gateway and
 automation protocol tests. These artifacts are not an admitted image. Root
 assembly, eudev/input confinement tests, complete service startup, nftables,

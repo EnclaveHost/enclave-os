@@ -54,6 +54,8 @@ python3 build_ui_assets.py --novnc /usr/share/novnc --native-page native.html --
 mkdir -p /build/native-platform/bin
 cp /out/bin/* /build/native-platform/bin/
 cp -a /build/ui /build/native-platform/ui
+python3 /src/tests/native-policy.py /build/shield
+cp -a /build/shield /build/native-platform/shield
 cp readiness.py network_policy.py 70-kvm-box-input.rules sunshine.conf sunshine-apps.json /build/native-platform/
 cp /src/platforms/kvm-box/xorg.conf /build/native-platform/xorg.conf
 cp /src/LICENSE /build/native-platform/LICENSE
@@ -79,4 +81,5 @@ test -x /usr/libexec/Xorg
 test -x /sbin/udevd
 test -f /usr/share/enclave-os/native-ui/novnc/vnc.html
 test -f /usr/share/enclave-os/native-ui/novnc/app/native-pacing.mjs
+python3 /src/tests/native-policy.py /shield >/out/installed-model-policy.log
 stat -c '%a %u %g %n' /desktop.profile /usr/libexec/enclave-os/native/* >/out/installed-boundary.log

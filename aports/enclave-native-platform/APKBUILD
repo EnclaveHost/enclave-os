@@ -1,6 +1,6 @@
 pkgname=enclave-native-platform
 pkgver=0.1.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Measured KVM desktop service boundary and authenticated web assets"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64"
@@ -19,6 +19,8 @@ package() {
     install -m444 readiness.py network_policy.py "$dest/"
     install -Dm444 70-kvm-box-input.rules "$pkgdir/usr/lib/udev/rules.d/70-kvm-box-input.rules"
     cp -a ui "$pkgdir/usr/share/enclave-os/native-ui"
+    cp -a shield/. "$pkgdir/shield/"
+    find "$pkgdir/shield" -type f -exec chmod 444 '{}' +
     install -m444 sunshine.conf sunshine-apps.json xorg.conf "$pkgdir/"
     install -Dm644 provenance.json "$pkgdir/usr/share/enclave-os/native-platform-source.json"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
