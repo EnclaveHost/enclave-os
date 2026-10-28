@@ -20,7 +20,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
 | Visual Pinball X | Pinned engine, retained default table and installed launcher | Core, scripting/spatial audio and image codec build on both CPUs; x86 installed launcher/tables pass; RV64 runtime, plugins and streamed qualification remain |
-| OpenHV | Pinned OpenHV/OpenRA shared CIL with native musl libraries | x86 .NET 10 and signed RV64 .NET 12 development runtime startup pass; actual-kernel managed W^X and streamed tests remain |
+| OpenHV | Pinned OpenHV/OpenRA shared CIL with native musl libraries | x86 .NET 10 and signed RV64 .NET 12 development runtime startup pass; actual-kernel managed policy tests pass; full-game policy and streamed tests remain |
 | Measured root | Existing native SquashFS/verity builder retained | Consume Alpine package root; regenerate measurements, admission and signed catalog artifact |
 | RISC boot | Pinned actual emulator, OpenSBI and kernel fixture | Native and Wasm emulator boot Alpine; full desktop/device tests and supported production kernel/admission remain |
 
@@ -177,8 +177,10 @@ through private Mesa. This uses a pinned .NET 12 development runtime, not a
 released RV64 .NET 10 runtime. Subsequent APK validation rejected its TEXTREL
 markers. The source now requires `-z text` for RV64, and the [rebuilt signed
 packages](https://github.com/EnclaveHost/enclave-os/actions/runs/40622790860) install
-and pass managed execution and visible OpenHV startup. Actual-kernel managed
-W^X tests still remain.
+and pass managed execution and visible OpenHV startup. [Actual-kernel managed tests](https://github.com/EnclaveHost/enclave-os/actions/runs/40634702671)
+now pass on both CPUs, including inherited seccomp/NoNewPrivs, unprivileged execution,
+rejection of direct RWX allocations, threading and file I/O. They do not qualify
+the complete game process or rule out every writable/executable alias.
 
 The [native adapter APK](https://github.com/EnclaveHost/enclave-os/actions/runs/40623949487)
 now includes static-PIE bootstrap helpers, authenticated web assets with upstream
@@ -231,3 +233,15 @@ passes with the existing launcher's fixed helper paths and the pinned kernel's
 `nft_ct.ko`. Regular hard links preserve no-symlink boot checks and share the APK's
 helper bytes. The separate preview will export the kernel and static helpers for
 platform archive construction; this is not a complete boot/admission result.
+
+The first x86 musl browser compilation completed successfully, but its APK
+packaging check incorrectly expected the policy loader outside `omni.ja`. That
+runner retained only logs. The corrected build preserves compiled package roots
+on failure and is being rebuilt; no launchable x86 preview is claimed yet. The
+RV64 compiled root was retained and is undergoing packaging recovery.
+
+The preview now generates a canonical native desktop profile with the new
+measured root and pinned KVM kernel. A fixture passes the existing platform
+profile validator. Retained controller/model identities are carried forward,
+but those payloads are not included or freshly verified by this descriptor.
+Full platform archive construction and startup/admission remain separate gates.
