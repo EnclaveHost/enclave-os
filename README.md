@@ -4,6 +4,15 @@ One lightweight Alpine Linux userland for **RISC Box (riscv64)** and **KVM Box N
 
 This is the home for the VM customizations previously embedded in `EnclaveHost/enclave-apps`. It is a development distribution, **not yet a replacement for the deployed, attested KVM image**. CI builds real APKs and assembles both architectures; boot integration, Shield qualification and application ports remain release gates.
 
+The explicit `preview` preset requests the same features as `full` while recording
+the unfinished qualification gates in its inventory. It exists for the requested
+separate KVM Box Native trial; it never substitutes stock Firefox or removes a
+missing game to complete assembly. `preview.yml` consumes identified successful
+x86 package jobs, verifies APK signatures, assembles the root and corruption-tests
+its dm-verity sidecar. That artifact still needs native adapter startup/admission
+before it can be offered as a running preview. The default `full` preset remains
+blocked until the migration matrix passes, and no workflow replaces production.
+
 ## Verified footprint
 
 [The dual-architecture build and boot checks pass](https://github.com/EnclaveHost/enclave-os/actions/runs/40541819527). These are development userlands; full platform/feature parity remains work in progress.

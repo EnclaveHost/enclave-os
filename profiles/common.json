@@ -57,6 +57,24 @@
     ],
     "openarena": [
       "enclave-openarena"
+    ],
+    "shield-graphics": [
+      "enclave-shield-graphics"
+    ],
+    "shield-compute": [
+      "enclave-shield-compute",
+      "enclave-shield-service",
+      "enclave-shield-opencl",
+      "enclave-shield-apps"
+    ],
+    "moonlight-server": [
+      "enclave-sunshine"
+    ],
+    "visual-pinball-x": [
+      "enclave-visual-pinball-x"
+    ],
+    "openhv": [
+      "enclave-openhv"
     ]
   },
   "presets": {
@@ -92,6 +110,21 @@
       "freedoom",
       "agent",
       "web-desktop"
+    ],
+    "preview": [
+      "core",
+      "desktop",
+      "freedoom",
+      "agent",
+      "web-desktop",
+      "enclave-browser",
+      "shield-graphics",
+      "shield-compute",
+      "moonlight-server",
+      "openarena",
+      "librequake",
+      "visual-pinball-x",
+      "openhv"
     ]
   },
   "pending_features": [

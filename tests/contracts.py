@@ -13,6 +13,7 @@ assert {'freedoom','openarena','librequake','visual-pinball-x','openhv'}<=set(pr
 assert {'enclave-browser','freedoom','agent','web-desktop'}<=set(profile['presets']['desktop'])
 assert set(profile['presets']['minimal'])=={'core'}
 assert set(profile['pending_features'])<=set(profile['presets']['full'])
+assert profile['presets']['preview']==profile['presets']['full']
 assert (root/'aports/enclave-openarena/ioquake3-enclave.patch').read_bytes() == (root/'integrations/openarena/ioquake3-enclave.patch').read_bytes()
 assert 'browser' not in profile['features']
 assert profile['features']['enclave-browser']==['enclave-browser']

@@ -1,0 +1,122 @@
+{
+  "schema": "enclave-os-preview-inputs/1",
+  "productionQualified": false,
+  "sources": [
+    {
+      "name": "base",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40615017954,
+      "artifact": "enclave-os-alpine-x86_64",
+      "packages": [
+        "enclave-base",
+        "enclave-cursor",
+        "enclave-desktop",
+        "enclave-freedoom",
+        "enclave-openarena",
+        "enclave-librequake"
+      ]
+    },
+    {
+      "name": "graphics",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40585759556,
+      "artifact": "shield-mesa-amd64",
+      "packages": [
+        "enclave-shield-graphics"
+      ]
+    },
+    {
+      "name": "compute",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40591609962,
+      "artifact": "shield-compute-amd64",
+      "packages": [
+        "enclave-shield-compute"
+      ]
+    },
+    {
+      "name": "service",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40591960292,
+      "artifact": "shield-service-amd64",
+      "packages": [
+        "enclave-shield-service"
+      ]
+    },
+    {
+      "name": "cpu",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40617020912,
+      "artifact": "opencl-cpu-amd64",
+      "packages": [
+        "enclave-pocl",
+        "enclave-llvm-spirv18"
+      ]
+    },
+    {
+      "name": "frontend",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40617930209,
+      "artifact": "shield-opencl-amd64",
+      "packages": [
+        "enclave-shield-opencl"
+      ]
+    },
+    {
+      "name": "apps",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40616339429,
+      "artifact": "shield-apps-amd64",
+      "packages": [
+        "enclave-shield-apps"
+      ]
+    },
+    {
+      "name": "sunshine",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40589225530,
+      "artifact": "sunshine-amd64",
+      "packages": [
+        "enclave-sunshine"
+      ]
+    },
+    {
+      "name": "pinball-deps",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40610908013,
+      "artifact": "pinball-dependencies-amd64",
+      "packages": [
+        "enclave-winevbs",
+        "enclave-spatialaudio",
+        "enclave-freeimage"
+      ]
+    },
+    {
+      "name": "pinball-core",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40611425469,
+      "artifact": "vpx-core-amd64",
+      "packages": [
+        "enclave-vpx-core"
+      ]
+    },
+    {
+      "name": "pinball",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40617171096,
+      "artifact": "vpx-runtime-amd64",
+      "packages": [
+        "enclave-visual-pinball-x"
+      ]
+    },
+    {
+      "name": "openhv",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40588447643,
+      "artifact": "openhv-amd64",
+      "packages": [
+        "enclave-openhv"
+      ]
+    }
+  ]
+}

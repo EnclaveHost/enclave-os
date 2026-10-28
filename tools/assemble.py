@@ -9,11 +9,12 @@ def main():
     p.add_argument('--arch',choices=['x86_64','riscv64'],required=True)
     p.add_argument('--preset',choices=list(profile['presets']),default=profile['default_preset'],help='default: full shared image; minimal/shell/desktop are explicit development subsets')
     p.add_argument('--repository',type=pathlib.Path,required=True,help='signed local repository parent (contains architecture dirs)')
-    p.add_argument('--key',type=pathlib.Path,required=True,help='public APK signing key ONLY')
+    p.add_argument('--key',type=pathlib.Path,action='append',required=True,help='public APK signing key ONLY; repeat for independently signed package inputs')
     p.add_argument('--output',type=pathlib.Path,required=True)
     a=p.parse_args();out=a.output.resolve()
     if out.exists(): p.error('output must not exist; refusing to modify an existing root')
-    if not a.key.name.endswith('.pub'): p.error('only a public signing key may enter an image')
+    if any(not key.name.endswith('.pub') for key in a.key): p.error('only a public signing key may enter an image')
+    if len({key.name for key in a.key}) != len(a.key): p.error('duplicate signing key filename')
     lock=json.loads((ROOT/'profiles/upstream-lock.json').read_text())
     platform=json.loads((ROOT/f'profiles/{a.arch}.json').read_text())
     missing=[feature for feature in profile['presets'][a.preset] if feature not in profile['features']]
@@ -28,7 +29,10 @@ def main():
     out.parent.mkdir(parents=True,exist_ok=True);out.mkdir()
     tarpath=out.parent/(out.name+'.bootstrap.tar.gz');tarpath.write_bytes(data)
     run('tar','-xzf',str(tarpath),'-C',str(out));tarpath.unlink()
-    shutil.copyfile(a.key,out/'etc/apk/keys'/a.key.name)
+    for key in a.key:
+        destination=out/'etc/apk/keys'/key.name
+        if destination.exists(): raise ValueError('test key would overwrite an upstream trust root')
+        shutil.copyfile(key,destination)
     # Trust remains enforced: neither package nor index verification is bypassed.
     repos=out.parent/(out.name+'.build-repositories')
     upstream=[f'https://dl-cdn.alpinelinux.org/alpine/{lock["alpine_branch"]}/{c}' for c in ('main','community')]
@@ -36,7 +40,7 @@ def main():
     run('apk','--root',str(out),'--arch',a.arch,'--keys-dir',str(out/'etc/apk/keys'),'--repositories-file',str(repos),'--no-cache','add',*packages,*('!'+name for name in profile['exclude_packages']))
     repos.unlink();(out/'etc/apk/repositories').write_text('\n'.join(upstream)+'\n')
     # CI keys authorize this test artifact only, never a production feed.
-    (out/'etc/apk/keys'/a.key.name).unlink()
+    for key in a.key: (out/'etc/apk/keys'/key.name).unlink()
     if 'desktop' in profile['presets'][a.preset]:
         target=out/'etc/X11/xorg.conf';target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'platforms'/platform['platform']/'xorg.conf',target)
@@ -49,6 +53,7 @@ def main():
             sizes.append({'package':fields['P'],'bytes':int(fields.get('I','0'))})
     sizes.sort(key=lambda item:item['bytes'],reverse=True)
     report={'largest_packages':sizes[:20],'excluded_test_packages':profile['exclude_packages'],'architecture':a.arch,'preset':a.preset,'platform':platform['platform'],'production_qualified':False,
+            'pending_qualification':[f for f in profile['pending_features'] if f in profile['presets'][a.preset]],
             'requested_packages':packages,'bytes':sum(f.stat().st_size for f in out.rglob('*') if f.is_file() and not f.is_symlink())}
     # Installed database records dependency versions, sizes and origin for the entire image.
     shutil.copyfile(out/'lib/apk/db/installed',out.parent/(out.name+'.apk-installed'))
