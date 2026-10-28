@@ -1,0 +1,40 @@
+pkgname=enclave-shield-hip
+pkgver=1.2.1
+pkgrel=0
+pkgdesc="Pinned CUDA/HIP source compatibility through the Shield OpenCL frontend"
+url="https://github.com/CHIP-SPV/chipStar"
+arch="x86_64 riscv64"
+license="MIT"
+makedepends="cmake samurai clang18-dev clang18-static clang18-extra-tools llvm18-dev
+ llvm18-static llvm18-gtest spdlog-dev fmt-dev libffi-dev libedit-dev zlib-dev
+ opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3 perl patchelf xxd"
+depends="enclave-shield-opencl clang18 clang18-extra-tools llvm18 enclave-llvm-spirv18
+ python3 perl"
+ldpath="/usr/lib/enclave-shield-hip/lib"
+sonameprefix="$pkgname:"
+options="!check" # Installed CUDA/HIP source and numerical tests run in CI.
+source="chipStar-source.tar chipstar-glibc.patch"
+builddir="$srcdir/chipStar-source"
+build() {
+    export PATH="/usr/lib/llvm18/bin:$PATH"
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/lib/enclave-shield-hip \
+        -DLLVM_CONFIG_BIN=/usr/lib/llvm18/bin/llvm-config \
+        -DLLVM_SPIRV=/usr/bin/llvm-spirv-18 \
+        -DOpenCL_LIBRARY=/usr/lib/enclave-shield-opencl/lib/libOpenCL.so \
+        -DLevelZero_LIBRARY=LevelZero_LIBRARY-NOTFOUND \
+        -DCHIP_BUILD_TESTS=OFF -DCHIP_BUILD_SAMPLES=OFF \
+        -DCHIP_USE_INTEL_USM=OFF -DCHIP_ERROR_IF_NOT_IMPLEMENTED=ON
+    cmake --build build -j2
+}
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    local dest="$pkgdir/usr/lib/enclave-shield-hip"
+    chmod 755 "$dest/bin/spirv-extractor"
+    patchelf --set-rpath /usr/lib/enclave-shield-opencl/lib "$dest/lib/libCHIP.so"
+    install -Dm644 shield-source.json "$dest/share/shield-build/source.json"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 HIP/LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/HIP-LICENSE.txt"
+    install -Dm644 bitcode/ROCm-Device-Libs/LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/ROCm-LICENSE.txt"
+}
+sha512sums=""
