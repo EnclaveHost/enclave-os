@@ -15,7 +15,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | RV64 musl package and all nine actual-kernel browser checks pass; x86 package rebuild and full desktop/proxy/extension checks remain |
 | Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
-| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend and CUDA/HIP tests pass; RV64 apps/installed IR and masked worker conformance remain |
+| Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend, CUDA/HIP and installed IR tests pass; RV64 apps and masked worker conformance remain |
 | OpenGL/Vulkan | Private musl Mesa package; x86 installed Vulkan/GL compute/draw and wrong-peer rejection pass | Real masked service/worker qualification on both CPUs; never replace Shield routing with direct GPU access |
 | OpenArena | Custom ioquake3 input mode bridge | APK rebuilds the recovered engine patch and both native game-module versions; dual-ISA build/startup passed; streamed menu/relative-mode/sensitivity tests remain |
 | LibreQuake | QuakeSpasm 0.96.3 + pinned full v0.09-beta campaign APK; shared library dependencies | Dual-ISA musl build/startup passed; real Shield/input/audio qualification remains |
@@ -289,3 +289,10 @@ asynchronous calls and pi-scaled host/device math. These are actual computations
 through the standard compatibility interfaces using CPU fallback, not masked
 GPU-worker conformance. The installed audited IR package has a separate follow-up
 run, and the RV64 llama.cpp/sd.cpp application build is still running.
+
+The [installed RV64 audited IR reference](https://github.com/EnclaveHost/enclave-os/actions/runs/40645075020)
+passes all nine tests with no skips, including the real chipStar-generated
+wrapper and refusal of changed arithmetic, unknown builtins/metadata, additional
+side effects, malformed and specialized SPIR-V. This completes the installed
+IR fixture on both CPUs; model admission and real masked worker execution remain
+independent requirements.
