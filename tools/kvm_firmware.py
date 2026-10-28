@@ -42,7 +42,7 @@ def elf_load_middle(data):
     raise ValueError('no loadable ELF segment')
 
 
-def build(inputs, platform, preview, output):
+def build(inputs, platform, preview, output, fixture=None):
     inputs, platform, preview, output = [pathlib.Path(p).resolve() for p in (inputs, platform, preview, output)]
     lock = json.loads((ROOT/'profiles/kvm-firmware-inputs.json').read_text())
     recipe = lock['recipe']
@@ -100,6 +100,20 @@ def build(inputs, platform, preview, output):
         proof = run('twin-proof', (inputs/twin['manifest']).read_bytes(), twin['resources'])
         if proof['measurement'] != digest(inputs/twin['expectVbsJson']):
             raise ValueError('retained twin proof differs')
+        if fixture is not None:
+            fixture = pathlib.Path(fixture).resolve()
+            fixture_record = json.loads((fixture/'fixture.json').read_text())
+            if fixture_record['productionInitrdSha256'] != sha(initrd) or fixture_record['profileSha256'] != profile_sha:
+                raise ValueError('fixture does not extend this production platform')
+            initrd = fixture/'probe.cpio.gz'
+            if sha(initrd) != fixture_record['initrdSha256']:
+                raise ValueError('fixture archive mismatch')
+            document = json.loads(manifest)
+            document['guest_configs'][0]['image']['openhcl']['linux']['command_line'] = (
+                'console=ttyS0 rdinit=/probe-init loglevel=4 report_host=9001 native.monitor.probe=1 native.startup.probe=1')
+            manifest = json.dumps(document).encode()
+            lock['requiredStrings'] = ['OPENHCL_FORCE_LOAD_VTL0_IMAGE=linux',
+                                       'rdinit=/probe-init', 'native.monitor.probe=1']
         overrides = {'linux_initrd': initrd, 'linux_kernel': kernel,
                      'underhill_initrd': inputs/'openhcl-shield.cpio.gz'}
         candidate = run('candidate', manifest, recipe['resources'], overrides, keep=True)
@@ -141,6 +155,9 @@ def build(inputs, platform, preview, output):
               'inputs': {'initrdSha256': sha(initrd), 'kernelSha256': sha(kernel),
                          'retainedArchiveSha256': lock['archiveSha256']},
               'signed': False, 'admitted': False, 'fullServiceStartup': False}
+    if fixture is not None:
+        record['disposableFixtureOnly'] = True
+        record['fixture'] = fixture_record
     (output/'build.json').write_text(json.dumps(record, indent=2)+'\n')
     print(json.dumps(record))
 
@@ -149,5 +166,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('inputs', 'platform', 'preview', 'output'):
         parser.add_argument(name)
+    parser.add_argument('--fixture', help='Explicit disposable service-test archive; never a serving image')
     args = parser.parse_args()
-    build(args.inputs, args.platform, args.preview, args.output)
+    build(args.inputs, args.platform, args.preview, args.output, args.fixture)

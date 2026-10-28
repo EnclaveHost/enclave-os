@@ -1,0 +1,10 @@
+{
+  "scope": "Disposable test host transport only; no production control tree change",
+  "commit": "0f46f807d21d961c86846a54d8d963a5c26d244b",
+  "repository": "EnclaveHost/enclave",
+  "files": {
+    "windows/vbslike/manager/desktop-worker-transport.mjs": "37131b79ce658edf99e2d6d0974ee9df89996af03e6121f5133223e860787805",
+    "windows/vbslike/manager/bridge-auth.mjs": "259b4e879e91ab97b7776ee661a7aeda84c8a47c521a1e0d71e65df479693860",
+    "windows/vbslike/manager/egress.mjs": "1686229adeee15cf1c28017ccbb355dcd47bc24650579414c9fc4e2b01915e05"
+  }
+}

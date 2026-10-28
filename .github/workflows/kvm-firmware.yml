@@ -8,6 +8,10 @@ on:
       platform_run:
         required: true
         description: Successful matching native platform run
+      session_fixture:
+        type: boolean
+        default: false
+        description: Build a separate disposable full-service test, never a serving image
 permissions:
   contents: read
   actions: read
@@ -24,10 +28,17 @@ jobs:
         run: |
           gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern retained-igvm-inputs.tar --dir inputs
           printf '%s\n' 'dc7220f885bd919208252389487dd139346e3aff9d79cc7d85ec2930b23f9e38  inputs/retained-igvm-inputs.tar' | sha256sum -c -
+      - name: Fetch the retained controller for the sealed-secret test only
+        if: inputs.session_fixture
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern controller.wasm --dir inputs
+          printf '%s\n' '104468ceffadc0792d09674ef97bcd30aaa212ee1137cf1f8c0560c99cf82786  inputs/controller.wasm' | sha256sum -c -
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: retained-igvm-inputs
-          path: inputs/retained-igvm-inputs.tar
+          path: inputs/
           retention-days: 1
   firmware:
     needs: firmware-inputs
@@ -59,15 +70,34 @@ jobs:
           gh run download "$PLATFORM_RUN" --repo EnclaveHost/enclave-os --name enclave-os-kvm-platform --dir platform
           printf '%s\n' 'dc7220f885bd919208252389487dd139346e3aff9d79cc7d85ec2930b23f9e38  inputs/retained-igvm-inputs.tar' | sha256sum -c -
           tar -xf inputs/retained-igvm-inputs.tar -C inputs
+      - name: Compile the explicitly separate session test
+        if: inputs.session_fixture
+        run: |
+          mkdir platform-source session
+          printf '%s\n' '85f51d772fa9b775f59b8dc14f7a5a3330fe442c773e13dd30ff938b879ac4fb  integrations/native-platform/source.tar.gz' | sha256sum -c -
+          tar -xzf integrations/native-platform/source.tar.gz -C platform-source
+          docker run --rm --memory=3g --memory-swap=3g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/platform-source:/platform:ro" \
+            -v "$PWD/preview:/preview:ro" -v "$PWD/platform:/native:ro" \
+            -v "$PWD/inputs:/inputs:ro" -v "$PWD/session:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-kvm-session.sh
       - name: Reproduce baseline, build twice and check measurement mutations
+        env:
+          SESSION_FIXTURE: ${{ inputs.session_fixture }}
         run: |
           ulimit -c 0
-          python3 tools/kvm_firmware.py inputs platform preview out
+          if [ "$SESSION_FIXTURE" = true ]; then
+            python3 tools/kvm_firmware.py inputs platform preview out --fixture session/fixture
+          else
+            python3 tools/kvm_firmware.py inputs platform preview out
+          fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: enclave-os-kvm-firmware
+          name: enclave-os-kvm-${{ inputs.session_fixture && 'session-fixture' || 'firmware' }}
           path: |
             out
             records
+            session/fixture/fixture.json
           retention-days: 7
