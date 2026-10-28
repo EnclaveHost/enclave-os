@@ -11,7 +11,7 @@ addgroup builder abuild
 printf 'builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/builder
 mkdir -p /home/builder/aports/enclave/enclave-shield-hip
 cp /src/aports/enclave-shield-hip/APKBUILD /src/chipStar-source.tar \
-    /src/components/shield-hip/chipstar-glibc.patch /home/builder/aports/enclave/enclave-shield-hip/
+    /src/components/shield-hip/chipstar-*.patch /home/builder/aports/enclave/enclave-shield-hip/
 chown -R builder:builder /home/builder
 su builder -c 'abuild-keygen -a -n'
 cp /home/builder/.abuild/*.pub /etc/apk/keys/

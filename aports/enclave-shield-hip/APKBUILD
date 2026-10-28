@@ -13,7 +13,7 @@ depends="enclave-shield-opencl clang18 clang18-extra-tools llvm18 enclave-llvm-s
 ldpath="/usr/lib/enclave-shield-hip/lib"
 sonameprefix="$pkgname:"
 options="!check" # Installed CUDA/HIP source and numerical tests run in CI.
-source="chipStar-source.tar chipstar-glibc.patch"
+source="chipStar-source.tar chipstar-glibc.patch chipstar-musl.patch"
 builddir="$srcdir/chipStar-source"
 prepare() {
     default_prepare

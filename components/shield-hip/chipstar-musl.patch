@@ -1,0 +1,58 @@
+--- a/include/spdlog/details/os.h
++++ b/include/spdlog/details/os.h
+@@ -227,7 +227,7 @@
+ #else // unix
+     int fd = fileno(f);
+ // 64 bits(but not in osx or cygwin, where fstat64 is deprecated)
+-#if !defined(__FreeBSD__) && !defined(__APPLE__) && (defined(__x86_64__) || defined(__ppc64__)) && !defined(__CYGWIN__)
++#if defined(__GLIBC__) && (defined(__x86_64__) || defined(__ppc64__))
+     struct stat64 st;
+     if (fstat64(fd, &st) == 0)
+     {
+--- a/src/CHIPException.hh
++++ b/src/CHIPException.hh
+@@ -37,9 +37,21 @@
+ #include "CHIPBindingsInternal.hh"
+ #include "logging.hh"
+ #include <string>
+-#include <execinfo.h>
++#include <unwind.h>
+ #include <cxxabi.h>
+ #include <dlfcn.h>
++
++inline int chipCaptureStack(void **frames, int capacity) {
++  struct Stack { void **frames; int count; int capacity; } stack{frames, 0, capacity};
++  _Unwind_Backtrace([](_Unwind_Context *context, void *opaque) {
++    auto *s = static_cast<Stack *>(opaque);
++    if (s->count == s->capacity) return _URC_END_OF_STACK;
++    auto pc = _Unwind_GetIP(context);
++    if (pc) s->frames[s->count++] = reinterpret_cast<void *>(pc);
++    return _URC_NO_REASON;
++  }, &stack);
++  return stack.count;
++}
+ 
+ class CHIPError {
+   std::string Msg_;
+@@ -66,8 +78,7 @@
+   do {                                                                         \
+     logError("{} in {}:{}:{}\n", msg, __FILE__, __LINE__, __func__);           \
+     void *callstack[128];                                                      \
+-    int frames = backtrace(callstack, 128);                                    \
+-    char **strs = backtrace_symbols(callstack, frames);                        \
++    int frames = chipCaptureStack(callstack, 128);                                    \
+     for (int i = 0; i < frames; ++i) {                                         \
+       Dl_info info;                                                            \
+       if (dladdr(callstack[i], &info)) {                                       \
+@@ -78,10 +89,9 @@
+                  info.dli_fname);                                              \
+         free(demangled);                                                       \
+       } else {                                                                 \
+-        logError("#{} {}", i, strs[i]);                                        \
++        logError("#{} {}", i, callstack[i]);                                        \
+       }                                                                        \
+     }                                                                          \
+-    free(strs);                                                                \
+     std::abort();                                                              \
+   } while (0)
+ 
