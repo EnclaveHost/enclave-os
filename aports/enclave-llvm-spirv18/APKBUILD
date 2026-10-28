@@ -1,6 +1,6 @@
 pkgname=enclave-llvm-spirv18
 pkgver=18.1.4
-pkgrel=0
+pkgrel=1
 _commit=242df2cb83e2322b456990fb0ca3e30bd9209ed0
 _headers=1c6bb2743599e6eb6f37b2969acc0aef812e32e3
 pkgdesc="Pinned LLVM 18 SPIR-V translator for Shield OpenCL"
@@ -27,6 +27,8 @@ package() {
     DESTDIR="$pkgdir" cmake --install build
     mkdir -p "$pkgdir/usr/bin"
     ln -s ../lib/enclave-llvm18/bin/llvm-spirv "$pkgdir/usr/bin/llvm-spirv-18"
+    mkdir -p "$pkgdir/usr/lib/llvm18/bin"
+    ln -s ../../enclave-llvm18/bin/llvm-spirv "$pkgdir/usr/lib/llvm18/bin/llvm-spirv"
     rm -rf "$pkgdir/usr/lib/enclave-llvm18/include" "$pkgdir/usr/lib/enclave-llvm18/lib/pkgconfig"
     install -Dm644 LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE.TXT"
 }
