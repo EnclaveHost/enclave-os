@@ -8,7 +8,7 @@ license="GPL-3.0-only"
 makedepends="alpine-sdk bash cmake samurai python3 py3-jinja2 git perl nasm
  curl-dev eudev-dev freetype-dev glib-dev libcap-dev libevdev-dev libx11-dev
  libva-dev libxcb-dev libxfixes-dev libxrandr-dev libxtst-dev linux-headers mesa-dev
- miniupnpc-dev openssl-dev opus-dev pulseaudio-dev zlib-dev nodejs npm"
+ miniupnpc-dev openssl-dev opus-dev pulseaudio-dev zlib-dev"
 depends="pulseaudio xrandr"
 options="net !check" # real pairing/input/audio remain release gates
 source="enclave-sunshine-source.tar"
@@ -16,6 +16,16 @@ builddir="$srcdir/sunshine"
 prepare() {
     python3 - <<'PY'
 from pathlib import Path
+p=Path('cmake/targets/common.cmake');s=p.read_text()
+start=s.index('#WebUI build');end=s.index('# docs',start)
+assert Path('prebuilt/assets/web/index.html').is_file()
+s=s[:start]+'''# Architecture-independent web assets built from this exact source and npm lock.
+add_custom_target(web-ui ALL
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${CMAKE_SOURCE_DIR}/prebuilt/assets/web" "${CMAKE_BINARY_DIR}/assets/web")
+
+'''+s[end:]
+p.write_text(s)
 p=Path('third-party/build-deps/cmake/ffmpeg/ffmpeg.cmake')
 s=p.read_text(); needle='elseif (${arch} STREQUAL "mips")'
 assert s.count(needle)==1

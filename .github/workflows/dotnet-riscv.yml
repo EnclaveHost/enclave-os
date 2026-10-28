@@ -23,6 +23,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-19 llvm-19 lld-19 cmake ninja-build build-essential \
             python-is-python3 libicu-dev liblttng-ust-dev libssl-dev libkrb5-dev pigz cpio
+          # Installing host LLVM may restart systemd-binfmt and remove the transient handler.
+          docker run --rm --privileged tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0 --install riscv64
           mkdir -p out sysroot
           docker run --name enclave-dotnet-sysroot --platform linux/riscv64 --cpus=2 --memory=4g --memory-swap=4g \
             alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \

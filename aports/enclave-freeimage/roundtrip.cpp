@@ -4,14 +4,20 @@
 #include <cstdint>
 int main() {
     FreeImage_Initialise();
-    FIBITMAP *half = FreeImage_AllocateT(FIT_RGBA16F, 2, 2);
+    FIBITMAP *full = FreeImage_AllocateT(FIT_RGBAF, 2, 2);
+    assert(full);
+    for (int y = 0; y < 2; ++y) {
+        auto *rgba = reinterpret_cast<FIRGBAF *>(FreeImage_GetScanLine(full, y));
+        for (int x = 0; x < 2; ++x) rgba[x] = {1.f, 0.f, 0.f, 1.f};
+    }
+    FIMEMORY *exr = FreeImage_OpenMemory();
+    assert(exr && FreeImage_SaveToMemory(FIF_EXR, full, exr));
+    assert(FreeImage_SeekMemory(exr, 0, SEEK_SET));
+    FIBITMAP *half = FreeImage_LoadFromMemory(FIF_EXR, exr, EXR_ALLOW_FOR_FP16);
     assert(half && FreeImage_GetImageType(half) == FIT_RGBA16F);
     auto *pixel = reinterpret_cast<uint16_t *>(FreeImage_GetScanLine(half, 0));
-    pixel[0] = 0x3c00; pixel[1] = 0; pixel[2] = 0; pixel[3] = 0x3c00;
-    FIBITMAP *full = FreeImage_ConvertToRGBAF(half);
-    assert(full);
-    auto *rgba = reinterpret_cast<FIRGBAF *>(FreeImage_GetScanLine(full, 0));
-    assert(rgba->red == 1.f && rgba->green == 0.f && rgba->blue == 0.f && rgba->alpha == 1.f);
+    assert(pixel[0] == 0x3c00 && pixel[1] == 0 && pixel[2] == 0 && pixel[3] == 0x3c00);
+    FreeImage_CloseMemory(exr);
     FIBITMAP *bitmap = FreeImage_Allocate(2, 2, 24);
     assert(bitmap);
     RGBQUAD color = {}; color.rgbRed = 123; color.rgbGreen = 45; color.rgbBlue = 67;

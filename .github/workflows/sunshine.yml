@@ -1,6 +1,10 @@
 name: Sunshine portable package
 on:
   workflow_dispatch:
+    inputs:
+      platforms:
+        default: '["amd64","riscv64"]'
+        required: true
 permissions:
   contents: read
 jobs:
@@ -10,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [amd64, riscv64]
+        platform: ${{ fromJSON(inputs.platforms) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
@@ -24,16 +28,22 @@ jobs:
           ref: 63d35f702ee9e362e43263742981836ec0710384
           submodules: recursive
           path: upstream
+      - name: Build the shared web interface on the build CPU
+        run: |
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/amd64 \
+            -v "$PWD/upstream:/source" -w /source \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh -ec 'apk add --no-cache nodejs npm; npm ci --ignore-scripts; mkdir prebuilt; SUNSHINE_ASSETS_DIR=/source/prebuilt npm run build; rm -rf node_modules'
       - name: Archive pinned source and submodule provenance
         run: |
           python3 - <<'PYCODE'
-          import json,pathlib,subprocess
+          import json,pathlib,subprocess,hashlib
           root=pathlib.Path('upstream')
           commit=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
           assert commit == '63d35f702ee9e362e43263742981836ec0710384'
           modules=subprocess.check_output(['git','-C',str(root),'submodule','status','--recursive'],text=True)
           assert all(line.startswith(' ') for line in modules.splitlines())
-          (root/'enclave-source.json').write_text(json.dumps({'repository':'LizardByte/Sunshine','commit':commit,'submodules':modules},indent=2)+'\n')
+          (root/'enclave-source.json').write_text(json.dumps({'repository':'LizardByte/Sunshine','commit':commit,'submodules':modules,'webAssetsSha256':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((root/'prebuilt').rglob('*')) if p.is_file()}},indent=2)+'\n')
           PYCODE
           tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --exclude=.git --transform='s,^upstream,sunshine,' -cf enclave-sunshine-source.tar upstream
       - name: Build and install the CPU streaming server

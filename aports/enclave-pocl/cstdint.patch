@@ -1,0 +1,10 @@
+--- a/lib/CL/devices/spirv_parser.hh
++++ b/lib/CL/devices/spirv_parser.hh
+@@ -28,6 +28,7 @@
+ 
+ #include "pocl_export.h"
+ 
++#include <cstdint>
+ #include <map>
+ #include <memory>
+ #include <set>
