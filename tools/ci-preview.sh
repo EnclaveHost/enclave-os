@@ -51,6 +51,7 @@ python3 /src/tools/assemble.py --arch x86_64 --preset preview \
 python3 /src/tools/kvm_boot_inputs.py /out/root-preview /inputs/kernel /out/kvm-boot
 python3 /src/tools/chroot_runtime.py /out/root-preview /bin/sh -ec '
     test "$(cat /etc/alpine-release)" = 3.24.3
+    apk info -e libffi=3.5.2-r100
     enclave-firefox --version
     python3 --version
     node --version

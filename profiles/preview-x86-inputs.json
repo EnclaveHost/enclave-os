@@ -153,6 +153,15 @@
       "packages": [
         "enclave-native-platform"
       ]
+    },
+    {
+      "name": "libffi",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40662854503,
+      "artifact": "enclave-libffi-x86_64",
+      "packages": [
+        "libffi"
+      ]
     }
   ]
 }

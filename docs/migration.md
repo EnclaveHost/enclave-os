@@ -12,7 +12,7 @@ For each game, recover and pin the installed engine/content versions, custom sou
 | Desktop | Fluxbox, tiny theme, 960×600, outline dragging | Real input, clipboard, resize and accessibility checks |
 | Cursor | Persistent X cursor owner and supervised recovery, authenticated X | Moonlight desktop/game transitions on both adapters |
 | FreeDoom | Same recovered Phase 1 WAD, custom renderer and native OPL code, musl rebuild | Audio latency/quality and sustained gameplay on real targets |
-| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Both musl packages and all nine actual-kernel browser checks pass; combined desktop packaging and full desktop/proxy/extension checks remain |
+| Browser | Custom Enclave Browser APK selected by desktop/full; stock fallback removed | Both musl packages and all nine actual-kernel browser checks pass; combined package assembly passes; full desktop/proxy/extension checks remain |
 | Sunshine/Moonlight | Both musl Sunshine builds stream changing encrypted frames to the retained patched x86 Moonlight client | Full native service integration and audio/input parity; real RV64 performance |
 | noVNC | Shared Alpine packages | Authenticated platform proxy/socket integration |
 | Shield compute | Canonical SDK, exact custom sd.cpp patch and dual-ISA build pipeline | Native SDK/service dual-ISA builds pass; x86 OpenCL, CUDA/HIP and installed IR tests pass; RV64 frontend, CUDA/HIP and installed IR tests pass; RV64 apps and masked worker conformance remain |
@@ -338,3 +338,16 @@ regenerates the canonical profile and checks the resulting archive contents.
 The retained inputs are staged in a draft build-input release; this workflow
 neither publishes the app nor starts a VM. Native service startup, runtime
 admission and a real desktop connection remain separate preview gates.
+
+
+The next measured-root fixture
+[40661423067](https://github.com/EnclaveHost/enclave-os/actions/runs/40661423067)
+passed a full kernel dm-verity read and read-only mount/write refusal, then
+failed importing Python `ctypes` under the role W^X filter. The separate
+`libffi-3.5.2-r100` recipe enables upstream static trampolines on x86; its
+qualification requires 300 working callbacks, read-only executable callback
+mappings backed by libffi itself, no W+X mapping and continued RWX refusal.
+The preview requires that exact signed package and repeats the callback test
+inside the pinned kernel. This change is pending qualification. RISC-V static
+trampoline support needs the upstream architecture backport and its own test;
+no dual-architecture completion is claimed.
