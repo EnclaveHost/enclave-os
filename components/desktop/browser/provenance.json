@@ -1,0 +1,9 @@
+{
+  "source": "recovered graphics-browser-vm/base image",
+  "name": "uBlock Origin",
+  "version": "1.75.0",
+  "id": "uBlock0@raymondhill.net",
+  "sha256": "5b74415860456370644bd80f16125e865b0e6c356bb5dfcfb84069967eaa5287",
+  "signedXpiRetained": true,
+  "newBrowserLoadQualified": false
+}

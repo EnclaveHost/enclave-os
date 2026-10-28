@@ -53,6 +53,14 @@ def main():
         # Empty session mount points, never a copied user profile or password.
         (out/'home/desktop').mkdir(mode=0o700,exist_ok=True)
         (out/'home/desktop').chmod(0o700)
+        # The KVM domain has no general network route. Preserve its measured
+        # public-web SOCKS/DNS boundary while keeping the shared browser policy.
+        (out/'etc/resolv.conf').write_text('nameserver 127.0.0.2\noptions timeout:2 attempts:2\n')
+        policy_path=out/'usr/lib/enclave-browser/distribution/policies.json'
+        policies=json.loads(policy_path.read_text())
+        policies['policies']['Proxy']={'Mode':'manual','Locked':True,
+            'SOCKSProxy':'127.0.0.2:1080','SOCKSVersion':5,'UseProxyForDNS':True,'Passthrough':''}
+        policy_path.write_text(json.dumps(policies,indent=2)+'\n')
     installed=(out/'lib/apk/db/installed').read_text()
     sizes=[]
     for block in installed.split('\n\n'):

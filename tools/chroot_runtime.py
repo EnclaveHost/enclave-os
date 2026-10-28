@@ -7,7 +7,7 @@ def runtime(root):
     proc=root/'proc';proc.mkdir(exist_ok=True)
     dev=root/'dev';dev.mkdir(exist_ok=True)
     created=[]
-    mounted=False
+    mounts=[]
     try:
         for name,minor in (('null',3),('zero',5),('random',8),('urandom',9)):
             path=dev/name
@@ -20,11 +20,14 @@ def runtime(root):
                 path.chmod(0o666)
         # musl resolves $ORIGIN for the main executable through /proc/self/exe.
         # This is the disposable container's PID namespace, not the host's.
-        subprocess.run(['mount','-t','proc','-o','ro,nosuid,nodev,noexec','proc',str(proc)],check=True)
-        mounted=True
+        for name in ('proc','sys'):
+            target=root/name;target.mkdir(exist_ok=True)
+            fs='sysfs' if name=='sys' else 'proc'
+            subprocess.run(['mount','-t',fs,'-o','ro,nosuid,nodev,noexec',fs,str(target)],check=True)
+            mounts.append(target)
         yield
     finally:
-        if mounted:subprocess.run(['umount',str(proc)],check=True)
+        for target in reversed(mounts):subprocess.run(['umount',str(target)],check=True)
         for path in created:path.unlink()
 
 if __name__=='__main__':

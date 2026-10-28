@@ -1,10 +1,10 @@
 pkgname=enclave-desktop
 pkgver=0.1.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Shared lightweight Enclave desktop settings"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
-license="LicenseRef-Enclave-Source-Available AND CC-BY-SA-3.0"
+license="LicenseRef-Enclave-Source-Available AND CC-BY-SA-3.0 AND LicenseRef-uBlock-Origin-Bundled"
 source="$pkgname-$pkgver.tar"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check" # integration checks run after signed repository installation
@@ -24,5 +24,9 @@ package() {
     cp -a styles/Enclave/. "$pkgdir/usr/share/fluxbox/styles/Enclave/"
     install -m755 bin/* "$pkgdir/usr/bin/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 browser/ublock-origin.xpi "$pkgdir/usr/share/enclave-os/browser/ublock-origin.xpi"
+    install -Dm644 browser/provenance.json "$pkgdir/usr/share/enclave-os/browser/provenance.json"
+    install -Dm644 browser/policies.json "$pkgdir/usr/lib/enclave-browser/distribution/policies.json"
+    cp -a browser/licenses "$pkgdir/usr/share/licenses/$pkgname/ublock-origin"
 }
-sha512sums="91febd2ba68f8e2ae6b99a7d24e4c913c6b3af977d774781f3a9f1e48d36678b78f4a3f40dcf96b2fc254fb040f0f9247ff22961b2f99ed34f26af4f392a90f0  enclave-desktop-0.1.0.tar"
+sha512sums="aee2a3fe2c2f25c2bc0b80d14854f8687e459fcc6fd2a64dbbda7521b97e32856314e1c9a2e2a3c4676ecc8269402e1cb118161fd4cc54fc31f7a661eafa9ef2  enclave-desktop-0.1.0.tar"

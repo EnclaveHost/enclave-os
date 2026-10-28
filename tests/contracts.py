@@ -19,6 +19,13 @@ assert 'browser' not in profile['features']
 assert profile['features']['enclave-browser']==['enclave-browser']
 assert 'enclave-browser' not in profile['presets']['shell']
 assert 'firefox-esr' not in (root/'components/desktop/bin/enclave-browser').read_text()
+browser=root/'components/desktop/browser'
+extension=json.loads((browser/'provenance.json').read_text())
+assert hashlib.sha256((browser/'ublock-origin.xpi').read_bytes()).hexdigest()==extension['sha256']
+policy=json.loads((browser/'policies.json').read_text())
+assert policy['policies']['ExtensionSettings'][extension['id']]=={
+    'installation_mode':'force_installed',
+    'install_url':'file:///usr/share/enclave-os/browser/ublock-origin.xpi'}
 for arch in ('x86_64','riscv64'):
     p=json.loads((root/f'profiles/{arch}.json').read_text())
     assert p['architecture']==arch and not p['production_qualified']
