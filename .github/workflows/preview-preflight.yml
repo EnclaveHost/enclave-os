@@ -18,7 +18,7 @@ jobs:
         run: |
           mkdir out
           docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
-            --cap-add SYS_ADMIN --security-opt seccomp=unconfined \
+            --cap-add SYS_ADMIN --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
             -e ENCLAVE_PREVIEW_PREFLIGHT=1 -v "$PWD:/src:ro" -v "$PWD/inputs:/inputs:ro" -v "$PWD/out:/out" \
             alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
             /bin/sh /src/tools/ci-preview.sh
