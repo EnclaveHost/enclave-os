@@ -1,0 +1,49 @@
+name: Installed patched CPU OpenCL checks
+on:
+  workflow_dispatch:
+    inputs:
+      cpu_run_id:
+        description: Build run containing the signed CPU runtime packages
+        required: true
+      platforms:
+        default: '["amd64","riscv64"]'
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: matrix.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Fetch signed CPU substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.cpu_run_id }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$RUN_ID" --name "opencl-cpu-$PLATFORM" --dir packages
+      - name: Exercise actual CPU OpenCL operations
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/${{ matrix.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/packages:/packages:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh -ec 'apk add --no-cache build-base; cp /packages/*.pub /etc/apk/keys/; printf "\n/packages/repository\n" >>/etc/apk/repositories; sh /src/tools/check-opencl-cpu.sh' 
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: opencl-cpu-check-${{ matrix.platform }}
+          path: out/
+          retention-days: 7

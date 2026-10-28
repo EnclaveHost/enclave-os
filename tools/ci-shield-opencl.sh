@@ -17,7 +17,7 @@ cp -a /home/builder/packages/enclave /out/repository
 cp /home/builder/.abuild/*.pub /out/
 cp /home/builder/aports/enclave/enclave-shield-opencl/APKBUILD /out/APKBUILD
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
-apk add --no-cache enclave-shield-opencl opencl-icd-loader-dev
+apk add --no-cache enclave-shield-opencl opencl-icd-loader-dev opencl-headers
 mkdir /out/tests
 export LD_LIBRARY_PATH=/usr/lib/enclave-shield-opencl/lib
 export POCL_DEVICES=pthread POCL_MAX_PTHREAD_COUNT=2 OCL_ICD_VENDORS=/etc/OpenCL/vendors/pocl.icd
