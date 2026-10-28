@@ -2,6 +2,7 @@
 """Test real package composition while the browser builds; emits no image."""
 import json,pathlib,shutil,subprocess
 from chroot_runtime import runtime
+from native_root import configure as configure_native
 source=pathlib.Path('/src');root=pathlib.Path('/out/dependency-test-root')
 profile=json.loads((source/'profiles/common.json').read_text())
 packages=sorted({p for f in profile['presets']['preview'] if f!='enclave-browser'
@@ -31,7 +32,9 @@ with runtime(root), open('/out/package-composition.log','w') as log:
         /usr/lib/enclave-shield-hip/bin/hipcc --version
     '''],check=True,stdout=log,stderr=log,timeout=120)
 shutil.copyfile(root/'lib/apk/db/installed','/out/preflight.apk-installed')
+native=configure_native(root,(source/'components/native-platform/70-kvm-box-input.rules').read_bytes())
+subprocess.run(['python3',str(source/'tests/native-policy.py'),str(root/'shield')],check=True)
 pathlib.Path('/out/preflight.json').write_text(json.dumps({'scope':'dependency-preflight-without-browser',
     'passed':True,'packages':packages,'browserPresent':False,'imageProduced':False,
-    'runtimeAdmission':False,'productionQualified':False},indent=2)+'\n')
+    'nativeRootPreparation':native,'runtimeAdmission':False,'productionQualified':False},indent=2)+'\n')
 shutil.rmtree(root)

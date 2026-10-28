@@ -10,11 +10,19 @@
       "packages": [
         "enclave-base",
         "enclave-cursor",
-        "enclave-desktop",
         "enclave-freedoom",
         "enclave-openarena",
         "enclave-openarena-data",
         "enclave-librequake"
+      ]
+    },
+    {
+      "name": "desktop",
+      "repository": "EnclaveHost/enclave-os",
+      "run": 40625428557,
+      "artifact": "desktop-x86_64",
+      "packages": [
+        "enclave-desktop"
       ]
     },
     {
