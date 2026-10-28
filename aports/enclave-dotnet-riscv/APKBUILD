@@ -1,0 +1,22 @@
+pkgname=enclave-dotnet-riscv
+pkgver=12.0.0_git20261028
+pkgrel=0
+pkgdesc="Pinned development musl RV64 .NET runtime for Enclave OpenHV"
+url="https://github.com/dotnet/runtime"
+arch="riscv64"
+license="MIT"
+depends="icu-libs libgcc libstdc++ zlib libssl3 libcrypto3 lttng-ust libunwind krb5-libs"
+ldpath="/usr/lib/enclave-dotnet/shared/Microsoft.NETCore.App/12.0.0-dev"
+sonameprefix="$pkgname:"
+options="!check !strip" # Actual RV64 managed execution is required by the runtime workflow.
+source="dotnet-runtime.tar.gz runtime-provenance.json"
+builddir="$srcdir"
+package() {
+    local dest="$pkgdir/usr/lib/enclave-dotnet"
+    mkdir -p "$dest"
+    cp -a dotnet host shared LICENSE.txt ThirdPartyNotices.txt "$dest/"
+    install -Dm644 runtime-provenance.json "$dest/enclave-source.json"
+    install -Dm644 LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE.txt"
+    install -m644 ThirdPartyNotices.txt "$pkgdir/usr/share/licenses/$pkgname/"
+}
+sha512sums=""

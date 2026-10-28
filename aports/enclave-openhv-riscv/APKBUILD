@@ -1,0 +1,35 @@
+pkgname=enclave-openhv-riscv
+pkgver=20250725
+pkgrel=0
+pkgdesc="Shared OpenHV managed payload on the pinned Enclave RV64 runtime"
+url="https://www.openhv.net"
+arch="riscv64"
+license="GPL-3.0-or-later AND CC-BY-SA-4.0"
+makedepends="python3"
+depends="enclave-dotnet-riscv sdl2 openal-soft freetype lua5.1-libs enclave-desktop enclave-shield-graphics"
+provides="enclave-openhv=$pkgver-r$pkgrel"
+options="!check !strip"
+source="enclave-openhv-managed.apk"
+builddir="$srcdir/game"
+prepare() {
+    mkdir -p "$builddir"
+    tar -xf "$srcdir/enclave-openhv-managed.apk" -C "$builddir"
+    python3 - <<'PY'
+from pathlib import Path
+import json
+root=Path('usr/lib/enclave-os/openhv')
+identity=json.loads((root/'enclave-source.json').read_text())
+assert identity=={'.':'42af818757856be2a0ec8f785b5c53de5d3fb1ee','engine':'b4f3d8ae02b6bd6f4a3a5441e6d0daf7c5073787'}
+for p in root.rglob('*'):
+ if p.is_file() and not p.is_symlink():
+  assert p.read_bytes()[:4]!=b'\x7fELF',p
+PY
+}
+package() {
+    mkdir -p "$pkgdir/usr/lib/enclave-os"
+    cp -a usr/lib/enclave-os/openhv "$pkgdir/usr/lib/enclave-os/"
+    cp -a usr/share "$pkgdir/usr/"
+    install -Dm755 /src/aports/enclave-openhv/enclave-openhv "$pkgdir/usr/bin/enclave-openhv"
+    install -Dm644 /src/aports/enclave-openhv/settings.yaml "$pkgdir/etc/enclave-os/openhv-settings.yaml"
+}
+sha512sums=""

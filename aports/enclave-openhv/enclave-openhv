@@ -10,4 +10,8 @@ if [ ! -f "$support/settings.yaml" ]; then
     cp /etc/enclave-os/openhv-settings.yaml "$support/settings.yaml"
 fi
 cd /usr/lib/enclave-os/openhv
-exec dotnet bin/OpenRA.dll Engine.EngineDir="$PWD" Game.Mod=hv Engine.SupportDir="$support" "$@"
+case "$(uname -m)" in
+    riscv64) set -- /usr/lib/enclave-dotnet/dotnet exec --fx-version 12.0.0-dev bin/OpenRA.dll "$@" ;;
+    *) set -- dotnet bin/OpenRA.dll "$@" ;;
+esac
+exec "$@" Engine.EngineDir="$PWD" Game.Mod=hv Engine.SupportDir="$support"
