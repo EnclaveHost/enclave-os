@@ -84,3 +84,72 @@
    unsigned long long int sleepMicroSeconds = 500000;
    usleep(sleepMicroSeconds);
  
+--- a/include/hip/devicelib/sync_and_util.hh
++++ b/include/hip/devicelib/sync_and_util.hh
+@@ -79,7 +79,7 @@
+ 
+ extern "C" __device__  int __chip_group_all(int predicate); // Custom
+ extern "C" __device__  int __chip_group_any(int predicate); // Custom
+-extern "C" __device__  ulong __chip_group_ballot(int predicate); // Custom
++extern "C" __device__  unsigned long __chip_group_ballot(int predicate); // Custom
+ 
+ extern "C++" inline __device__ void __syncthreads() { __chip_syncthreads(); }
+ 
+--- a/include/hip/devicelib/type_casting_intrinsics.hh
++++ b/include/hip/devicelib/type_casting_intrinsics.hh
+@@ -75,7 +75,7 @@
+   return __chip_float_as_int(x);
+ }
+ 
+-extern "C" __device__ uint __chip_float_as_uint(float x);
++extern "C" __device__ unsigned int __chip_float_as_uint(float x);
+ extern "C++" inline __device__ unsigned int __float_as_uint(float x) {
+   return __chip_float_as_uint(x);
+ }
+@@ -112,7 +112,7 @@
+ extern "C++" __device__ float __uint2float_ru(unsigned int x);
+ extern "C++" __device__ float __uint2float_rz(unsigned int x);
+ 
+-extern "C" __device__ float __chip_uint_as_float(uint x);
++extern "C" __device__ float __chip_uint_as_float(unsigned int x);
+ extern "C++" inline __device__ float __uint_as_float(unsigned int x) {
+   return __chip_uint_as_float(x);
+ }
+--- a/include/hip/devicelib/double_precision/dp_math.hh
++++ b/include/hip/devicelib/double_precision/dp_math.hh
+@@ -314,9 +314,9 @@
+ extern "C++" __device__ double modf(double x, double *iptr); // OpenCL
+ 
+ 
+-extern "C++" __device__ double nan(ulong nancode); // OpenCL
++extern "C++" __device__ double nan(unsigned long nancode); // OpenCL
+ extern "C++" inline __device__ double nan(const char *tagp) {
+-  ulong nancode = *reinterpret_cast<const ulong *>(tagp);
++  unsigned long nancode = *reinterpret_cast<const unsigned long *>(tagp);
+   return ::nan(nancode);
+ }
+ 
+--- a/include/hip/devicelib/single_precision/sp_math.hh
++++ b/include/hip/devicelib/single_precision/sp_math.hh
+@@ -384,9 +384,9 @@
+   return ::modf(x, iptr);
+ }
+ 
+-extern "C++" __device__ float nan(uint nancode); // OpenCL
++extern "C++" __device__ float nan(unsigned int nancode); // OpenCL
+ extern "C++" inline __device__ float nanf(const char *tagp) {
+-  uint nancode = *reinterpret_cast<const uint *>(tagp);
++  unsigned int nancode = *reinterpret_cast<const unsigned int *>(tagp);
+   return ::nan(nancode);
+ }
+ 
+--- a/include/hip/spirv_hip_devicelib.hh
++++ b/include/hip/spirv_hip_devicelib.hh
+@@ -37,6 +37,7 @@
+ #ifndef HIP_INCLUDE_HIP_SPIRV_MATHLIB_H
+ #define HIP_INCLUDE_HIP_SPIRV_MATHLIB_H
+ 
++#include <time.h>
+ #include <hip/devicelib/atomics.hh>
+ 
+ #include <hip/devicelib/sync_and_util.hh>
