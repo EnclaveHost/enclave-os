@@ -23,6 +23,7 @@ else
     chown -R builder:builder /home/builder
     su builder -c 'abuild-keygen -a -n'
     cp /home/builder/.abuild/*.pub /etc/apk/keys/
+    apk update
     su builder -c 'cd /home/builder/aports/enclave/libffi && abuild -r' >/out/package-build.log 2>&1
     cp -a /home/builder/packages/enclave /out/repository
     cp /home/builder/.abuild/*.pub /out/
