@@ -1,0 +1,56 @@
+name: Installed Pinball tables through Shield graphics
+on:
+  workflow_dispatch:
+    inputs:
+      core_run_id:
+        required: true
+      dependency_run_id:
+        required: true
+      mesa_run_id:
+        required: true
+      platform:
+        default: amd64
+        type: choice
+        options: [amd64, riscv64]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  tables:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: inputs.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Fetch signed packages and retained engine's example table
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORE: ${{ inputs.core_run_id }}
+          DEPENDENCIES: ${{ inputs.dependency_run_id }}
+          MESA: ${{ inputs.mesa_run_id }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          [[ "$CORE" =~ ^[0-9]+$ && "$DEPENDENCIES" =~ ^[0-9]+$ && "$MESA" =~ ^[0-9]+$ ]]
+          gh run download "$CORE" --name "vpx-core-$PLATFORM" --dir core
+          gh run download "$DEPENDENCIES" --name "pinball-dependencies-$PLATFORM" --dir dependencies
+          gh run download "$MESA" --name "shield-mesa-$PLATFORM" --dir mesa
+          curl -fLSs https://raw.githubusercontent.com/vpinball/vpinball/5a81d4e3292ff4adba7327017dd1ab840765b60a/src/assets/exampleTable.vpx -o retained-exampleTable.vpx
+          printf '%s\n' 'b8b3f441d0c9b6503357d157c852d78591bf125d06df0237560c4dfce86debb6  retained-exampleTable.vpx' | sha256sum -c -
+      - name: Exercise installed engine and capture both table windows
+        run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/${{ inputs.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/core:/core:ro" -v "$PWD/dependencies:/dependencies:ro" \
+            -v "$PWD/mesa:/mesa:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-vpx-runtime.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: vpx-runtime-${{ inputs.platform }}
+          path: out/
+          retention-days: 7
