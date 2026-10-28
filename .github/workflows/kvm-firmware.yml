@@ -1,0 +1,73 @@
+name: Build separate KVM preview firmware
+on:
+  workflow_dispatch:
+    inputs:
+      preview_run:
+        required: true
+        description: Successful full x86 preview run
+      platform_run:
+        required: true
+        description: Successful matching native platform run
+permissions:
+  contents: read
+  actions: read
+jobs:
+  firmware-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Read the fixed draft firmware inputs without publishing them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern retained-igvm-inputs.tar --dir inputs
+          printf '%s\n' 'dc7220f885bd919208252389487dd139346e3aff9d79cc7d85ec2930b23f9e38  inputs/retained-igvm-inputs.tar' | sha256sum -c -
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-igvm-inputs
+          path: inputs/retained-igvm-inputs.tar
+          retention-days: 1
+  firmware:
+    needs: firmware-inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: retained-igvm-inputs
+          path: inputs
+      - name: Fetch successful matching preview and startup archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_RUN: ${{ inputs.preview_run }}
+          PLATFORM_RUN: ${{ inputs.platform_run }}
+        run: |
+          [[ "$PREVIEW_RUN" =~ ^[0-9]+$ && "$PLATFORM_RUN" =~ ^[0-9]+$ ]]
+          mkdir records
+          gh run view "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --json headSha,conclusion,workflowName >records/preview-run.json
+          gh run view "$PLATFORM_RUN" --repo EnclaveHost/enclave-os --json headSha,conclusion,workflowName >records/platform-run.json
+          test "$(jq -r .conclusion records/preview-run.json)" = success
+          test "$(jq -r .conclusion records/platform-run.json)" = success
+          test "$(jq -r .workflowName records/preview-run.json)" = 'Separate x86 full-feature preview root'
+          test "$(jq -r .workflowName records/platform-run.json)" = 'Build native platform for verified Alpine preview'
+          gh run download "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --name enclave-os-x86-preview --dir preview
+          gh run download "$PLATFORM_RUN" --repo EnclaveHost/enclave-os --name enclave-os-kvm-platform --dir platform
+          printf '%s\n' 'dc7220f885bd919208252389487dd139346e3aff9d79cc7d85ec2930b23f9e38  inputs/retained-igvm-inputs.tar' | sha256sum -c -
+          tar -xf inputs/retained-igvm-inputs.tar -C inputs
+      - name: Reproduce baseline, build twice and check measurement mutations
+        run: |
+          ulimit -c 0
+          python3 tools/kvm_firmware.py inputs platform preview out
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: enclave-os-kvm-firmware
+          path: |
+            out
+            records
+          retention-days: 7
