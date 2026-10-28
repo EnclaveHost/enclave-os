@@ -1,0 +1,11 @@
+{
+  "controllerSha256": "077114697af496127154e83371e4d4f3d2b96dd53e9b75a08fd27e1fc2effba9",
+  "models": {
+    "dataBlocks": 621588,
+    "hashStartBlock": 621589,
+    "imageBytes": 2566082560,
+    "imageSha256": "a581dcc6fd15b3e49ee4e0b4796c02da87da8f89ad92184f7226e2f58f1a5022",
+    "rootHash": "f2581705c89c2a4afca613e39ba16209825414e1a04ba0fe5c5b8b700d8d65cd",
+    "salt": "6245710f8f3a972d86978a1749924a12a0d4eb04901096db3548120d46011b4f"
+  }
+}

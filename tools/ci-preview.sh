@@ -67,5 +67,6 @@ find /out/root-preview -type f -perm /6000 -exec chmod a-s '{}' +
 mksquashfs /out/root-preview /out/rootfs.squashfs -noappend -comp xz -b 1M \
     -processors 2 -mem 512M -mkfs-time 0 -all-root -no-xattrs -no-progress >/out/squashfs.log
 python3 /src/tools/measure-root.py /out/rootfs.squashfs /out/rootfs.verity > /out/image.json
+python3 /src/tools/kvm_profile.py /out
 sha256sum /out/rootfs.squashfs /out/rootfs.verity >/out/SHA256SUMS
 rm -rf /out/root-preview

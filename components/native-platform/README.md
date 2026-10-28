@@ -35,3 +35,12 @@ to the Alpine package helpers and adds the exact module from the pinned preview
 kernel build. It also exports the static helpers and kernel files for subsequent
 platform archive construction. Hash mismatches fail before root modification.
 These inputs alone are not a bootable or admitted platform archive.
+
+After measuring and corruption-testing the root, `tools/kvm_profile.py` emits
+the launcher's canonical `enclave-native-desktop-profile/1` descriptor with the
+new kernel/root measurements. `profiles/preview-kvm-retained.json` preserves the
+recovered controller and public model-volume pins from the native startup
+fixture. The controller pin was rechecked against the retained Wasm binary;
+model bytes are not recopied or declared freshly verified. Neither payload is
+included in this OS artifact. `kvm-preview-status.json` explicitly leaves platform
+archive construction, runtime admission and production qualification unfinished.
