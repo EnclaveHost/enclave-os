@@ -104,13 +104,13 @@ static int nr_mount_root(int fd, int want) {
 static int nr_fs_ok(int fd, unsigned long flags, long magic) {
     struct statfs s;
     if (fstatfs(fd, &s)) return -1;
-    if ((s.f_flags & 0xf) != (flags & 0xf) || (magic && s.f_type != magic)) return nr_fail(EPERM);
+    if ((s.f_flags & 0xf) != (flags & 0xf) || (magic && (unsigned long)s.f_type != (unsigned long)magic)) return nr_fail(EPERM);
     return 0;
 }
 static int nr_source_mount(int fd, int readonly, long magic) {
     struct statfs s;
     if (nr_mount_root(fd, 1) || fstatfs(fd, &s)) return -1;
-    if ((readonly && !(s.f_flags & ST_RDONLY)) || (magic && s.f_type != magic)) return nr_fail(EPERM);
+    if ((readonly && !(s.f_flags & ST_RDONLY)) || (magic && (unsigned long)s.f_type != (unsigned long)magic)) return nr_fail(EPERM);
     return 0;
 }
 static int nr_same(int a, int b) {
