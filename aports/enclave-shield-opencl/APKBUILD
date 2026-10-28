@@ -1,6 +1,6 @@
 pkgname=enclave-shield-opencl
 pkgver=0.1.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Shield OpenCL frontend with typed source recognition and CPU fallback"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64 riscv64"
@@ -31,6 +31,7 @@ package() {
         install -m644 "$name.py" "$dest/"
     done
     install -m644 gemm_i8.cl enclave-source.json "$dest/"
+    cp -a q8-reference "$dest/"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     install -Dm644 q8-reference/LICENSE "$pkgdir/usr/share/licenses/$pkgname/llama-LICENSE"
 }

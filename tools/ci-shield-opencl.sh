@@ -18,6 +18,7 @@ cp /home/builder/.abuild/*.pub /out/
 cp /home/builder/aports/enclave/enclave-shield-opencl/APKBUILD /out/APKBUILD
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
 apk add --no-cache enclave-shield-opencl opencl-icd-loader-dev opencl-headers
+python3 /src/tests/installed-q8-compiler.py >/out/installed-q8.log 2>&1
 mkdir /out/tests
 export LD_LIBRARY_PATH=/usr/lib/enclave-shield-opencl/lib
 export POCL_DEBUG=error,warn
