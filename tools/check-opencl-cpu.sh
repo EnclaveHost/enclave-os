@@ -15,7 +15,10 @@ status=0
 for test in event_errors half_convert half_tanh half_images; do
     if ! timeout 180 "/out/tests/$test" >"/out/$test.log" 2>&1; then
         status=1
-        timeout 180 gdb --batch -ex run -ex 'thread apply all bt' --args "/out/tests/$test" >"/out/$test-debug.log" 2>&1 || true
+        timeout 180 gdb --batch -ex run -ex 'thread apply all bt' -ex 'info registers' -ex 'x/24i $pc-32' --args "/out/tests/$test" >"/out/$test-debug.log" 2>&1 || true
     fi
 done
+if [ "$status" != 0 ]; then
+    tar -czf /out/pocl-cache.tar.gz -C /root/.cache/pocl kcache
+fi
 exit "$status"
