@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Private synthetic desktop for the real Sunshine/Moonlight wire test."""
-import json,os,pathlib,signal,subprocess,time
+import json,os,pathlib,secrets,signal,subprocess,time
 fixture=pathlib.Path('/fixture');out=pathlib.Path('/out')
-print('stream fixture: authenticated X is ready',flush=True)
+print('stream fixture: starting private authenticated X',flush=True)
 home=fixture/'server-home';home.mkdir(exist_ok=True)
 runtime=home/'runtime';runtime.mkdir(mode=0o700,exist_ok=True)
 env={**os.environ,'HOME':str(home),'XDG_RUNTIME_DIR':str(runtime)}
+authority=home/'Xauthority'
+authority.touch(mode=0o600)
+env.update(DISPLAY=':101',XAUTHORITY=str(authority))
+subprocess.run(['xauth','-f',str(authority),'add',':101','.',secrets.token_hex(16)],check=True)
 config=home/'sunshine.conf'
 config.write_text('''sunshine_name = Enclave CI
 capture = x11
@@ -30,6 +34,15 @@ cert = /fixture/cert.pem
 password=(fixture/'password').read_text()
 children=[]
 try:
+    xlog=(out/'server-xvfb.log').open('w')
+    children.append(subprocess.Popen(['Xvfb',':101','-screen','0','960x600x24',
+        '-nolisten','tcp','-auth',str(authority)],env=env,stdout=xlog,stderr=xlog))
+    for _ in range(50):
+        assert children[0].poll() is None,'private X server exited'
+        if subprocess.run(['xdpyinfo'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
+        time.sleep(.1)
+    else:raise RuntimeError('private X did not become ready')
+    print('stream fixture: authenticated X is ready',flush=True)
     try:
         with open('/tmp/credentials.log','w') as log:
             subprocess.run(['/usr/bin/enclave-sunshine',str(config),'--creds','ci',password],check=True,env=env,stdout=log,stderr=log,timeout=20)
@@ -49,7 +62,7 @@ try:
     children.append(subprocess.Popen(['/usr/bin/enclave-sunshine',str(config)],env=env,stdout=log,stderr=log))
     for i in range(120):
         assert all(c.poll() is None for c in children),'server exited'
-        subprocess.run(['xsetroot','-solid','#c020c0' if i%2 else '#20c0c0'],check=True)
+        subprocess.run(['xsetroot','-solid','#c020c0' if i%2 else '#20c0c0'],env=env,check=True)
         time.sleep(2)
 finally:
     for child in reversed(children):child.terminate()
