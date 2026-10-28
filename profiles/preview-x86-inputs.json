@@ -13,6 +13,7 @@
         "enclave-desktop",
         "enclave-freedoom",
         "enclave-openarena",
+        "enclave-openarena-data",
         "enclave-librequake"
       ]
     },
