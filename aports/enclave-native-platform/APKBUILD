@@ -1,11 +1,11 @@
 pkgname=enclave-native-platform
 pkgver=0.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="Measured KVM desktop service boundary and authenticated web assets"
 url="https://github.com/EnclaveHost/enclave-os"
 arch="x86_64"
 license="LicenseRef-Enclave-Source-Available AND MPL-2.0 AND BSD-2-Clause AND BSD-3-Clause AND OFL-1.1 AND CC-BY-SA-3.0 AND MIT"
-depends="python3 eudev xorg-server xf86-video-dummy dbus pulseaudio pulseaudio-utils x11vnc websockify xauth xdpyinfo"
+depends="python3 nftables eudev xorg-server xf86-video-dummy dbus pulseaudio pulseaudio-utils x11vnc websockify xauth xdpyinfo"
 install="$pkgname.pre-install"
 options="!check !strip" # Binaries and protocols are built/tested in this same CI job.
 source="native-platform.tar"

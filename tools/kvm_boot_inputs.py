@@ -2,7 +2,7 @@
 import hashlib,json,pathlib,shutil,stat
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-HELPERS=('nsinit','gateway')
+HELPERS=('nsinit','gateway','supervisor')
 
 def digest(path):
     with path.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
@@ -26,7 +26,7 @@ def stage(root,kernel,output,*,pin=None):
         return p
     canonical=target('usr/libexec/enclave-os/native')
     legacy=target('usr/local/libexec/kvm-box')
-    for name in (*HELPERS,'supervisor'):
+    for name in HELPERS:
         p=target('usr/libexec/enclave-os/native/'+name)
         if not p.is_file() or stat.S_IMODE(p.stat().st_mode)!=0o555:
             raise ValueError('missing or writable native helper: '+name)

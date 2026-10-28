@@ -20,5 +20,7 @@ reports = [line.split('=', 1)[1] for line in log.splitlines() if line.startswith
 assert len(reports) == 1
 report = json.loads(reports[0])
 assert len(report['checks']) == 6 and all(item['passed'] for item in report['checks'])
+assert 'ENCLAVE_PREVIEW_NETWORK_POLICY_OK' in log
+report['nativeNetworkPolicyInstalled'] = True
 (out/'preview-boot.json').write_text(json.dumps(report, indent=2)+'\n')
 print('PASS: measured preview root, kernel verity scan, policy refusal and installed command lines')

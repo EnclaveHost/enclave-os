@@ -48,6 +48,18 @@ chown 1000:1000 /sysroot/home/desktop
 chmod 700 /sysroot/home/desktop
 mount -t tmpfs -o size=128m,mode=1777 tmpfs /sysroot/dev/shm
 cp /policy-exec /root-check.py /ffi-policy.py /sysroot/run/
+# Exercise the actual launcher dependency and complete policy before dropping
+# privileges. This VM has no NIC and is destroyed after the check.
+insmod /sysroot/usr/local/libexec/kvm-box/nft_ct.ko
+chroot /sysroot /usr/bin/python3 -I /usr/libexec/enclave-os/native/network_policy.py --runtime-uid 5001 >/sysroot/run/native-network.nft
+chroot /sysroot /usr/sbin/nft -f /run/native-network.nft
+chroot /sysroot /usr/sbin/nft list table inet native_desktop >/sysroot/run/native-network-installed.txt
+test -s /sysroot/run/native-network-installed.txt
+for helper in nsinit gateway supervisor; do
+    test -x /sysroot/usr/local/libexec/kvm-box/$helper
+    cmp /sysroot/usr/local/libexec/kvm-box/$helper /sysroot/usr/libexec/enclave-os/native/$helper
+done
+echo ENCLAVE_PREVIEW_NETWORK_POLICY_OK
 export HOME=/home/desktop TMPDIR=/tmp POCL_MAX_PTHREAD_COUNT=2 LP_NUM_THREADS=2
 chroot /sysroot /run/policy-exec /usr/bin/python3 -I /run/root-check.py
 echo ENCLAVE_PREVIEW_ROOT_BOOT_OK

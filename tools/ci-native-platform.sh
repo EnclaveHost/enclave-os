@@ -86,6 +86,8 @@ test "$(id -u desktop)" = 1000
 test "$(id -u shield)" = 1001
 test -x /usr/libexec/Xorg
 test -x /sbin/udevd
+test -x /usr/sbin/nft
+/usr/sbin/nft --version >/out/installed-nft-version.log
 test -f /usr/share/enclave-os/native-ui/novnc/vnc.html
 test -f /usr/share/enclave-os/native-ui/novnc/app/native-pacing.mjs
 python3 /src/tests/native-policy.py /shield >/out/installed-model-policy.log
