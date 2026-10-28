@@ -36,7 +36,12 @@ case "$(uname -m)" in
     riscv64) test_timeout=1800 ;;
     *) test_timeout=300 ;;
 esac
-for name in q8_views opencl_cpu_fallback; do
+cases="q8_views opencl_cpu_fallback"
+if [ "${SHIELD_APPS_DIAGNOSTIC_ONLY:-0}" = 1 ]; then
+    cases=opencl_cpu_fallback
+    printf '%s\n' '{"fullQualification":false,"diagnostic":"mixed CPU/OpenCL graph"}' >/out/diagnostic.json
+fi
+for name in $cases; do
     c++ -std=c++17 -O2 -DGGML_MAX_NAME=128 \
         -I"$sdk/include" -I/src/shield-compute/sd/src \
         /src/components/shield-compute/test_$name.cpp \
