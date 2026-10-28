@@ -218,3 +218,16 @@ encrypted transport under user emulation, not real RV64 frame rate or audio/inpu
 parity. The [RV64 Pinball core](https://github.com/EnclaveHost/enclave-os/actions/runs/40615372405)
 builds, but the first installed runtime test could not identify a visible player
 window after initialization; that runtime gate remains open.
+
+The [RV64 installed CPU OpenCL checks](https://github.com/EnclaveHost/enclave-os/actions/runs/40633505873)
+pass all 7,717,008 half conversions, 393,216 half-tanh evaluations and 78 image
+read/write cases. Selecting a baseline RV64GC CPU when LLVM reports generic-rv64
+fixes the missing floating-point helper failure. The cold image test took 185
+seconds under emulation, exceeding the original 180-second fixture limit; it
+passes with the complete unchanged case set and a bounded emulation allowance.
+
+The [KVM boot-input composition check](https://github.com/EnclaveHost/enclave-os/actions/runs/40633804435)
+passes with the existing launcher's fixed helper paths and the pinned kernel's
+`nft_ct.ko`. Regular hard links preserve no-symlink boot checks and share the APK's
+helper bytes. The separate preview will export the kernel and static helpers for
+platform archive construction; this is not a complete boot/admission result.
