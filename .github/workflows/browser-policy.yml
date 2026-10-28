@@ -1,0 +1,75 @@
+name: Custom browser under actual kernel memory policy
+on:
+  workflow_dispatch:
+    inputs:
+      browser_run:
+        required: true
+      platform:
+        type: choice
+        options: [amd64, riscv64]
+        default: amd64
+permissions:
+  contents: read
+  actions: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        if: inputs.platform == 'riscv64'
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - name: Fetch signed browser and target kernel
+        id: inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BROWSER_RUN: ${{ inputs.browser_run }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          [[ "$BROWSER_RUN" =~ ^[0-9]+$ ]]
+          mkdir out
+          gh run view "$BROWSER_RUN" --repo EnclaveHost/enclave-browser --json headSha,conclusion >out/browser-run.json
+          test "$(jq -r .conclusion out/browser-run.json)" = success
+          sha=$(jq -r .headSha out/browser-run.json)
+          gh run download "$BROWSER_RUN" --repo EnclaveHost/enclave-browser --name "enclave-browser-alpine-$sha" --dir browser-package
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if [ "$PLATFORM" = riscv64 ]; then
+            gh run download 40615018707 --name native-policy-riscv64 --dir policy
+            cp policy/smoke-kernel out/smoke-kernel
+          else
+            gh run download 40621991327 --name native-kernel-fixture-amd64 --dir kernel
+            printf '%s\n' 'd1b2313a6775853305be0cfb2df2f0911c0428170cc7b12b5015a8a613cd61a4  kernel/bzImage' | sha256sum -c -
+            cp kernel/bzImage out/smoke-kernel
+          fi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave-browser
+          ref: ${{ steps.inputs.outputs.sha }}
+          path: browser-source
+          sparse-checkout: enclave/tests
+      - name: Install real browser and build disposable kernel payload
+        run: |
+          docker run --rm --memory=3g --memory-swap=3g --cpus=2 --platform linux/${{ inputs.platform }} \
+            -v "$PWD:/src:ro" -v "$PWD/browser-source:/browser-source:ro" \
+            -v "$PWD/browser-package:/browser-package:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh /src/tools/ci-browser-policy-build.sh
+      - name: Exercise all nine browser cases after policy installation
+        run: |
+          docker run --rm --memory=3g --memory-swap=3g --cpus=2 -w /src \
+            -e ENCLAVE_ARCH=${{ inputs.platform == 'amd64' && 'x86_64' || 'riscv64' }} -e ENCLAVE_BROWSER_POLICY_TEST=1 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/src/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-boot.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: browser-kernel-policy-${{ inputs.platform }}
+          path: |
+            out/boot.log
+            out/browser-*.json
+            out/browser-page.png
+          retention-days: 7
