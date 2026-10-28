@@ -1,0 +1,56 @@
+name: Retained Moonlight client integration
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  client:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: moonlight-stream/moonlight-qt
+          ref: de2467e433821664cdd2224aad8c89a625be1ad9
+          submodules: recursive
+          path: client
+      - name: Apply the recovered client patch and record exact inputs
+        run: |
+          mkdir out
+          python3 - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          source=pathlib.Path('integrations/moonlight')
+          lock=json.loads((source/'source.json').read_text())
+          assert subprocess.check_output(['git','-C','client','rev-parse','HEAD'],text=True).strip()==lock['commit']
+          for name,digest in lock['patches'].items():
+              path=source/name
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+              subprocess.run(['git','-C','client','apply',str(path.resolve())],check=True)
+          lock['submodules']=subprocess.check_output(['git','-C','client','submodule','status','--recursive'],text=True)
+          pathlib.Path('out/source.json').write_text(json.dumps(lock,indent=2)+'\n')
+          PY
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential qt6-base-dev qt6-declarative-dev libqt6svg6-dev \
+            qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts \
+            qml6-module-qtqml-workerscript qml6-module-qtquick-window qml6-module-qtquick \
+            libssl-dev libsdl2-dev libsdl2-ttf-dev libopus-dev libavcodec-dev libavutil-dev \
+            libswscale-dev libx11-dev libegl1-mesa-dev xvfb xauth
+      - name: Compile patched client and check audio backlog boundaries
+        run: |
+          c++ -std=c++17 -Wall -Wextra -Werror -Iclient integrations/moonlight/test-audio-budget.cpp -o out/test-audio-budget
+          out/test-audio-budget >out/audio-tests.log
+          cd client
+          qmake6 CONFIG+=release CONFIG+=disable-prebuilts CONFIG+=disable-libva CONFIG+=disable-libvdpau CONFIG+=disable-libdrm CONFIG+=disable-wayland CONFIG+=disable-vulkan
+          make -j2 >../out/build.log 2>&1
+          cp app/moonlight ../out/
+          ldd app/moonlight >../out/dependencies.log
+          QT_QUICK_BACKEND=software xvfb-run -a timeout 20 app/moonlight --help >../out/help.log 2>&1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: moonlight-client-amd64
+          path: out/
+          retention-days: 7
