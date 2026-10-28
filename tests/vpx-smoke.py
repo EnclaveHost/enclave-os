@@ -40,16 +40,29 @@ with tempfile.TemporaryDirectory() as directory:
             assert pulse.poll() is None, (OUT/'pulse.log').read_text()
             assert time.monotonic() < deadline
             time.sleep(.1)
+        deadline = time.monotonic()+15
+        while True:
+            assert window_manager.poll() is None, (OUT/'fluxbox.log').read_text()
+            property = subprocess.run(['xprop','-root','_NET_SUPPORTING_WM_CHECK'],
+                env=env,capture_output=True,text=True,timeout=5)
+            if 'window id #' in property.stdout:
+                break
+            assert time.monotonic() < deadline, property.stdout
+            time.sleep(.1)
         results = []
         for name, table in [('current', ENGINE/'tables/default-table.vpx'),
                             ('retained', Path('/src/retained-exampleTable.vpx'))]:
             preferences = home/name
             preferences.mkdir()
+            tables = preferences/'tables'
+            tables.mkdir()
+            writable_table = tables/table.name
+            shutil.copyfile(table,writable_table)
             ini = preferences/'VPinballX.ini'
             ini.write_text('[Player]\nFullScreen=0\nWidth=960\nHeight=600\nMaxFramerate=30\nSyncMode=0\n')
             with (OUT/f'{name}.log').open('w') as log:
                 game = subprocess.Popen([str(ENGINE/'VPinballX_GL'), '-LessCPUthreads',
-                    '-PrefPath', str(preferences), '-Ini', str(ini), '-Play', str(table)],
+                    '-PrefPath', str(preferences), '-Ini', str(ini), '-Play', str(writable_table)],
                     cwd=ENGINE, env=env, stdout=log, stderr=log)
             try:
                 deadline = time.monotonic()+120
