@@ -16,7 +16,7 @@ su builder -c 'cd /home/builder/aports/enclave/enclave-desktop && abuild -r' >/o
 cp -a /home/builder/packages/enclave /out/repository
 cp /home/builder/.abuild/*.pub /out/
 printf '\n/home/builder/packages/enclave\n' >>/etc/apk/repositories
-apk add --no-cache enclave-desktop
+apk add --no-cache --upgrade enclave-desktop=0.1.0-r1
 python3 - <<'PY'
 import hashlib,json,pathlib
 p=pathlib.Path('/usr/share/enclave-os/browser')
