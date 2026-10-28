@@ -18,13 +18,14 @@ chmod 1777 /out/root/tmp
 cp /managed/* /out/root/managed/
 cat >/out/root/init <<'INIT'
 #!/bin/sh
-set -eu
+set -eux
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev
 export HOME=/tmp TMPDIR=/tmp DOTNET_EnableWriteXorExecute=1 COMPlus_EnableWriteXorExecute=1
 export DOTNET_EnableDiagnostics=0 COMPlus_LTTng=0 DOTNET_ReadyToRun=0 COMPlus_ReadyToRun=0
 export DOTNET_PROCESSOR_COUNT=2 ENCLAVE_EXPECT_POLICY=1
+sysctl -w kernel.randomize_va_space=2
 test "$(cat /proc/sys/kernel/randomize_va_space)" = 2
 case "$(uname -m)" in
     riscv64) set -- /usr/lib/enclave-dotnet/dotnet exec --fx-version 12.0.0-dev ;;
