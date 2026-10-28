@@ -320,3 +320,21 @@ browser and desktop supplied `enclave-browser`. Packaging revision r2 reserves
 that command for the shared desktop and exposes the binary as `enclave-firefox`.
 The existing compiled browser is being repackaged and requalified; no feature
 or browser patch is removed to resolve the conflict.
+
+
+The corrected x86 browser r2 package and its smoke checks pass in
+[40658925874](https://github.com/EnclaveHost/enclave-browser/actions/runs/40658925874).
+The full custom root assembled in
+[40659465206](https://github.com/EnclaveHost/enclave-os/actions/runs/40659465206)
+(1,240,281,088 bytes compressed). Its first kernel fixture stopped at an
+unsupported `veritysetup --readonly` option before opening the device. The
+corrected invocation keeps read-only disks, dm-verity and the read-only SquashFS
+mount; the fixture still requires a full verified read and refusal of writes.
+
+`kvm-platform.yml` builds a native startup archive only from a successful preview
+run, its exact root/hash payloads and fixed retained runtime/storage inputs.
+It checks optical headers and payload hashes independently of container metadata,
+regenerates the canonical profile and checks the resulting archive contents.
+The retained inputs are staged in a draft build-input release; this workflow
+neither publishes the app nor starts a VM. Native service startup, runtime
+admission and a real desktop connection remain separate preview gates.

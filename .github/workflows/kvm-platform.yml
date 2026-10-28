@@ -1,0 +1,58 @@
+name: Build native platform for verified Alpine preview
+on:
+  workflow_dispatch:
+    inputs:
+      preview_run:
+        required: true
+        description: Successful Enclave OS preview workflow run
+permissions:
+  contents: read
+  actions: read
+jobs:
+  platform:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: EnclaveHost/enclave
+          ref: 0f46f807d21d961c86846a54d8d963a5c26d244b
+          path: platform-source
+          sparse-checkout: |
+            isolation/contract
+            isolation/m2
+            isolation/m3
+      - name: Check media tampering refusals
+        run: python3 tests/kvm-platform-media.py
+      - name: Fetch verified preview and exact retained bootstrap inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_RUN: ${{ inputs.preview_run }}
+        run: |
+          [[ "$PREVIEW_RUN" =~ ^[0-9]+$ ]]
+          mkdir out
+          gh run view "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --json headSha,conclusion,workflowName >out/preview-run.json
+          test "$(jq -r .conclusion out/preview-run.json)" = success
+          test "$(jq -r .workflowName out/preview-run.json)" = 'Separate x86 full-feature preview root'
+          gh run download "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --name enclave-os-x86-preview --dir preview
+          gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern retained-native-bootstrap.tar.gz --dir bootstrap
+          printf '%s\n' 'cfa70e95e9428eaa73ca042d06ea075a45238ebec3e1a7df3dcc19ba37e3863c  bootstrap/retained-native-bootstrap.tar.gz' | sha256sum -c -
+          tar -xzf bootstrap/retained-native-bootstrap.tar.gz -C bootstrap
+      - name: Compile measured native platform with the new root profile
+        run: |
+          docker run --rm --memory=3g --memory-swap=3g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/platform-source:/platform:ro" \
+            -v "$PWD/preview:/preview:ro" -v "$PWD/bootstrap/retained:/retained:ro" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-kvm-platform.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: enclave-os-kvm-platform
+          path: |
+            out/*.json
+            out/platform/build.json
+            out/platform/native.cpio.gz
+            out/platform/archive-check.json
+          retention-days: 7
