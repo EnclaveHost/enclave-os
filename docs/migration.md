@@ -134,6 +134,33 @@ platform admission are still open.
 
 ## Preview and additional qualification, 2026-10-28
 
+The [full x86 preview](https://github.com/EnclaveHost/enclave-os/actions/runs/40666918766)
+now assembles Enclave Browser and every retained game into a 1,240,281,088-byte
+SquashFS root. Its pinned kernel mounts it through dm-verity, reads the complete
+verified device, rejects writes and forbidden RWX allocations, and starts the
+installed browser, Node, llama.cpp, sd.cpp and HIP command lines. The controller
+pin is the currently deployed `104468ce…` component. This is a separate preview,
+not a replacement of the catalog's Debian desktop.
+
+Its [native startup archive](https://github.com/EnclaveHost/enclave-os/actions/runs/40667885583)
+passes an independent newc inventory and profile/runtime/storage pin check. The
+[unsigned firmware](https://github.com/EnclaveHost/enclave-os/actions/runs/40668216104)
+reproduces the retained baseline and twin proof, builds the new candidate twice
+identically, and changes its measurement for each required mutation. The debug
+twin remains explicitly refused. Signing, full service startup, live worker
+qualification and admission remain separate gates. The
+[disposable service fixture](https://github.com/EnclaveHost/enclave-os/actions/runs/40669128241)
+adds a test initializer, monitor test and privileged lifecycle client to the exact
+startup archive; its firmware is never a serving image or a secret-release target.
+
+Alpine's stock libffi disabled static trampolines, which prevented Python ctypes
+from importing under the actual native W^X policy. The private libffi package
+enables upstream static executable trampolines. The x86 preview verifies 300
+callbacks backed by RX libffi mappings, no W+X mappings and rejected RWX requests.
+The [RV64 backport qualification](https://github.com/EnclaveHost/enclave-os/actions/runs/40665438695)
+also passes its target-kernel callback test using the upstream RISC-V trampoline
+change. Neither result weakens the platform policy or qualifies all applications.
+
 The explicit `preview` preset retains every `full` feature and requires all its
 packages, including Enclave Browser. It records unfinished qualification rather
 than clearing the default full-image release gate. Its separate workflow merges
