@@ -1,0 +1,30 @@
+--- a/lib/CL/devices/pthread/pthread_scheduler.c
++++ b/lib/CL/devices/pthread/pthread_scheduler.c
+@@ -132,16 +132,26 @@
+ 
+   scheduler.worker_out_of_memory = 0;
+ 
++  pthread_attr_t worker_attr;
++  size_t stack_size;
++  PTHREAD_CHECK (pthread_attr_init (&worker_attr));
++  PTHREAD_CHECK (pthread_attr_getstacksize (&worker_attr, &stack_size));
++  /* Generated work-group frames can exceed musl's small default stack. */
++  if (stack_size < 8 * 1024 * 1024)
++    PTHREAD_CHECK (pthread_attr_setstacksize (&worker_attr, 8 * 1024 * 1024));
++
+   for (i = 0; i < num_worker_threads; ++i)
+     {
+       scheduler.thread_pool[i].index = i;
+-      PTHREAD_CHECK (pthread_create (&scheduler.thread_pool[i].thread, NULL,
++      PTHREAD_CHECK (pthread_create (&scheduler.thread_pool[i].thread, &worker_attr,
+                                      pocl_pthread_driver_thread,
+                                      (void *)&scheduler.thread_pool[i]));
+ #if defined(__linux__) && defined(__x86_64__)
+       pocl_ignore_sigfpe_for_thread (scheduler.thread_pool[i].thread);
+ #endif
+     }
++
++  PTHREAD_CHECK (pthread_attr_destroy (&worker_attr));
+ 
+   PTHREAD_CHECK2 (PTHREAD_BARRIER_SERIAL_THREAD,
+                   pthread_barrier_wait (&scheduler.init_barrier));

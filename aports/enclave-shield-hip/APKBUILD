@@ -7,7 +7,7 @@ arch="x86_64 riscv64"
 license="MIT"
 makedepends="cmake samurai clang18-dev clang18-static clang18-extra-tools llvm18-dev
  llvm18-static llvm18-gtest spdlog-dev fmt-dev libffi-dev libedit-dev zlib-dev
- opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3 perl patchelf xxd"
+ opencl-headers opencl-icd-loader-dev enclave-llvm-spirv18 python3 py3-yaml perl patchelf xxd spirv-tools-dev"
 depends="enclave-shield-opencl clang18 clang18-extra-tools llvm18 enclave-llvm-spirv18
  python3 perl"
 ldpath="/usr/lib/enclave-shield-hip/lib"
@@ -15,6 +15,10 @@ sonameprefix="$pkgname:"
 options="!check" # Installed CUDA/HIP source and numerical tests run in CI.
 source="chipStar-source.tar chipstar-glibc.patch"
 builddir="$srcdir/chipStar-source"
+prepare() {
+    default_prepare
+    sed -i 's/cmake_policy(SET CMP0053 OLD)/cmake_policy(SET CMP0053 NEW)/' bitcode/ROCm-Device-Libs/cmake/OCL.cmake
+}
 build() {
     export PATH="/usr/lib/llvm18/bin:$PATH"
     cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \

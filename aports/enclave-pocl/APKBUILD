@@ -18,7 +18,8 @@ source="pocl-$_commit.tar.gz::https://codeload.github.com/pocl/pocl/tar.gz/$_com
  pocl-half-tanh.patch
  pocl-half-images.patch
  pocl-vectorizer.patch
- cstdint.patch"
+ cstdint.patch
+ worker-stack.patch"
 builddir="$srcdir/pocl-$_commit"
 build() {
     export PATH="/usr/lib/llvm18/bin:$PATH"
@@ -53,4 +54,5 @@ d4e0345977a7fa0ce2f1c5e8924271c855d52038f4acfe729f9e1e5d562490effe263ed462444b63
 15d67c4876c5bb921efbe83ebbd0dfdd3df366e0b3ce52c4b5b3e2776f222f1bcd7c561d7309e145ec5462c383c6975ddb747b9e21b203af5c699e565a0b6157  pocl-half-images.patch
 b2dfbc9e5a57afae357e72543777ffc42d288d739ac5a8800262c279977ffec33d01bdbfb4f42cfce82512537241c594f1b9af078f36cc3dab98f4b846a29d3d  pocl-vectorizer.patch
 ffb0cd315e473a1ed84f488cd63300235823bdd2695bfdb5f0990bb8bec26123e5943c1a75d8eab8a02e91b84fa7559d85eaa46876a59de4b0c51cc09d089fe3  cstdint.patch
+0e59402b29e6336762c5f3dde0e551fe09b4fac86d4179d5a2027441cf0cf86c357043d023038248d92097c17384731f86eb272d92f0c2eeed1ac35428b34806  worker-stack.patch
 "
