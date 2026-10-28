@@ -21,8 +21,10 @@ int main(int argc, char ** argv) {
         require(ggml_backend_load(argv[1]) != nullptr, "load OpenCL");
         require(ggml_backend_load(argv[2]) != nullptr, "load CPU");
         ggml_backend_t gpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU, nullptr);
+        std::fprintf(stderr, "stage: OpenCL backend initialized\n");
         ggml_backend_t cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
         require(gpu && cpu, "init both backends");
+        std::fprintf(stderr, "stage: CPU backend initialized\n");
         constexpr int k = 1024, n = 2048, m = 2;
         ggml_context * weights_ctx = ggml_init({ggml_tensor_overhead()*4, nullptr, true});
         ggml_tensor * weights = ggml_new_tensor_2d(weights_ctx, GGML_TYPE_Q8_0, k, n);
@@ -40,7 +42,9 @@ int main(int argc, char ** argv) {
                     raw[row*row_bytes+block*34+2+col] = uint8_t(int8_t(code(row,block*32+col)));
             }
         }
+        std::fprintf(stderr, "stage: uploading Q8 weights\n");
         ggml_backend_tensor_set(weights, raw.data(), 0, raw.size());
+        std::fprintf(stderr, "stage: Q8 weights uploaded\n");
         ggml_context * ctx = ggml_init({1<<20, nullptr, true});
         ggml_tensor * ids = ggml_new_tensor_1d(ctx, GGML_TYPE_I32, m);
         ggml_set_input(ids);
@@ -81,12 +85,14 @@ int main(int argc, char ** argv) {
         require(!ggml_backend_supports_op(gpu, f16_product), "F16 matmul must use native CPU");
         require(!sd_graph_supports_op(ctx, gpu, f16_product), "fallback capability must not escape its graph scope");
         require(!ggml_backend_supports_op(gpu, output), "ReLU must use native CPU");
+        std::fprintf(stderr, "stage: graph operations and placement capabilities checked\n");
         ggml_cgraph * graph = ggml_new_graph_custom(ctx, 128, false);
         ggml_build_forward_expand(graph, output);
         ggml_backend_t backends[] = {gpu, cpu};
         ggml_backend_buffer_type_t bufts[] = {
             ggml_backend_get_default_buffer_type(gpu), ggml_backend_get_default_buffer_type(cpu)};
         ggml_backend_sched_t sched = ggml_backend_sched_new(backends, bufts, 2, 128, false, false);
+        std::fprintf(stderr, "stage: allocating mixed graph\n");
         require(sched && ggml_backend_sched_alloc_graph(sched, graph), "allocate graph");
         require(ggml_backend_sched_get_tensor_backend(sched, gathered) == cpu, "gather placement");
         require(ggml_backend_sched_get_tensor_backend(sched, product) == gpu, "matmul placement");
@@ -96,8 +102,10 @@ int main(int argc, char ** argv) {
         ggml_backend_tensor_set(bias, &bias_value, 0, sizeof(bias_value));
         int32_t selected[m] = {1, 5};
         ggml_backend_tensor_set(ids, selected, 0, sizeof(selected));
+        std::fprintf(stderr, "stage: computing mixed graph\n");
         require(ggml_backend_sched_graph_compute(sched, graph) == GGML_STATUS_SUCCESS, "compute graph");
         ggml_backend_sched_synchronize(sched);
+        std::fprintf(stderr, "stage: mixed graph synchronized\n");
         std::vector<float> actual(n*m);
         ggml_backend_tensor_get(output, actual.data(), 0, actual.size()*sizeof(float));
         for (int batch=0; batch<m; ++batch) for (int row=0; row<n; ++row) {
@@ -106,6 +114,7 @@ int main(int argc, char ** argv) {
             require(actual[batch*n+row] == std::max(0.0f,expected+bias_value), "exact graph output mismatch");
         }
         std::puts("{\"passed\":true,\"outputs\":4096,\"gather\":\"cpu\",\"q8Matmul\":\"opencl\",\"relu\":\"cpu\",\"f16MatmulDeclined\":true}");
+        std::fprintf(stderr, "stage: all 4096 outputs match, releasing graph\n");
         ggml_backend_sched_free(sched); ggml_free(ctx);
         ggml_backend_buffer_free(weights_buffer); ggml_free(weights_ctx);
         ggml_backend_free(gpu); ggml_backend_free(cpu);

@@ -29,6 +29,7 @@ fi
 apk add --no-cache enclave-shield-apps
 sdk=/usr/lib/enclave-shield-apps
 export POCL_DEVICES=pthread POCL_MAX_PTHREAD_COUNT=2
+export POCL_DEBUG=error,warn
 export OCL_ICD_VENDORS=/etc/OpenCL/vendors/pocl.icd
 mkdir -p /out/tests
 case "$(uname -m)" in
