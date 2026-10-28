@@ -6,7 +6,7 @@ for packages in /core /dependencies /mesa; do
     printf '\n%s/repository\n' "$packages" >>/etc/apk/repositories
 done
 apk add --no-cache enclave-vpx-core enclave-shield-graphics
-adduser -D builder
+adduser -D -u 2000 builder
 addgroup builder abuild
 printf 'builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/builder
 python3 /src/tools/stage-aports.py /home/builder/aports/enclave
@@ -22,7 +22,7 @@ done
 cp -a /home/builder/packages/enclave /out/repository
 cp /home/builder/.abuild/*.pub /out/
 apk add --no-cache enclave-visual-pinball-x
-adduser -D player
+adduser -D -u 1000 player
 cc -O2 /src/components/native-platform/desktop-capture.c -lX11 -o /tmp/capture
 chown player:player /out
 export LIBGL_DRIVERS_PATH=/usr/lib/enclave-shield/dri LD_LIBRARY_PATH=/usr/lib/enclave-shield

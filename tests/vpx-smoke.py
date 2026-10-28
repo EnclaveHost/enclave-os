@@ -27,16 +27,16 @@ def stop(process):
 with tempfile.TemporaryDirectory() as directory:
     home = Path(directory)
     env = dict(os.environ, HOME=directory, XDG_RUNTIME_DIR=directory,
-               PULSE_SERVER=f'unix:{directory}/pulse', SDL_AUDIODRIVER='pulseaudio')
+               PULSE_SERVER=f'unix:{directory}/audio.sock', SDL_AUDIODRIVER='pulseaudio')
     with (OUT/'pulse.log').open('w') as log:
         pulse = subprocess.Popen(['pulseaudio', '--daemonize=no', '--exit-idle-time=-1', '-n',
-            '--load=module-native-protocol-unix socket='+directory+'/pulse auth-anonymous=1',
+            '--load=module-native-protocol-unix socket='+directory+'/audio.sock auth-anonymous=1',
             '--load=module-null-sink sink_name=test rate=48000'], env=env, stdout=log, stderr=log)
     with (OUT/'fluxbox.log').open('w') as log:
         window_manager = subprocess.Popen(['fluxbox'], env=env, stdout=log, stderr=log)
     try:
         deadline = time.monotonic()+10
-        while not (home/'pulse').exists():
+        while not (home/'audio.sock').is_socket():
             assert pulse.poll() is None, (OUT/'pulse.log').read_text()
             assert time.monotonic() < deadline
             time.sleep(.1)
@@ -76,6 +76,7 @@ with tempfile.TemporaryDirectory() as directory:
                         subprocess.run(['xdotool', 'windowactivate', '--sync', window], env=env, check=True, timeout=5)
                         time.sleep(15)
                         assert game.poll() is None, (OUT/f'{name}.log').read_text()
+                        assert pulse.poll() is None, (OUT/'pulse.log').read_text()
                         capture = subprocess.check_output(['/tmp/capture'], env=env, timeout=10)
                         assert capture[:4] == b'RGB1'
                         width, height, _, _ = struct.unpack('>4I', capture[4:20])
