@@ -40,6 +40,18 @@ jobs:
             -v "$PWD:/src:ro" -v "$PWD/inputs:/inputs:ro" -v "$PWD/out:/out" \
             alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
             /bin/sh /src/tools/ci-preview.sh
+      - name: Build a small boot fixture for the measured candidate
+        run: |
+          docker run --rm --memory=2g --memory-swap=2g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-preview-boot-build.sh
+      - name: Boot the read-only root under the pinned KVM kernel
+        run: |
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh -ec 'apk add --no-cache python3 qemu-system-x86_64; python3 /src/tests/preview-boot.py'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

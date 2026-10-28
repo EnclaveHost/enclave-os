@@ -44,3 +44,11 @@ fixture. The controller pin was rechecked against the retained Wasm binary;
 model bytes are not recopied or declared freshly verified. Neither payload is
 included in this OS artifact. `kvm-preview-status.json` explicitly leaves platform
 archive construction, runtime admission and production qualification unfinished.
+
+The preview workflow also boots its measured SquashFS through kernel dm-verity
+in a separate TCG guest, reads the entire verified block device, checks the root
+is read-only, and exercises installed browser/compute command lines after the
+unprivileged memory policy is applied. Its 2 GiB guest is a userland compatibility
+fixture; it does not invoke the native supervisor or reduce its 8 GiB minimum.
+Full service startup, model/worker integration and platform admission remain
+required before a usable KVM Box instance can be offered.
