@@ -36,7 +36,9 @@ adduser -D builder
 addgroup builder abuild
 su builder -c 'abuild-keygen -a -n'
 cp /home/builder/.abuild/*.pub /out/keys/
-apk index -o /out/repository/x86_64/APKINDEX.tar.gz /out/repository/x86_64/*.apk
+# Match abuild's per-architecture repository layout, including noarch APKs.
+# Without this, apk 3 tries to fetch those payloads from a nonexistent noarch/.
+apk index --rewrite-arch x86_64 -o /out/repository/x86_64/APKINDEX.tar.gz /out/repository/x86_64/*.apk
 abuild-sign -k /home/builder/.abuild/*.rsa /out/repository/x86_64/APKINDEX.tar.gz
 if [ "${ENCLAVE_PREVIEW_PREFLIGHT:-0}" = 1 ]; then
     python3 /src/tools/preflight-preview.py
