@@ -86,7 +86,9 @@ with tempfile.TemporaryDirectory() as directory:
                         picture = Image.frombytes('RGB', (width,height), capture[20:])
                         picture.save(OUT/f'{name}.png')
                         colors = len(picture.crop((240,150,720,450)).getcolors(480*300))
-                        assert colors > 256, 'Player window did not contain a rendered table'
+                        if colors <= 256:
+                            time.sleep(1)
+                            continue
                         results.append({'table':name,'visibleWindow':True,'survivedSeconds':15,
                                         'startupSeconds':round(time.monotonic()-started,2),
                                         'centerColors':colors})

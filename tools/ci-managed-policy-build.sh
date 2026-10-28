@@ -37,5 +37,5 @@ sync
 poweroff -f
 INIT
 chmod 755 /out/root/init
-mknod -m600 /out/root/dev/console c 5 1
+[ -e /out/root/dev/console ] || mknod -m600 /out/root/dev/console c 5 1
 (cd /out/root && find . -print0 | cpio --null -o -H newc | gzip -6) >/out/smoke-initramfs.cpio.gz
