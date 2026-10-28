@@ -42,7 +42,8 @@ int main(int argc, char **argv) {
   check(clBuildProgram(program, 1, &device, "-cl-std=CL1.2", nullptr, nullptr));
   auto kernel = clCreateKernel(program, "gemm", &error);
   check(error);
-  const cl_uint m = 4, n = 16, k = 32;
+  const bool cpu_compat = argc > 2 && std::string(argv[2]) == "cpu-compat";
+  const cl_uint m = 4, n = 16, k = cpu_compat ? 31 : 32;
   std::vector<cl_char> a(m * k), b(k * n);
   std::vector<cl_long> c(m * n, 123456789);
   for (size_t i = 0; i < a.size(); ++i) a[i] = int(i % 17) - 8;

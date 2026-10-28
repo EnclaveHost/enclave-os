@@ -23,6 +23,13 @@ export LD_LIBRARY_PATH=/usr/lib/enclave-shield-opencl/lib
 export POCL_DEBUG=error,warn
 export POCL_DEVICES=pthread POCL_MAX_PTHREAD_COUNT=2 OCL_ICD_VENDORS=/etc/OpenCL/vendors/pocl.icd
 for test in event_errors half_convert half_tanh half_images svm conv2d; do
-    c++ -std=c++20 -O2 "/src/components/shield-opencl/test_$test.cpp" -L/usr/lib/enclave-shield-opencl/lib -lOpenCL -pthread -o "/out/tests/$test"
-    timeout 180 "/out/tests/$test" >"/out/$test.log" 2>&1
+    c++ -std=c++20 -O2 '-DSHIELD_TEST_KERNEL="/src/components/shield-opencl/gemm_i8.cl"' "/src/components/shield-opencl/test_$test.cpp" -L/usr/lib/enclave-shield-opencl/lib -lOpenCL -pthread -o "/out/tests/$test"
+    case "$test" in
+        svm) timeout 180 /out/tests/svm svm cpu-compat >/out/svm.log 2>&1 ;;
+        conv2d) timeout 180 /out/tests/conv2d /src/components/shield-opencl/cpu-reference/conv2d.cl >/out/conv2d.log 2>&1 ;;
+        *) timeout 180 "/out/tests/$test" >"/out/$test.log" 2>&1 ;;
+    esac
+done
+for mode in svm-subrange svm-mixed svm-rebind dependency-failure; do
+    timeout 180 /out/tests/svm "$mode" cpu-compat >"/out/$mode.log" 2>&1
 done

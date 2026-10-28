@@ -56,3 +56,13 @@
      std::abort();                                                              \
    } while (0)
  
+--- a/src/SPIRVFuncInfo.hh
++++ b/src/SPIRVFuncInfo.hh
+@@ -23,6 +23,7 @@
+ #ifndef SRC_SPIRV_FUNCINFO_H
+ #define SRC_SPIRV_FUNCINFO_H
+ 
++#include <cstdint>
+ #include <map>
+ #include <memory>
+ #include <vector>
