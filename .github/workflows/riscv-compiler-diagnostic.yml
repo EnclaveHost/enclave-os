@@ -1,0 +1,29 @@
+name: RV64 source compiler diagnostic
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+        with:
+          platforms: riscv64
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+      - run: |
+          mkdir out
+          docker run --rm --memory=4g --memory-swap=4g --cpus=2 --platform linux/riscv64 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
+            /bin/sh -ec 'apk add --no-cache python3 clang18; python3 /src/tests/riscv-compiler-diagnostic.py'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: riscv-compiler-diagnostic
+          path: |
+            out/diagnostic.json
+            out/*.stderr
+          retention-days: 7
