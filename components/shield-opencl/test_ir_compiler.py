@@ -6,10 +6,13 @@ import subprocess
 import tempfile
 import unittest
 import struct
+import sys
+PACKAGE = Path(os.environ.get('SHIELD_OPENCL_PACKAGE', Path(__file__).parent))
+sys.path.insert(0, str(PACKAGE))
 from kernel_compiler import compile_modules
 
 REFERENCE = Path(os.environ.get('SHIELD_IR_REFERENCE', '/tests/gemm-reference.bc'))
-COMPILER = Path(__file__).with_name('ir-compiler')
+COMPILER = PACKAGE / 'ir-compiler'
 
 
 class IRCompilerTests(unittest.TestCase):

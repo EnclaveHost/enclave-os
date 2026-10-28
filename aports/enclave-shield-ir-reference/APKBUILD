@@ -1,0 +1,22 @@
+pkgname=enclave-shield-ir-reference
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Audited integer GEMM structural reference for the Shield IR compiler"
+url="https://github.com/EnclaveHost/enclave-os"
+arch="noarch"
+license="LicenseRef-Enclave-Source-Available"
+depends="enclave-shield-opencl"
+options="!check !strip" # Installed positive and adversarial IR tests run in CI.
+source="gemm-reference.bc gemm-reference.spv"
+builddir="$srcdir"
+package() {
+    local dest="$pkgdir/usr/lib/enclave-shield-opencl"
+    install -Dm644 gemm-reference.bc "$dest/gemm-reference.bc"
+    install -m644 gemm-reference.spv "$dest/"
+    install -Dm644 /src/components/shield-opencl/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 /src/components/shield-opencl/gemm_i8_cuda.cu "$dest/gemm-reference.cu"
+}
+sha512sums="
+d518c766ba6b0b57ada6d648e227c8ba0c5d8a8a467dd1a2c50f976b3bbb131ec29f89d1fea8f16576768396d78cd3035ea679299538e7df2ff4cfab59f289b6  gemm-reference.bc
+39245cbee2c679ab47836eda8644a82fbc2e143ff63a008b0b86fecd6db96e46e4e4a36b91bec3d6338037159113f4df388c500b9e5533037084d243e92594f4  gemm-reference.spv
+"
