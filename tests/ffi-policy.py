@@ -11,7 +11,8 @@ assert status['NoNewPrivs'].strip() == '1' and status['Seccomp'].strip() == '2'
 libc = C.CDLL(None, use_errno=True)
 libc.mmap.restype = C.c_void_p
 assert libc.mmap(None, 4096, 7, 0x22, -1, 0) == C.c_void_p(-1).value
-assert C.get_errno() == errno.EPERM
+# musl translates EPERM on anonymous mmap to ENOMEM.
+assert C.get_errno() in (errno.EPERM, errno.ENOMEM)
 callback_type = C.CFUNCTYPE(C.c_int, C.c_int)
 callbacks = [callback_type(lambda value, bias=bias: value + bias) for bias in range(300)]
 for bias, callback in enumerate(callbacks):

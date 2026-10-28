@@ -1,19 +1,36 @@
 name: Static libffi callbacks under native role policy
 on:
   workflow_dispatch:
+    inputs:
+      package_run:
+        description: Retest signed package and upstream test log from an earlier run
+        required: false
 permissions:
   contents: read
+  actions: read
 jobs:
   ffi:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Fetch retained signed package when requested
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN: ${{ inputs.package_run }}
+        run: |
+          mkdir retained
+          if [ -n "$PACKAGE_RUN" ]; then
+            [[ "$PACKAGE_RUN" =~ ^[0-9]+$ ]]
+            test "$(gh run view "$PACKAGE_RUN" --json workflowName --jq .workflowName)" = 'Static libffi callbacks under native role policy'
+            gh run download "$PACKAGE_RUN" --name enclave-libffi-x86_64 --dir retained
+            gh run view "$PACKAGE_RUN" --json headSha,conclusion >retained/package-source-run.json
+          fi
       - name: Build signed package and exercise callbacks with W^X enforced
         run: |
           mkdir out
           docker run --rm --memory=2g --memory-swap=2g --cpus=2 \
-            -v "$PWD:/src:ro" -v "$PWD/out:/out" \
+            -v "$PWD:/src:ro" -v "$PWD/out:/out" -v "$PWD/retained:/retained:ro" \
             alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
             /bin/sh /src/tools/ci-ffi.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
