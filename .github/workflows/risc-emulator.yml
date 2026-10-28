@@ -1,8 +1,13 @@
 name: Actual RISC Box emulator with Alpine userland
 on:
   workflow_dispatch:
+    inputs:
+      boot_run_id:
+        required: false
+        description: Reuse a previous immutable firmware/disk fixture
 permissions:
   contents: read
+  actions: read
 jobs:
   emulator:
     runs-on: ubuntu-24.04
@@ -24,14 +29,24 @@ jobs:
           PY
           sudo apt-get update
           sudo apt-get install -y gcc-riscv64-linux-gnu g++-riscv64-linux-gnu bison flex bc libssl-dev libelf-dev device-tree-compiler e2fsprogs
-          rustup toolchain install 1.90.0 --profile minimal --target wasm32-wasip1
+          rustup toolchain install nightly-2026-08-07 --profile minimal --target wasm32-wasip1
       - name: Build known emulator-compatible kernel, firmware and fresh Alpine disk
+        if: inputs.boot_run_id == ''
         run: bash components/risc-platform/build-boot-test.sh
+      - name: Reuse the pinned boot fixture
+        if: inputs.boot_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ inputs.boot_run_id }}
+        run: |
+          [[ "$RUN" =~ ^[0-9]+$ ]]
+          gh run download "$RUN" --name risc-alpine-boot --dir out
+          sha256sum out/fw_payload.elf out/rootfs.ext2 >out/reused-inputs.log
       - name: Build native and Wasm versions of the same instruction/device implementation
         run: |
           cd components/risc-platform/runner
-          cargo +1.90.0 build --release -j2 >../../../out/emulator-build.log 2>&1
-          cargo +1.90.0 build --release --target wasm32-wasip1 -j2 >../../../out/emulator-wasm-build.log 2>&1
+          cargo +nightly-2026-08-07 build --locked --release -j2 >../../../out/emulator-build.log 2>&1
+          cargo +nightly-2026-08-07 build --locked --release --target wasm32-wasip1 -j2 >../../../out/emulator-wasm-build.log 2>&1
           cp Cargo.lock ../../../out/
           cp target/wasm32-wasip1/release/enclave-risc-boot-test.wasm ../../../out/
       - name: Boot the real emulator with Alpine musl

@@ -14,6 +14,7 @@ builddir="$srcdir/game"
 prepare() {
     mkdir -p "$builddir"
     tar -xf "$srcdir/enclave-openhv-managed.apk" -C "$builddir"
+    cd "$builddir"
     python3 - <<'PY'
 from pathlib import Path
 import json
