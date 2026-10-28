@@ -1,0 +1,12 @@
+--- a/lib/CL/pocl_llvm_utils.cc
++++ b/lib/CL/pocl_llvm_utils.cc
+@@ -184,7 +184,8 @@
+     r = "generic";
+ 
+ #ifndef KERNELLIB_HOST_DISTRO_VARIANTS
+-  if (r.str() == "generic" && strlen(OCL_KERNEL_TARGET_CPU)) {
++  if ((r.str() == "generic" || r.str() == "generic-rv64") &&
++      strlen(OCL_KERNEL_TARGET_CPU)) {
+     POCL_MSG_WARN("LLVM does not recognize your cpu, trying to use "
+                    OCL_KERNEL_TARGET_CPU " for -target-cpu\n");
+     r = StringRef(OCL_KERNEL_TARGET_CPU);
