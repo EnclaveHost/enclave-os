@@ -9,11 +9,37 @@ permissions:
   contents: read
   actions: read
 jobs:
+  bootstrap-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # GitHub requires push-level access to read an unpublished draft release.
+    # This isolated job only downloads fixed inputs; no source code runs here.
+    permissions:
+      contents: write
+    steps:
+      - name: Read the fixed draft build inputs without publishing them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern retained-native-bootstrap.tar.gz --dir bootstrap
+          printf '%s\n' 'cfa70e95e9428eaa73ca042d06ea075a45238ebec3e1a7df3dcc19ba37e3863c  bootstrap/retained-native-bootstrap.tar.gz' | sha256sum -c -
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-bootstrap-inputs
+          path: bootstrap/retained-native-bootstrap.tar.gz
+          retention-days: 1
   platform:
+    needs: bootstrap-inputs
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: retained-bootstrap-inputs
+          path: bootstrap
       - name: Check media tampering refusals
         run: python3 tests/kvm-platform-media.py
       - name: Fetch verified preview and exact retained bootstrap inputs
@@ -29,7 +55,6 @@ jobs:
           test "$(jq -r .conclusion out/preview-run.json)" = success
           test "$(jq -r .workflowName out/preview-run.json)" = 'Separate x86 full-feature preview root'
           gh run download "$PREVIEW_RUN" --repo EnclaveHost/enclave-os --name enclave-os-x86-preview --dir preview
-          gh release download retained-native-bootstrap-20261028 --repo EnclaveHost/enclave-os --pattern retained-native-bootstrap.tar.gz --dir bootstrap
           printf '%s\n' 'cfa70e95e9428eaa73ca042d06ea075a45238ebec3e1a7df3dcc19ba37e3863c  bootstrap/retained-native-bootstrap.tar.gz' | sha256sum -c -
           tar -xzf bootstrap/retained-native-bootstrap.tar.gz -C bootstrap
       - name: Compile measured native platform with the new root profile
