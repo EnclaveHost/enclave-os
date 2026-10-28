@@ -1,0 +1,58 @@
+name: Native policy on pinned KVM kernel
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_run_id:
+        required: true
+        default: '40621991327'
+      policy_run_id:
+        required: true
+        default: '40615018707'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  policy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Fetch successful pinned kernel and real policy payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KERNEL: ${{ inputs.kernel_run_id }}
+          POLICY: ${{ inputs.policy_run_id }}
+        run: |
+          [[ "$KERNEL" =~ ^[0-9]+$ && "$POLICY" =~ ^[0-9]+$ ]]
+          test "$(gh run view "$KERNEL" --json conclusion --jq .conclusion)" = success
+          test "$(gh run view "$POLICY" --json conclusion --jq .conclusion)" = success
+          gh run download "$KERNEL" --name native-kernel-fixture-amd64 --dir kernel
+          gh run download "$POLICY" --name native-policy-amd64 --dir out
+          (cd kernel && sha256sum -c SHA256SUMS)
+          cp kernel/bzImage out/smoke-kernel
+      - name: Execute actual seccomp and role checks in the exact adapter ABI
+        run: |
+          docker run --rm --memory=1g --memory-swap=1g --cpus=2 -w /src \
+            -e ENCLAVE_ARCH=x86_64 -e ENCLAVE_POLICY_TEST=1 \
+            -v "$PWD:/src:ro" -v "$PWD/out:/src/out" \
+            alpine@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d \
+            /bin/sh /src/tools/ci-boot.sh
+          python3 - <<'PY'
+          import hashlib,json,pathlib,os
+          log=pathlib.Path('out/boot.log').read_text()
+          assert '6.6.87.2-enclave-kvm-box' in log
+          files={name:hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() for name in
+                 ('out/smoke-kernel','out/smoke-initramfs.cpio.gz','out/boot.log')}
+          pathlib.Path('out/exact-kernel-policy.json').write_text(json.dumps({
+              'files':files,'policyAndRolesPassed':True,'acceleration':'tcg',
+              'nativeServiceGraphQualified':False,'productionAdmission':False},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kvm-kernel-policy
+          path: |
+            out/boot.log
+            out/exact-kernel-policy.json
+            kernel/enclave-kernel-source.json
+          retention-days: 7

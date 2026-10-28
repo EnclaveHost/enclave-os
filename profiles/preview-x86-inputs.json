@@ -140,7 +140,7 @@
     {
       "name": "native",
       "repository": "EnclaveHost/enclave-os",
-      "run": 40620715390,
+      "run": 40623949487,
       "artifact": "native-platform-amd64",
       "packages": [
         "enclave-native-platform"
