@@ -1,6 +1,6 @@
 pkgname=enclave-pocl
 pkgver=6.0
-pkgrel=0
+pkgrel=1
 _commit=952bc559f790e5deb5ae48692c4a19619b53fcdc
 pkgdesc="Shield CPU OpenCL fallback with event, half and vectorizer fixes"
 url="https://portablecl.org"
@@ -29,6 +29,7 @@ build() {
     esac
     cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/lib/enclave-pocl -DCMAKE_INSTALL_LIBDIR=lib \
+        -DCMAKE_INSTALL_RPATH="/usr/lib/enclave-pocl/lib:/usr/lib/enclave-pocl/lib/pocl" \
         -DWITH_LLVM_CONFIG=/usr/lib/llvm18/bin/llvm-config \
         -DENABLE_ICD=ON -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF \
         -DENABLE_HOST_CPU_DEVICES=ON -DENABLE_CUDA=OFF -DENABLE_VULKAN=OFF \
