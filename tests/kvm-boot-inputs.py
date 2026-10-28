@@ -20,7 +20,9 @@ class BootInputs(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root,kernel,out,pin=self.fixture(pathlib.Path(temp))
             report=boot.stage(root,kernel,out,pin=pin)
-            for name in boot.HELPERS:
+            # The deployed monitor/domexec ABI is independent of the export
+            # implementation: omitting supervisor used to pass this test.
+            for name in ('nsinit','gateway','supervisor'):
                 old=root/'usr/local/libexec/kvm-box'/name
                 new=root/'usr/libexec/enclave-os/native'/name
                 self.assertFalse(old.is_symlink());self.assertTrue(old.samefile(new))
