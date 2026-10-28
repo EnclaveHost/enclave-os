@@ -28,7 +28,7 @@
     {
       "name": "graphics",
       "repository": "EnclaveHost/enclave-os",
-      "run": 40585759556,
+      "run": 40636763758,
       "artifact": "shield-mesa-amd64",
       "packages": [
         "enclave-shield-graphics"
@@ -65,7 +65,7 @@
     {
       "name": "frontend",
       "repository": "EnclaveHost/enclave-os",
-      "run": 40617930209,
+      "run": 40636421820,
       "artifact": "shield-opencl-amd64",
       "packages": [
         "enclave-shield-opencl"
@@ -112,7 +112,7 @@
     {
       "name": "pinball",
       "repository": "EnclaveHost/enclave-os",
-      "run": 40617171096,
+      "run": 40638030821,
       "artifact": "vpx-runtime-amd64",
       "packages": [
         "enclave-visual-pinball-x"
